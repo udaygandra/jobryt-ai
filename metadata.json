@@ -1,0 +1,7 @@
+{
+  "name": "jobryt-ai",
+  "description": "Imported from GitHub: udaygandra/jobryt-ai",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

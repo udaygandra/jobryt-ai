@@ -1,0 +1,52 @@
+{
+  "name": "jobryt-ai-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "node server.js",
+    "build": "node -e 'console.log(\"Build complete\")'",
+    "start": "node server.js",
+    "setup": "node scripts/admin/setup-wizard.js",
+    "start:prod": "ENV_FILE=.env.prod NODE_ENV=production node scripts/bot/start-bot.js",
+    "reset": "node scripts/admin/reset-data.js",
+    "republish": "node scripts/admin/optimize-master-workflow.js && docker compose exec -T n8n node /scripts/admin/sync-n8n-db.js",
+    "restart": "docker compose restart n8n telegram-bridge",
+    "republish:restart": "node scripts/admin/optimize-master-workflow.js && docker compose exec -T n8n node /scripts/admin/sync-n8n-db.js && docker compose restart n8n telegram-bridge",
+    "parse-resume": "node scripts/engine/resume-to-profile.js",
+    "test-resume": "node scripts/engine/resume-to-profile.js --test",
+    "promote-profile": "node scripts/engine/resume-to-profile.js --promote",
+    "audit:security": "node scripts/admin/security-audit.js",
+    "validate": "node scripts/admin/validate-workflows.js",
+    "test": "node tests/test-experience-calculator.js && node tests/test-telegram-onboarding.js && node tests/test-llm-state.js",
+    "test:benchmark": "node tests/benchmark-25-roles.js",
+    "test:all": "node tests/test-experience-calculator.js && node tests/test-all-nodes.js && node tests/test-telegram-onboarding.js && node tests/test-llm-state.js && node tests/test-recruiter-node.js && node tests/test-us-jobs-matrix.js && node tests/benchmark-25-roles.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/udaygandra/jobryt-ai-agent.git"
+  },
+  "keywords": [
+    "job-automation",
+    "n8n",
+    "ai-agent",
+    "resume-builder",
+    "telegram-bot"
+  ],
+  "author": "JobRyt AI Community",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "bugs": {
+    "url": "https://github.com/udaygandra/jobryt-ai-agent/issues"
+  },
+  "homepage": "https://github.com/udaygandra/jobryt-ai-agent#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "luxon": "^3.7.2",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.20.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}
