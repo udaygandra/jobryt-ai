@@ -36,8 +36,11 @@ const webhookPath = (process.env.TELEGRAM_WEBHOOK_PATH || 'telegram-callback').r
 const targetWebhookUrl = `${n8nBaseUrl.replace(/\/+$/, '')}/webhook/${webhookPath}`;
 
 if (!botToken) {
-  console.error('❌ TELEGRAM_BOT_TOKEN is not set.');
-  process.exit(1);
+  console.log('ℹ️ TELEGRAM_BOT_TOKEN is not configured. Telegram bridge is in Standby mode.');
+  console.log('ℹ️ You can manage opportunities, search rules, and resumes via the Web Dashboard at http://localhost:3000.');
+  // Keep alive in standby to avoid Docker crash loops
+  setInterval(() => {}, 1000 * 60 * 60);
+  return;
 }
 
 function isAuthorizedSender(senderId) {

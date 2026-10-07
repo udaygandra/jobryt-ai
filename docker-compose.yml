@@ -1,5 +1,39 @@
-# docker-compose.yml
+# docker-compose.yml — Unified Orchestration for Jobryt AI Agent
+# Runs Web Dashboard (port 3000), n8n Workflow Engine (port 5678), and Telegram Bot
 services:
+  # 1. Jobryt Standalone Web Dashboard & Engine
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATA_DIR=/app/data
+      - SCRIPTS_DIR=/app/scripts
+      - PROMPTS_DIR=/app/prompts
+      - WORKFLOWS_DIR=/app/workflows
+      - N8N_URL=http://n8n:5678
+    env_file:
+      - ${ENV_FILE:-.env}
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    volumes:
+      - ${DATA_DIR:-./data}:/app/data
+      - ./public:/app/public
+      - ./scripts:/app/scripts
+      - ./server.js:/app/server.js
+      - ${ENV_FILE:-.env}:/app/.env:ro
+
+  # 2. n8n Workflow Automation Canvas
   n8n:
     image: n8nio/n8n:2.38.7
     command: start
@@ -53,6 +87,7 @@ services:
       - ${PROMPTS_DIR:-./prompts}:/prompts
       - ${ENV_FILE:-.env}:/data/.env:ro
 
+  # 3. Telegram Real-Time Callback Bridge (Idles gracefully if token is omitted)
   telegram-bridge:
     image: n8nio/n8n:2.38.7
     restart: unless-stopped

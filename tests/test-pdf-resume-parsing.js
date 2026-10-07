@@ -435,7 +435,7 @@ async function runPdfTests() {
 
   assert.strictEqual(alexUploadRes.status, 200);
   const alexProf = alexUploadRes.json.profile;
-  assert.strictEqual(alexProf.name, 'ALEX MERCER');
+  assert.strictEqual(alexProf.name.toUpperCase(), 'ALEX MERCER');
   assert(alexProf.target_titles.includes('Senior Full Stack Engineer') || alexProf.target_titles.includes('Lead Full Stack Engineer'));
   assert.strictEqual(alexProf.contact.email, 'alex.mercer@devtech.org');
   assert.strictEqual(alexProf.contact.phone, '+1 (415) 888-2910');

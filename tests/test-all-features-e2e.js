@@ -229,11 +229,16 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
   let testJobId = null;
 
   await test('POST /api/pipeline/evaluate-custom evaluates any custom job link/text', async () => {
+    const profRes = await request('GET', '/api/profile');
+    const prof = profRes.json || {};
+    const targetTitle = (prof.target_titles && prof.target_titles[0]) || 'Data Analyst';
+    const topSkills = (prof.skills && prof.skills.length ? prof.skills.slice(0, 5) : ['SQL', 'Power BI', 'Python']).join(', ');
+
     const customJob = {
-      title: 'Senior Cloud Platform Engineer',
+      title: `Senior ${targetTitle}`,
       company: 'OmniCloud Systems',
       location: 'Remote (US/Canada)',
-      description: 'Looking for a Senior Cloud Platform Engineer with deep experience in TypeScript, Node.js, Docker, Kubernetes, and AWS microservices.',
+      description: `Looking for an experienced Senior ${targetTitle} with deep expertise in ${topSkills}, statistical analysis, and interactive dashboarding.`,
       url: 'https://example.com/jobs/cloud-platform'
     };
 

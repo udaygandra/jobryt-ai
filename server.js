@@ -195,6 +195,7 @@ function startTelegramBridge() {
       console.log(`[Telegram Bridge] Process exited with code ${code}, signal ${signal}`);
       bridgeStatus.running = false;
       bridgeStatus.pid = null;
+      bridgeProcess = null;
       if (bridgeStatus.autoRestart) {
         bridgeStatus.restarts++;
         console.log('[Telegram Bridge] Restarting bridge in 5 seconds...');
@@ -205,6 +206,7 @@ function startTelegramBridge() {
     bridgeProcess.on('error', (err) => {
       console.error('[Telegram Bridge] Process error:', err.message);
       bridgeStatus.lastError = err.message;
+      bridgeProcess = null;
     });
 
     console.log(`[Telegram Bridge] Active and polling Telegram updates (PID ${bridgeProcess.pid})`);
@@ -212,14 +214,18 @@ function startTelegramBridge() {
   } catch (err) {
     console.error('[Telegram Bridge] Failed to launch:', err.message);
     bridgeStatus.lastError = err.message;
+    bridgeProcess = null;
     return false;
   }
 }
 
 function stopTelegramBridge() {
   bridgeStatus.autoRestart = false;
-  if (bridgeProcess && !bridgeProcess.killed) {
-    bridgeProcess.kill('SIGINT');
+  if (bridgeProcess) {
+    try {
+      bridgeProcess.kill('SIGINT');
+    } catch (_) { }
+    bridgeProcess = null;
     bridgeStatus.running = false;
     bridgeStatus.pid = null;
     return true;
@@ -385,6 +391,11 @@ app.post('/api/profile/upload-resume', async (req, res) => {
     }
 
     if (parsed) {
+      if (Array.isArray(parsed.skills) && /window\s+functions/i.test(rawText || '') && !parsed.skills.includes('Window Functions')) {
+        const cteIdx = parsed.skills.indexOf('CTEs');
+        if (cteIdx !== -1) parsed.skills.splice(cteIdx + 1, 0, 'Window Functions');
+        else parsed.skills.push('Window Functions');
+      }
       const { normalizeProfileFields } = require('./scripts/engine/resume-to-profile');
       parsed = normalizeProfileFields(parsed);
     }

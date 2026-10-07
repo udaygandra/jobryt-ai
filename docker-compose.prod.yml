@@ -5,6 +5,14 @@
 #   ENV_FILE=.env.prod docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
+  web:
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=512
+    deploy:
+      resources:
+        limits:
+          memory: 640M
+
   n8n:
     environment:
       - NODE_OPTIONS=--max-old-space-size=768
