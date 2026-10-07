@@ -156,9 +156,9 @@ function recordModelError(modelId, error) {
   } else if (errMsg.includes('500') || errMsg.includes('503') || errMsg.includes('service unavailable')) {
     s.blocked_until = nowSec + 30; // 30s server error block
     console.warn(`⚠️ Model [${modelId}] 500/503 temporary error. Blocked for 30s.`);
-  } else if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('unsupported')) {
+  } else if (errMsg.includes('404') || errMsg.includes('not found') || errMsg.includes('unsupported') || (errMsg.includes('400') && (errMsg.includes('model') || errMsg.includes('invalid')))) {
     s.blacklisted = true;
-    console.warn(`🚫 Model [${modelId}] permanently blacklisted (404 Not Found).`);
+    console.warn(`🚫 Model [${modelId}] permanently blacklisted (${errMsg.slice(0, 60)}).`);
   }
 
   state[modelId] = s;

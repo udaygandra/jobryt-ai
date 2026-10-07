@@ -7,6 +7,7 @@
   <meta name="description" content="Autonomous multi-board job discovery, scoring, and ATS resume tailoring application.">
   <meta property="og:title" content="Jobryt AI Agent">
   <meta property="og:description" content="Autonomous multi-board job discovery, scoring, and ATS resume tailoring application.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Crect width='24' height='24' rx='6' fill='%2314161A'/%3E%3Ccircle cx='12' cy='12' r='8.5' stroke='%23D9A441' stroke-width='1.2' stroke-dasharray='2.5 3' opacity='0.45'/%3E%3Cpath d='M5.5 6v6.5c0 2.2 1.8 4 4 4c1.2 0 2.3-.5 3.1-1.4L19.5 5' stroke='%23D9A441' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M14.5 5h5v5' stroke='%23D9A441' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%235FA8A0'/%3E%3C/svg%3E">
 
   <!-- Tailwind CSS via CDN for clean, zero-dependency styling -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -145,6 +146,157 @@
     .mob-tab:not(.tab-active) {
       color: var(--text-muted) !important;
       border-color: transparent !important;
+    }
+
+    /* Dropdown Menus & Hierarchical Nav States */
+    .nav-dropdown-group {
+      position: relative;
+    }
+    .nav-dropdown-menu {
+      display: none;
+      animation: navMenuAppear 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    /* Invisible hover bridge to eliminate premature menu close during diagonal mouse travel */
+    .nav-dropdown-menu::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 0;
+      right: 0;
+      height: 12px;
+      background: transparent;
+    }
+    .nav-dropdown-group:hover .nav-dropdown-menu,
+    .nav-dropdown-group.is-open .nav-dropdown-menu {
+      display: block;
+    }
+    .nav-dropdown-group:hover .dropdown-chevron,
+    .nav-dropdown-group.is-open .dropdown-chevron {
+      transform: rotate(180deg);
+    }
+    @keyframes navMenuAppear {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .nav-group-btn {
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .nav-group-btn.group-active {
+      color: var(--text-primary) !important;
+      border-bottom-color: var(--primary) !important;
+      font-weight: 600;
+    }
+    .nav-group-btn[data-group="opportunities"].group-active {
+      border-bottom-color: var(--primary) !important;
+    }
+    .nav-group-btn[data-group="applications"].group-active {
+      border-bottom-color: var(--accent) !important;
+    }
+    .nav-group-btn[data-group="dossier"].group-active,
+    .nav-tab.tab-active {
+      color: var(--text-primary) !important;
+      border-bottom-color: var(--primary) !important;
+      font-weight: 600;
+    }
+    .nav-group-btn[data-group="settings"].group-active {
+      border-bottom-color: #F59E0B !important;
+    }
+    .nav-dropdown-item {
+      border-left: 2px solid transparent;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-dropdown-item.item-active {
+      background-color: var(--surface-elevated) !important;
+      border-left-color: var(--primary) !important;
+    }
+    .nav-dropdown-item.item-active[data-accent="teal"] {
+      border-left-color: var(--accent) !important;
+    }
+    .nav-dropdown-item.item-active[data-accent="amber"] {
+      border-left-color: #F59E0B !important;
+    }
+    .nav-dropdown-item.item-active[data-accent="blue"] {
+      border-left-color: #60A5FA !important;
+    }
+
+    /* Light mode dropdown styling */
+    [data-theme="light"] .nav-dropdown-menu {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.12), 0 6px 14px -2px rgba(15, 23, 42, 0.05) !important;
+    }
+    [data-theme="light"] .nav-dropdown-item:hover {
+      background-color: #F8FAFC !important;
+    }
+    [data-theme="light"] .nav-dropdown-item.item-active {
+      background-color: #F1F5F9 !important;
+    }
+    [data-theme="light"] .nav-group-btn.group-active,
+    [data-theme="light"] .nav-tab.tab-active {
+      color: #0F172A !important;
+    }
+
+    /* Mobile Side Navigation Drawer Styles */
+    #mobile-drawer-backdrop {
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #mobile-drawer-panel {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+    @media (min-width: 768px) {
+      #mobile-drawer-backdrop,
+      #mobile-drawer-panel {
+        display: none !important;
+      }
+    }
+    .side-nav-item {
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .side-nav-item.side-active {
+      background-color: var(--surface-elevated) !important;
+      border-left-color: var(--primary) !important;
+      color: var(--text-primary) !important;
+    }
+    .side-nav-item.side-active[data-accent="teal"] {
+      border-left-color: var(--accent) !important;
+    }
+    .side-nav-item.side-active[data-accent="amber"] {
+      border-left-color: #F59E0B !important;
+    }
+    .side-nav-item.side-active[data-accent="blue"] {
+      border-left-color: #60A5FA !important;
+    }
+
+    [data-theme="light"] #mobile-drawer-panel {
+      background-color: #FFFFFF !important;
+      border-color: #E2E8F0 !important;
+      color: #0F172A !important;
+      box-shadow: 4px 0 28px rgba(15, 23, 42, 0.12) !important;
+    }
+    [data-theme="light"] #mobile-drawer-panel .drawer-sticky-header {
+      background-color: rgba(255, 255, 255, 0.96) !important;
+      border-color: #E2E8F0 !important;
+    }
+    [data-theme="light"] #mobile-drawer-panel .drawer-status-strip,
+    [data-theme="light"] #mobile-drawer-panel .drawer-footer {
+      background-color: #F8FAFC !important;
+      border-color: #E2E8F0 !important;
+    }
+    [data-theme="light"] .side-nav-item:hover {
+      background-color: #F8FAFC !important;
+    }
+    [data-theme="light"] .side-nav-item.side-active {
+      background-color: #F1F5F9 !important;
     }
 
     /* Tactile button feedback */
@@ -363,6 +515,35 @@
       border-color: #FECACA !important;
     }
 
+    /* Bespoke Logo Badge Styling */
+    .jobryt-logo-badge {
+      background: linear-gradient(135deg, rgba(217, 164, 65, 0.22) 0%, rgba(217, 164, 65, 0.08) 100%);
+      border: 1px solid rgba(217, 164, 65, 0.35);
+      color: #D9A441;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .jobryt-logo-badge:hover,
+    .group:hover .jobryt-logo-badge {
+      border-color: #D9A441;
+      box-shadow: 0 0 14px rgba(217, 164, 65, 0.25);
+    }
+    [data-theme="light"] .jobryt-logo-badge {
+      background: linear-gradient(135deg, rgba(180, 83, 9, 0.12) 0%, rgba(180, 83, 9, 0.04) 100%) !important;
+      border: 1px solid rgba(180, 83, 9, 0.28) !important;
+      color: #B45309 !important;
+      box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05) !important;
+    }
+    [data-theme="light"] .group:hover .jobryt-logo-badge {
+      border-color: #B45309 !important;
+      box-shadow: 0 0 12px rgba(180, 83, 9, 0.2) !important;
+    }
+    [data-theme="light"] .jobryt-logo-badge .reticle-ring {
+      stroke: #B45309 !important;
+    }
+    [data-theme="light"] .jobryt-logo-badge .target-node {
+      fill: #0F766E !important;
+    }
+
     /* Scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg-base); }
@@ -375,68 +556,459 @@
 </head>
 <body class="min-h-screen flex flex-col bg-[#14161A] text-[#E8E6E1] antialiased selection:bg-[#D9A441] selection:text-[#14161A] overflow-x-hidden max-w-full">
 
-  <!-- Top Header: Strict 1-Row 3-Zone Top Bar Contract -->
-  <header class="sticky top-0 z-40 bg-[#14161A] border-b border-[#2B3036] w-full">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 lg:gap-8">
-      
-      <!-- Zone 1: Single text element wordmark in display face -->
-      <a href="/" class="text-base sm:text-lg font-bold tracking-tight text-[#E8E6E1] flex items-center gap-2.5 shrink-0 hover:opacity-90">
-        <span class="w-2 h-2 rounded bg-[#D9A441]"></span>
-        <span class="tracking-tight">Jobryt</span>
+  <!-- Mobile Side Navigation Drawer Backdrop -->
+  <div id="mobile-drawer-backdrop" onclick="closeMobileDrawer()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out md:hidden" aria-hidden="true"></div>
+
+  <!-- Mobile Side Navigation Drawer Panel -->
+  <aside id="mobile-drawer-panel" class="fixed inset-y-0 left-0 z-50 w-72 sm:w-80 max-w-[85vw] flex flex-col bg-[#14161A] border-r border-[#2B3036] shadow-2xl transition-transform duration-300 ease-in-out -translate-x-full md:hidden overflow-y-auto" aria-label="Mobile Navigation Sidebar" role="dialog" aria-modal="true">
+    
+    <!-- Drawer Header -->
+    <div class="drawer-sticky-header h-16 px-4 flex items-center justify-between border-b border-[#2B3036] shrink-0 bg-[#14161A]/85 backdrop-blur-md sticky top-0 z-10">
+      <a href="/" onclick="closeMobileDrawer()" class="group flex items-center gap-2.5 focus:outline-none" aria-label="Jobryt AI Home">
+        <div class="jobryt-logo-badge w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+          <svg class="w-4.5 h-4.5 text-[#D9A441]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="8.5" class="reticle-ring" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.5 3" opacity="0.4"/>
+            <path d="M5.5 6V12.5C5.5 14.7 7.3 16.5 9.5 16.5C10.7 16.5 11.8 16 12.6 15.1L19.5 5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14.5 5H19.5V10" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="1.6" class="target-node" fill="#5FA8A0"/>
+          </svg>
+        </div>
+        <div class="flex flex-col leading-none">
+          <div class="flex items-center gap-1.5">
+            <span class="text-base font-bold tracking-tight text-[#E8E6E1]">Jobryt</span>
+            <span class="text-[9px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded bg-[#242830] text-[#9AA0A6] border border-[#2B3036]">Engine</span>
+          </div>
+          <span class="text-[10px] text-[#9AA0A6] font-normal mt-0.5">Career Acceleration</span>
+        </div>
       </a>
+      
+      <!-- Close Button with 44px touch target -->
+      <button id="mobile-drawer-close" onclick="closeMobileDrawer()" aria-label="Close mobile navigation menu" class="w-10 h-10 rounded-md flex items-center justify-center text-[#9AA0A6] hover:text-[#E8E6E1] hover:bg-[#242830] border border-transparent hover:border-[#2B3036] transition-colors cursor-pointer active:scale-95">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
 
-      <!-- Zone 2: Clean single-line text navigation links with subtle active border -->
-      <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs lg:text-sm font-medium shrink-0">
-        <button onclick="switchTab('feed')" id="tab-feed" class="nav-tab tab-active py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Opportunities (<span id="tab-count-pending" class="font-mono tabular-nums">0</span>)
-        </button>
-        <button onclick="switchTab('config')" id="tab-config" class="nav-tab py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Settings
-        </button>
-        <button onclick="switchTab('custom')" id="tab-custom" class="nav-tab py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Custom Tailor
-        </button>
-        <button onclick="switchTab('profile')" id="tab-profile" class="nav-tab py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Master Profile
-        </button>
-        <button onclick="switchTab('applied')" id="tab-applied" class="nav-tab py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Applications (<span id="tab-count-applied" class="font-mono tabular-nums">0</span>)
-        </button>
-        <button onclick="switchTab('recruiters')" id="tab-recruiters" class="nav-tab py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Recruiter Leads
-        </button>
-        <button onclick="switchTab('telegram')" id="tab-telegram" class="nav-tab py-5 border-b-2 whitespace-nowrap active:scale-[0.98]">
-          Telegram Bot
-        </button>
-      </nav>
+    <!-- Quick Status / Metric Summary Strip in Drawer -->
+    <div class="drawer-status-strip px-4 py-3 bg-[#111317] border-b border-[#2B3036]/60 flex items-center justify-between text-[11px] font-mono text-[#9AA0A6]">
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-[#E8E6E1] font-medium">Pipeline Active</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span>Queue: <strong id="side-metric-queue" class="text-[#D9A441] font-bold">0</strong></span>
+        <span>·</span>
+        <span>Applied: <strong id="side-metric-applied" class="text-[#5FA8A0] font-bold">0</strong></span>
+      </div>
+    </div>
 
-      <!-- Zone 3: 1-2 primary actions + theme toggle -->
-      <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-        <!-- Theme Toggle Button -->
-        <button onclick="toggleTheme()" id="theme-toggle" aria-label="Toggle between Light and Dark mode" title="Toggle theme (Light / Dark)" class="inline-flex items-center justify-center w-8 h-8 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-[0.98] transition-colors shrink-0">
-          <svg id="theme-icon-sun" class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          <svg id="theme-icon-moon" class="w-4 h-4 text-[#0F172A] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    <!-- Drawer Navigation Content -->
+    <div class="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+      
+      <!-- Pillar 1: Opportunities -->
+      <div class="space-y-1.5">
+        <div class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Opportunities</span>
+          </span>
+          <span class="text-[10px] font-mono lowercase text-[#D9A441]/80">sourcing & match</span>
+        </div>
+        
+        <div class="space-y-1">
+          <!-- Feed / Discovery Queue -->
+          <button onclick="selectSideTab('feed')" id="side-tab-feed" class="side-nav-item side-active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-[#D9A441]/10 border border-[#D9A441]/20 flex items-center justify-center text-[#D9A441] shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-[#E8E6E1]">Discovery Queue</span>
+                <span id="side-count-pending" class="text-[11px] font-mono tabular-nums text-[#D9A441] font-bold px-1.5 py-0.5 rounded bg-[#D9A441]/10 border border-[#D9A441]/20">0</span>
+              </div>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Pre-screened roles matched to profile</p>
+            </div>
+          </button>
+
+          <!-- Instant Role Tailor -->
+          <button onclick="selectSideTab('custom')" id="side-tab-custom" class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-[#5FA8A0]/10 border border-[#5FA8A0]/20 flex items-center justify-center text-[#5FA8A0] shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs font-semibold text-[#E8E6E1] block">Instant Job Tailor</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Paste any link or job description to evaluate</p>
+            </div>
+          </button>
+
+          <!-- Recruiter Intelligence -->
+          <button onclick="selectSideTab('recruiters')" id="side-tab-recruiters" data-accent="blue" class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs font-semibold text-[#E8E6E1] block">Recruiter Intelligence</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Hiring managers & connection notes</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pillar 2: Applications -->
+      <div class="space-y-1.5">
+        <div class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Applications</span>
+          </span>
+          <span class="text-[10px] font-mono lowercase text-[#5FA8A0]/80">tracker & export</span>
+        </div>
+        
+        <div class="space-y-1">
+          <!-- Pipeline Tracker -->
+          <button onclick="selectSideTab('applied')" id="side-tab-applied" data-accent="teal" class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-[#5FA8A0]/10 border border-[#5FA8A0]/20 flex items-center justify-center text-[#5FA8A0] shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-[#E8E6E1]">Application Pipeline</span>
+                <span id="side-count-applied" class="text-[11px] font-mono tabular-nums text-[#5FA8A0] font-bold px-1.5 py-0.5 rounded bg-[#5FA8A0]/10 border border-[#5FA8A0]/20">0</span>
+              </div>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Track stages & download tailored PDFs</p>
+            </div>
+          </button>
+
+          <!-- Export Excel -->
+          <a href="/api/export/xlsx" download onclick="closeMobileDrawer()" class="side-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all text-[#9AA0A6] hover:text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs font-medium block">Export to Excel (.xlsx)</span>
+              <p class="text-[10px] text-[#9AA0A6] truncate">Formatted pipeline spreadsheet</p>
+            </div>
+          </a>
+
+          <!-- Export CSV -->
+          <a href="/api/export/csv" download onclick="closeMobileDrawer()" class="side-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all text-[#9AA0A6] hover:text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-slate-500/10 border border-slate-500/20 flex items-center justify-center text-slate-300 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs font-medium block">Export to CSV</span>
+              <p class="text-[10px] text-[#9AA0A6] truncate">Flat tabular records</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Pillar 3: Candidate Dossier -->
+      <div class="space-y-1.5">
+        <div class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <span>Candidate Dossier</span>
+          </span>
+          <span class="text-[10px] font-mono text-emerald-400">verified</span>
+        </div>
+        <button onclick="selectSideTab('profile')" id="side-tab-profile" class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+          <div class="w-8 h-8 rounded-md bg-[#D9A441]/10 border border-[#D9A441]/20 flex items-center justify-center text-[#D9A441] shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="text-xs font-semibold text-[#E8E6E1] block">Master Profile & Credentials</span>
+            <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Resume baseline, skills & experience</p>
+          </div>
         </button>
-        <button onclick="triggerPipelineScan()" id="btn-scan" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-[0.98] whitespace-nowrap">
-          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <span>Run Scan</span>
-        </button>
-        <button onclick="switchTab('custom')" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] whitespace-nowrap active:scale-[0.98]">
-          <span>Tailor Job</span>
-        </button>
+      </div>
+
+      <!-- Pillar 4: Engine & Settings -->
+      <div class="space-y-1.5">
+        <div class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Engine & Settings</span>
+          </span>
+          <span class="text-[10px] font-mono text-emerald-400">daemon active</span>
+        </div>
+        
+        <div class="space-y-1">
+          <!-- Search Config -->
+          <button onclick="selectSideTab('config')" id="side-tab-config" data-accent="amber" class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs font-semibold text-[#E8E6E1] block">Search & Ingestion Rules</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Target roles, locations & board filters</p>
+            </div>
+          </button>
+
+          <!-- Telegram Bot -->
+          <button onclick="selectSideTab('telegram')" id="side-tab-telegram" data-accent="sky" class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
+            <div class="w-8 h-8 rounded-md bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-[#E8E6E1]">Telegram Bot Companion</span>
+                <span id="side-tg-status" class="text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10">Active</span>
+              </div>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Mobile notifications & bot controls</p>
+            </div>
+          </button>
+        </div>
       </div>
 
     </div>
 
-    <!-- Mobile Navigation Scrollstrip (< md screens) -->
-    <div class="md:hidden flex overflow-x-auto px-4 py-2 border-t border-[#2B3036] gap-4 text-xs font-medium scrollbar-none bg-[#14161A]">
-      <button onclick="switchTab('feed')" id="mob-tab-feed" class="mob-tab tab-active font-semibold border-b-2 whitespace-nowrap py-1">Opportunities (<span id="mob-count-pending" class="font-mono tabular-nums">0</span>)</button>
-      <button onclick="switchTab('config')" id="mob-tab-config" class="mob-tab border-b-2 whitespace-nowrap py-1">Settings</button>
-      <button onclick="switchTab('custom')" id="mob-tab-custom" class="mob-tab border-b-2 whitespace-nowrap py-1">Custom Tailor</button>
-      <button onclick="switchTab('profile')" id="mob-tab-profile" class="mob-tab border-b-2 whitespace-nowrap py-1">Profile</button>
-      <button onclick="switchTab('applied')" id="mob-tab-applied" class="mob-tab border-b-2 whitespace-nowrap py-1">Applications (<span id="mob-count-applied" class="font-mono tabular-nums">0</span>)</button>
-      <button onclick="switchTab('recruiters')" id="mob-tab-recruiters" class="mob-tab border-b-2 whitespace-nowrap py-1">Recruiters</button>
-      <button onclick="switchTab('telegram')" id="mob-tab-telegram" class="mob-tab border-b-2 whitespace-nowrap py-1">Telegram</button>
+    <!-- Drawer Footer Actions -->
+    <div class="drawer-footer p-4 border-t border-[#2B3036] bg-[#111317] space-y-2 shrink-0">
+      <button onclick="triggerPipelineScan(); closeMobileDrawer();" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] transition-colors cursor-pointer active:scale-[0.98]">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span>Run Board Scan</span>
+      </button>
+
+      <div class="flex items-center justify-between pt-1">
+        <button onclick="toggleTheme()" class="flex items-center gap-2 text-xs text-[#9AA0A6] hover:text-[#E8E6E1] py-1.5 px-2 rounded hover:bg-[#1C1F24] transition-colors cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span id="side-theme-label">Switch Theme</span>
+        </button>
+        <span class="text-[10px] font-mono text-[#9AA0A6]/70">v1.2 · Fast Daemon</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Top Header: Strict 1-Row 3-Zone Top Bar Contract -->
+  <header class="sticky top-0 z-40 bg-[#14161A] border-b border-[#2B3036] w-full">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-4 lg:gap-8">
+      
+      <!-- Zone 1: Mobile Hamburger Toggle Button + Wordmark -->
+      <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <!-- Mobile Drawer Hamburger Toggle Button (< md) -->
+        <button id="mobile-drawer-toggle" onclick="toggleMobileDrawer()" aria-label="Open mobile navigation menu" aria-expanded="false" aria-controls="mobile-drawer-panel" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-md bg-[#1C1F24] hover:bg-[#242830] text-[#E8E6E1] border border-[#2B3036] active:scale-[0.96] transition-all cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#D9A441]">
+          <svg class="w-5 h-5 text-[#E8E6E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <a href="/" class="group flex items-center gap-2.5 sm:gap-3 shrink-0 focus:outline-none" aria-label="Jobryt AI Home">
+          <div class="jobryt-logo-badge w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+            <svg class="w-4.5 h-4.5 text-[#D9A441]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8.5" class="reticle-ring" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.5 3" opacity="0.4"/>
+              <path d="M5.5 6V12.5C5.5 14.7 7.3 16.5 9.5 16.5C10.7 16.5 11.8 16 12.6 15.1L19.5 5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14.5 5H19.5V10" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="1.6" class="target-node" fill="#5FA8A0"/>
+            </svg>
+          </div>
+          <div class="flex flex-col leading-none">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base sm:text-lg font-bold tracking-tight text-[#E8E6E1] group-hover:text-white transition-colors">Jobryt</span>
+              <span class="text-[9px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded bg-[#D9A441]/15 text-[#D9A441] border border-[#D9A441]/30 font-bold hidden sm:inline-flex items-center">AI</span>
+            </div>
+            <span class="text-[10px] tracking-wide text-[#9AA0A6] font-medium hidden sm:block mt-0.5">Career Engine</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Zone 2: Categorized & Subcategorized Navigation with Dropdowns (Desktop md+) -->
+      <nav class="hidden md:flex items-center gap-5 lg:gap-7 text-xs lg:text-sm font-medium shrink-0 relative" aria-label="Main Navigation">
+        
+        <!-- Category 1: Opportunities Dropdown -->
+        <div class="relative nav-dropdown-group" data-group="opportunities">
+          <button id="group-btn-opportunities" onclick="toggleDropdown('opportunities')" aria-haspopup="true" aria-expanded="false" class="nav-group-btn group-active flex items-center gap-2 py-5 border-b-2 whitespace-nowrap text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Opportunities</span>
+            </span>
+            <span id="tab-count-pending-badge" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono tabular-nums bg-[#D9A441]/15 text-[#D9A441] border border-[#D9A441]/30 font-bold">0</span>
+            <svg class="dropdown-chevron w-3.5 h-3.5 text-[#9AA0A6] transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div id="dropdown-menu-opportunities" class="nav-dropdown-menu absolute left-0 top-full mt-0 w-84 py-2 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50">
+            <div class="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] border-b border-[#2B3036]/60 mb-1 flex items-center justify-between">
+              <span>Sourcing & Match</span>
+              <span class="text-[#D9A441] font-mono lowercase">live board scans</span>
+            </div>
+            
+            <!-- Subcategory 1: Discovery Queue -->
+            <button onclick="selectNavTab('feed')" id="tab-feed" class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group item-active">
+              <div class="w-8 h-8 rounded-md bg-[#D9A441]/10 border border-[#D9A441]/20 flex items-center justify-center text-[#D9A441] shrink-0 group-hover:bg-[#D9A441]/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#D9A441]">Discovery Queue</span>
+                  <span id="tab-count-pending" class="text-[11px] font-mono tabular-nums text-[#D9A441] font-bold px-1.5 py-0.2 rounded bg-[#D9A441]/10">0</span>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Pre-screened roles matched to profile</p>
+              </div>
+            </button>
+
+            <!-- Subcategory 2: Instant Custom Tailor -->
+            <button onclick="selectNavTab('custom')" id="tab-custom" class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
+              <div class="w-8 h-8 rounded-md bg-[#5FA8A0]/10 border border-[#5FA8A0]/20 flex items-center justify-center text-[#5FA8A0] shrink-0 group-hover:bg-[#5FA8A0]/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#5FA8A0] block">Instant Job Tailor</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Paste any link or job description to evaluate</p>
+              </div>
+            </button>
+
+            <!-- Subcategory 3: Recruiter Leads -->
+            <button onclick="selectNavTab('recruiters')" id="tab-recruiters" class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group" data-accent="blue">
+              <div class="w-8 h-8 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 group-hover:bg-blue-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-blue-400 block">Recruiter Intelligence</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Hiring managers & calibrated outreach</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Category 2: Applications Dropdown -->
+        <div class="relative nav-dropdown-group" data-group="applications">
+          <button id="group-btn-applications" onclick="toggleDropdown('applications')" aria-haspopup="true" aria-expanded="false" class="nav-group-btn flex items-center gap-2 py-5 border-b-2 whitespace-nowrap text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Applications</span>
+            </span>
+            <span id="tab-count-applied-badge" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono tabular-nums bg-[#5FA8A0]/15 text-[#5FA8A0] border border-[#5FA8A0]/30 font-bold">0</span>
+            <svg class="dropdown-chevron w-3.5 h-3.5 text-[#9AA0A6] transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div id="dropdown-menu-applications" class="nav-dropdown-menu absolute left-0 top-full mt-0 w-84 py-2 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50">
+            <div class="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] border-b border-[#2B3036]/60 mb-1 flex items-center justify-between">
+              <span>Pipeline & Documents</span>
+              <span class="text-[#5FA8A0] font-mono lowercase">sqlite archive</span>
+            </div>
+
+            <!-- Subcategory 1: Pipeline & History -->
+            <button onclick="selectNavTab('applied')" id="tab-applied" class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group" data-accent="teal">
+              <div class="w-8 h-8 rounded-md bg-[#5FA8A0]/10 border border-[#5FA8A0]/20 flex items-center justify-center text-[#5FA8A0] shrink-0 group-hover:bg-[#5FA8A0]/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#5FA8A0]">Application Pipeline</span>
+                  <span id="tab-count-applied" class="text-[11px] font-mono tabular-nums text-[#5FA8A0] font-bold px-1.5 py-0.2 rounded bg-[#5FA8A0]/10">0</span>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Track stages & download tailored PDFs</p>
+              </div>
+            </button>
+
+            <div class="my-1.5 border-t border-[#2B3036]/60"></div>
+            <div class="px-3.5 py-1 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6]">Export Application Data</div>
+
+            <!-- Export to Excel -->
+            <a href="/api/export/xlsx" download class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
+              <div class="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 group-hover:bg-emerald-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-emerald-400 block">Export to Excel (.xlsx)</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate">Download formatted pipeline spreadsheet</p>
+              </div>
+            </a>
+
+            <!-- Export to CSV -->
+            <a href="/api/export/csv" download class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
+              <div class="w-8 h-8 rounded-md bg-slate-500/10 border border-slate-500/20 flex items-center justify-center text-slate-300 shrink-0 group-hover:bg-slate-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-slate-300 block">Export to CSV</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate">Comma-separated tabular log</p>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Category 3: Candidate Dossier (Direct Nav Link with active underline) -->
+        <button onclick="selectNavTab('profile')" id="tab-profile" data-group="dossier" class="nav-tab nav-group-btn py-5 border-b-2 whitespace-nowrap active:scale-[0.98] flex items-center gap-1.5 text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <span>Candidate Dossier</span>
+        </button>
+
+        <!-- Category 4: Engine & Settings Dropdown -->
+        <div class="relative nav-dropdown-group" data-group="settings">
+          <button id="group-btn-settings" onclick="toggleDropdown('settings')" aria-haspopup="true" aria-expanded="false" class="nav-group-btn flex items-center gap-1.5 py-5 border-b-2 whitespace-nowrap text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>Engine & Settings</span>
+            </span>
+            <span id="tab-tg-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <svg class="dropdown-chevron w-3.5 h-3.5 text-[#9AA0A6] transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div id="dropdown-menu-settings" class="nav-dropdown-menu absolute right-0 top-full mt-0 w-84 py-2 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50">
+            <div class="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] border-b border-[#2B3036]/60 mb-1 flex items-center justify-between">
+              <span>Automation & Runtime</span>
+              <span class="text-amber-400 font-mono lowercase">daemon controls</span>
+            </div>
+
+            <!-- Subcategory 1: Config Settings -->
+            <button onclick="selectNavTab('config')" id="tab-config" data-accent="amber" class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
+              <div class="w-8 h-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 group-hover:bg-amber-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-amber-400 block">Search & Ingestion Rules</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Target roles, locations & board filters</p>
+              </div>
+            </button>
+
+            <!-- Subcategory 2: Telegram Bot -->
+            <button onclick="selectNavTab('telegram')" id="tab-telegram" data-accent="sky" class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
+              <div class="w-8 h-8 rounded-md bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0 group-hover:bg-sky-500/20">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-sky-400">Telegram Bot Companion</span>
+                  <span id="tab-tg-status" class="text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10">Active</span>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Mobile notifications & bot controls</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+      </nav>
+
+      <!-- Zone 3: 1-2 primary actions + theme toggle -->
+      <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+        <!-- Mobile Active Section Badge Button (tappable shortcut into side drawer) -->
+        <button onclick="toggleMobileDrawer()" class="md:hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] border border-[#2B3036] hover:text-[#E8E6E1] transition-colors active:scale-95 cursor-pointer" aria-label="Open navigation menu">
+          <span id="mobile-active-section-name" class="font-semibold text-[#E8E6E1]">Opportunities · Discovery Queue</span>
+          <span id="mobile-active-section-count" class="font-mono text-[10px] text-[#D9A441] font-bold">0</span>
+          <svg class="w-3 h-3 text-[#9AA0A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
+        <!-- Theme Toggle Button -->
+        <button onclick="toggleTheme()" id="theme-toggle" aria-label="Toggle between Light and Dark mode" title="Toggle theme (Light / Dark)" class="inline-flex items-center justify-center w-8 h-8 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-[0.98] transition-colors shrink-0 cursor-pointer">
+          <svg id="theme-icon-sun" class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="theme-icon-moon" class="w-4 h-4 text-[#0F172A] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+        <button onclick="triggerPipelineScan()" id="btn-scan" class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-[0.98] whitespace-nowrap cursor-pointer">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <span class="hidden sm:inline">Run Scan</span>
+          <span class="sm:hidden">Scan</span>
+        </button>
+        <button onclick="selectNavTab('custom')" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] whitespace-nowrap active:scale-[0.98] cursor-pointer">
+          <span>Tailor Job</span>
+        </button>
+      </div>
+
     </div>
   </header>
 
@@ -477,11 +1049,17 @@
       <!-- Action Toolbar -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight">
-            01. Qualified Opportunity Queue
+          <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+            <span>Opportunities</span>
+            <span class="text-[#3D444D]" aria-hidden="true">/</span>
+            <span class="text-[#D9A441] font-semibold">Discovery Queue</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2.5">
+            <span>Qualified Opportunities Queue</span>
+            <span id="feed-pending-chip" class="px-2 py-0.5 text-xs rounded-full bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/25 font-mono tabular-nums font-semibold">0 pending</span>
           </h2>
-          <p class="text-xs text-[#9AA0A6] mt-0.5">
-            Pre-evaluated against target titles and verified skills. Review and approve to compile tailored PDF resumes.
+          <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+            Roles harvested from live boards and evaluated against your verified candidate background. Review match scores and approve to generate tailored ATS resumes.
           </p>
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
@@ -514,10 +1092,17 @@
       <div class="app-card p-6">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036] pb-5">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight">
-              JOB Application Config Settings
+            <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+              <span>Engine & Settings</span>
+              <span class="text-[#3D444D]" aria-hidden="true">/</span>
+              <span class="text-amber-400 font-semibold">Search & Ingestion Rules</span>
+            </div>
+            <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">
+              Job Search & Board Ingestion Settings
             </h2>
-            <p class="text-xs text-[#9AA0A6] mt-1">Configure search terms, location targets, match threshold filters, and board connections.</p>
+            <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+              Configure automated search queries, geographic scope, workplace preferences, match score thresholds, and multi-board crawler integrations.
+            </p>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="saveAllSettings()" class="px-3.5 py-1.5 text-xs font-semibold rounded-md bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-[0.98]">
@@ -703,10 +1288,17 @@
       
       <div class="app-card p-6">
         <div class="border-b border-[#2B3036] pb-4">
-          <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight">
-            One-Click Custom Job Evaluator & Tailor
+          <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+            <span>Opportunities</span>
+            <span class="text-[#3D444D]" aria-hidden="true">/</span>
+            <span class="text-[#5FA8A0] font-semibold">Instant Job Tailor</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">
+            Instant Job Evaluator & ATS Tailor
           </h2>
-          <p class="text-xs text-[#9AA0A6] mt-1">Paste any job posting. The engine evaluates ATS keyword congruence against candidate verified credentials and generates tailored documents.</p>
+          <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+            Paste any external job link or job description. The engine extracts requirements, calculates keyword match scoring against your master profile, and generates tailored ATS-optimized resumes.
+          </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
@@ -767,11 +1359,18 @@
       <div class="app-card p-6">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#2B3036] pb-4">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2">
-              <span>Candidate Master Profile</span>
-              <span id="prof-years-badge" class="text-xs px-2 py-0.5 rounded font-mono bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/25">0 Yrs Exp</span>
+            <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+              <span>Candidate Dossier</span>
+              <span class="text-[#3D444D]" aria-hidden="true">/</span>
+              <span class="text-[#D9A441] font-semibold">Master Profile</span>
+            </div>
+            <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2.5">
+              <span>Candidate Master Profile & Verification</span>
+              <span id="prof-years-badge" class="text-xs px-2.5 py-0.5 rounded-full font-mono bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/25 tabular-nums font-semibold">0 Yrs Exp</span>
             </h2>
-            <p class="text-xs text-[#9AA0A6] mt-1">Ground truth credentials used for matching and zero-fabrication ATS resume generation.</p>
+            <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+              Ground-truth verified work experience, achievements, skills, and client names. Strictly preserved during resume ingestion to ensure zero hallucination.
+            </p>
           </div>
           <div class="flex items-center gap-2.5 flex-wrap">
             <!-- Hidden resume file input -->
@@ -789,6 +1388,21 @@
           </div>
         </div>
 
+        <!-- Inline Validation Warning Banner -->
+        <div id="prof-validation-banner" class="hidden mt-4 p-4 rounded-lg bg-amber-500/10 border-2 border-amber-500/50 text-amber-200 text-xs flex items-start justify-between gap-3 shadow-md">
+          <div class="flex items-start gap-3">
+            <div class="p-1.5 bg-amber-500/20 text-amber-400 rounded shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div class="space-y-1">
+              <div class="font-bold text-amber-300 text-sm">Format or resume is not correct please fill the below master profile from UI.</div>
+              <div class="text-[#C4C7C5] leading-relaxed" id="prof-validation-banner-msg">The uploaded document did not have standard resume info or work experience. The existing Master Profile JSON was preserved without modification.</div>
+              <div class="text-[#8AB4F8] font-medium pt-1">👉 Please fill in your work history, skills, and education using the forms below and click "Save Profile".</div>
+            </div>
+          </div>
+          <button type="button" onclick="document.getElementById('prof-validation-banner').classList.add('hidden')" class="text-[#9AA0A6] hover:text-white text-xs px-2 py-1 rounded bg-[#1C1F24] border border-[#2B3036]">✕ Dismiss</button>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
           <div class="space-y-5">
             
@@ -797,39 +1411,77 @@
               <h3 class="text-xs font-bold uppercase tracking-wider text-[#9AA0A6] border-b border-[#2B3036] pb-1">Personal & Contact Details</h3>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Full Legal / Candidate Name</label>
-                <input type="text" id="prof-name" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none">
+                <input type="text" id="prof-name" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Sahana Rao D">
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Email</label>
-                  <input type="email" id="prof-email" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none">
+                  <input type="email" id="prof-email" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="user@example.com">
                 </div>
                 <div>
                   <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Phone</label>
-                  <input type="text" id="prof-phone" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none">
+                  <input type="text" id="prof-phone" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="+1 (555) 000-0000">
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Target Roles</label>
-                  <input type="text" id="prof-target-roles" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Java Developer, Backend Engineer">
-                </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Location / Market</label>
-                  <input type="text" id="prof-location" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Austin, TX">
+                  <input type="text" id="prof-location" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Toronto, ON, Canada">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Work Authorization / Status</label>
+                  <input type="text" id="prof-status" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Permanent Resident of Canada, US Citizen">
                 </div>
               </div>
 
-              <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Verified Skills (comma-separated)</label>
-                <textarea id="prof-skills" rows="3" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Java, Python, SQL, Docker, Spring Boot, AWS, Kafka"></textarea>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">LinkedIn Profile</label>
+                  <input type="text" id="prof-linkedin" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="https://linkedin.com/in/username">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">GitHub / Portfolio</label>
+                  <input type="text" id="prof-github" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="https://github.com/username">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Target Roles (comma-separated)</label>
+                  <input type="text" id="prof-target-roles" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Data Analyst, Data Analyst II">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Total Stated Experience</label>
+                  <input type="text" id="prof-total-exp" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. around 5 years">
+                </div>
               </div>
 
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Professional Summary</label>
                 <textarea id="prof-summary" rows="3" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="High-impact career summary describing your domain expertise..."></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Verified Technical Skills (comma-separated)</label>
+                <textarea id="prof-skills" rows="3" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="e.g. SQL, Power BI, Python, DAX, BigQuery, Excel"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Familiar / Secondary Skills</label>
+                <input type="text" id="prof-skills-familiar" oninput="syncFormToJson()" class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Snowflake, Azure Data Factory, AWS">
+              </div>
+
+              <!-- Categorized Skills Interactive Container -->
+              <div id="prof-categorized-container" class="space-y-2 pt-2 border-t border-[#2B3036]/50">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-[#9AA0A6]">Skills Grouped by Domain</span>
+                  <span id="prof-cat-count" class="text-[10px] text-[#5F6B76] font-mono">0 categories</span>
+                </div>
+                <div id="prof-categorized-skills-preview" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  <!-- Rendered dynamically -->
+                </div>
               </div>
             </div>
 
@@ -927,16 +1579,27 @@
       
       <div class="app-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2">
-            <span>Applied Jobs & Tailored Resumes</span>
-            <span class="text-xs bg-[#5FA8A0]/10 text-[#5FA8A0] border border-[#5FA8A0]/25 px-2.5 py-0.5 rounded font-mono tabular-nums" id="applied-count-badge">0 applications</span>
+          <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+            <span>Applications</span>
+            <span class="text-[#3D444D]" aria-hidden="true">/</span>
+            <span class="text-[#5FA8A0] font-semibold">Application Pipeline</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2.5">
+            <span>Application Pipeline & Tailored Resumes</span>
+            <span class="text-xs bg-[#5FA8A0]/10 text-[#5FA8A0] border border-[#5FA8A0]/25 px-2.5 py-0.5 rounded-full font-mono tabular-nums font-semibold" id="applied-count-badge">0 applications</span>
           </h2>
-          <p class="text-xs text-[#9AA0A6] mt-1">Generated full-depth zero-fabrication resumes and custom cover letters persisted in SQLite database.</p>
+          <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+            Track submitted applications across pipeline stages with full-depth zero-fabrication resumes and custom cover letters persisted in SQLite database.
+          </p>
         </div>
         <div class="flex items-center gap-2">
           <a href="/api/export/xlsx" download class="px-4 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             <span>Export to Excel (.xlsx)</span>
+          </a>
+          <a href="/api/export/csv" download class="px-4 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Export to CSV</span>
           </a>
         </div>
       </div>
@@ -953,10 +1616,17 @@
       
       <div class="app-card p-6">
         <div class="border-b border-[#2B3036] pb-4">
-          <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight">
+          <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+            <span>Opportunities</span>
+            <span class="text-[#3D444D]" aria-hidden="true">/</span>
+            <span class="text-blue-400 font-semibold">Recruiter Intelligence</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">
             Hiring Team & Recruiter Intelligence
           </h2>
-          <p class="text-xs text-[#9AA0A6] mt-1">Look up live recruiters and hiring managers with 1-click Google X-Ray search & calibrated LinkedIn connection drafts.</p>
+          <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+            Look up live recruiters and hiring managers with 1-click Google X-Ray search and calibrated LinkedIn connection notes.
+          </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -994,13 +1664,20 @@
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
             </div>
             <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-base sm:text-lg font-bold text-[#E8E6E1] tracking-tight">Telegram Bot Bridge</h2>
-                <span id="tg-bridge-badge" class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-[#5FA8A0]/10 text-[#5FA8A0] border border-[#5FA8A0]/25 flex items-center gap-1.5 font-mono">
+              <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
+                <span>Engine & Settings</span>
+                <span class="text-[#3D444D]" aria-hidden="true">/</span>
+                <span class="text-sky-400 font-semibold">Telegram Bot Companion</span>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">Telegram Bot Companion & Bridge</h2>
+                <span id="tg-bridge-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-[#5FA8A0]/10 text-[#5FA8A0] border border-[#5FA8A0]/25 flex items-center gap-1.5 font-mono">
                   <span class="w-1.5 h-1.5 rounded-full bg-[#5FA8A0]"></span> Bridge Active
                 </span>
               </div>
-              <p class="text-xs text-[#9AA0A6] mt-1">Real-time long-polling bridge connecting your Telegram client directly with the pipeline and resume engine.</p>
+              <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
+                Real-time bidirectional long-polling bridge connecting your Telegram client directly with the pipeline, approval queue, and resume engine.
+              </p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -1062,8 +1739,8 @@
           </div>
 
           <div class="flex items-center justify-between">
-            <span class="text-[11px] text-[#9AA0A6] font-mono">Recipient: Chat 6970333300</span>
-            <button onclick="sendTelegramTestPing()" class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-2 active:scale-[0.98]">
+            <span id="tg-custom-chat-display" class="text-[11px] text-[#9AA0A6] font-mono">Recipient: Chat 6970333300</span>
+            <button onclick="sendTelegramTestPing()" id="btn-tg-custom-ping" class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-2 active:scale-[0.98]">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
               <span>Send Ping Now</span>
             </button>
@@ -1171,14 +1848,17 @@
       const sun = document.getElementById('theme-icon-sun');
       const moon = document.getElementById('theme-icon-moon');
       const toggleBtn = document.getElementById('theme-toggle');
+      const sideThemeLabel = document.getElementById('side-theme-label');
       if (theme === 'light') {
         if (sun) sun.classList.add('hidden');
         if (moon) moon.classList.remove('hidden');
         if (toggleBtn) toggleBtn.setAttribute('title', 'Switch to Dark mode');
+        if (sideThemeLabel) sideThemeLabel.innerText = 'Switch to Dark Mode';
       } else {
         if (sun) sun.classList.remove('hidden');
         if (moon) moon.classList.add('hidden');
         if (toggleBtn) toggleBtn.setAttribute('title', 'Switch to Light mode');
+        if (sideThemeLabel) sideThemeLabel.innerText = 'Switch to Light Mode';
       }
     }
 
@@ -1207,26 +1887,196 @@
       await loadTelegramStatus();
     }
 
+    // ── Dropdown Navigation Controls (Desktop) ───────────
+    let currentOpenDropdown = null;
+
+    function toggleDropdown(group) {
+      const groupEl = document.querySelector(`.nav-dropdown-group[data-group="${group}"]`);
+      if (!groupEl) return;
+      const isOpen = groupEl.classList.contains('is-open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        groupEl.classList.add('is-open');
+        currentOpenDropdown = group;
+        const btn = groupEl.querySelector('.nav-group-btn');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.nav-dropdown-group').forEach(el => {
+        el.classList.remove('is-open');
+        const btn = el.querySelector('.nav-group-btn');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      });
+      currentOpenDropdown = null;
+    }
+
+    // ── Mobile Side Navigation Drawer Controls ───────────
+    function openMobileDrawer() {
+      closeAllDropdowns();
+      const backdrop = document.getElementById('mobile-drawer-backdrop');
+      const panel = document.getElementById('mobile-drawer-panel');
+      const toggleBtn = document.getElementById('mobile-drawer-toggle');
+      if (!panel || !backdrop) return;
+
+      panel.classList.remove('-translate-x-full');
+      panel.classList.add('translate-x-0');
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100', 'pointer-events-auto');
+
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileDrawer() {
+      const backdrop = document.getElementById('mobile-drawer-backdrop');
+      const panel = document.getElementById('mobile-drawer-panel');
+      const toggleBtn = document.getElementById('mobile-drawer-toggle');
+      if (!panel || !backdrop) return;
+
+      panel.classList.remove('translate-x-0');
+      panel.classList.add('-translate-x-full');
+      backdrop.classList.remove('opacity-100', 'pointer-events-auto');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    function toggleMobileDrawer() {
+      const panel = document.getElementById('mobile-drawer-panel');
+      if (panel && panel.classList.contains('translate-x-0')) {
+        closeMobileDrawer();
+      } else {
+        openMobileDrawer();
+      }
+    }
+
+    function selectSideTab(tab) {
+      switchTab(tab);
+      closeMobileDrawer();
+    }
+
+    // Close on outside clicks
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.nav-dropdown-group')) {
+        closeAllDropdowns();
+      }
+    });
+
+    // Close menus on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllDropdowns();
+        closeMobileDrawer();
+      }
+    });
+
+    // Seamless Device Layout Switch: Auto-close drawer and clear locks when expanding to desktop
+    const desktopMedia = window.matchMedia('(min-width: 768px)');
+    desktopMedia.addEventListener('change', (e) => {
+      if (e.matches) {
+        closeMobileDrawer();
+        closeAllDropdowns();
+      }
+    });
+
+    function selectNavTab(tab) {
+      closeAllDropdowns();
+      switchTab(tab);
+    }
+
     function switchTab(tab) {
       activeTab = tab;
+      closeAllDropdowns();
       document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
 
-      // Update desktop tabs
+      // 4-Pillar category association map
+      const catMap = {
+        feed: 'opportunities',
+        custom: 'opportunities',
+        recruiters: 'opportunities',
+        applied: 'applications',
+        profile: 'dossier',
+        config: 'settings',
+        telegram: 'settings'
+      };
+      const activeCat = catMap[tab] || 'opportunities';
+
+      // Update desktop parent category buttons
+      document.querySelectorAll('.nav-group-btn').forEach(b => {
+        b.classList.remove('group-active');
+      });
+      const activeCatBtn = document.getElementById(`group-btn-${activeCat}`);
+      if (activeCatBtn) {
+        activeCatBtn.classList.add('group-active');
+      }
+
+      // Update desktop direct nav-tabs
       document.querySelectorAll('.nav-tab').forEach(b => {
         b.classList.remove('tab-active');
       });
       const activeDesktop = document.getElementById(`tab-${tab}`);
       if (activeDesktop) {
         activeDesktop.classList.add('tab-active');
+        if (tab === 'profile') {
+          activeDesktop.classList.add('group-active');
+        }
       }
 
-      // Update mobile tabs
-      document.querySelectorAll('.mob-tab').forEach(b => {
-        b.classList.remove('tab-active');
+      // Update dropdown item active highlight
+      document.querySelectorAll('.nav-dropdown-item').forEach(b => {
+        b.classList.remove('item-active');
       });
-      const activeMobile = document.getElementById(`mob-tab-${tab}`);
-      if (activeMobile) {
-        activeMobile.classList.add('tab-active');
+      const activeDropdownItem = document.getElementById(`tab-${tab}`) || document.getElementById(`subtab-${tab}`);
+      if (activeDropdownItem) {
+        activeDropdownItem.classList.add('item-active');
+      }
+
+      // Update mobile side menu items
+      document.querySelectorAll('.side-nav-item').forEach(b => {
+        b.classList.remove('side-active');
+      });
+      const activeSide = document.getElementById(`side-tab-${tab}`);
+      if (activeSide) {
+        activeSide.classList.add('side-active');
+      }
+
+      // Update mobile top bar chip
+      const sectionLabels = {
+        feed: 'Opportunities · Discovery Queue',
+        custom: 'Opportunities · Job Tailor',
+        recruiters: 'Opportunities · Recruiter Intel',
+        applied: 'Applications · Pipeline',
+        profile: 'Dossier · Master Profile',
+        config: 'Engine · Search Rules',
+        telegram: 'Engine · Telegram Bot'
+      };
+      const mobHeaderName = document.getElementById('mobile-active-section-name');
+      if (mobHeaderName) {
+        mobHeaderName.innerText = sectionLabels[tab] || 'Opportunities · Discovery Queue';
+      }
+
+      // Update mobile count indicator based on view
+      const mobHeaderCount = document.getElementById('mobile-active-section-count');
+      if (mobHeaderCount) {
+        const pendingCount = document.getElementById('tab-count-pending')?.innerText || '0';
+        const appliedCount = document.getElementById('tab-count-applied')?.innerText || '0';
+        if (tab === 'applied') {
+          mobHeaderCount.innerText = appliedCount;
+          mobHeaderCount.className = 'font-mono text-[10px] text-[#5FA8A0] font-bold';
+        } else if (tab === 'feed') {
+          mobHeaderCount.innerText = pendingCount;
+          mobHeaderCount.className = 'font-mono text-[10px] text-[#D9A441] font-bold';
+        } else if (tab === 'telegram') {
+          const isRunning = document.getElementById('tab-tg-status')?.innerText === 'Active';
+          mobHeaderCount.innerText = isRunning ? 'Active' : 'Standby';
+          mobHeaderCount.className = isRunning ? 'font-mono text-[10px] text-emerald-400 font-bold' : 'font-mono text-[10px] text-amber-400 font-bold';
+        } else {
+          mobHeaderCount.innerText = '·';
+          mobHeaderCount.className = 'font-mono text-[10px] text-[#9AA0A6] font-bold';
+        }
       }
 
       const targetView = document.getElementById(`view-${tab}`);
@@ -1241,30 +2091,59 @@
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
-        const pendingCount = data.counts.pending || 0;
-        const appliedCount = data.counts.applied || 0;
-        const seenCount = data.counts.seen || 0;
+        const pendingCount = data.counts?.pending || 0;
+        const appliedCount = data.counts?.applied || 0;
+        const seenCount = data.counts?.seen || 0;
 
         document.getElementById('metric-seen').innerText = seenCount;
         document.getElementById('metric-pending').innerText = pendingCount;
         document.getElementById('metric-applied').innerText = appliedCount;
         
+        // Update all pending badges & labels
         const tabPending = document.getElementById('tab-count-pending');
         if (tabPending) tabPending.innerText = pendingCount;
-        const mobPending = document.getElementById('mob-count-pending');
-        if (mobPending) mobPending.innerText = pendingCount;
+        const tabPendingBadge = document.getElementById('tab-count-pending-badge');
+        if (tabPendingBadge) tabPendingBadge.innerText = pendingCount;
+        const feedPendingChip = document.getElementById('feed-pending-chip');
+        if (feedPendingChip) feedPendingChip.innerText = `${pendingCount} pending`;
+        
+        // Side drawer pending counts
+        const sidePending = document.getElementById('side-count-pending');
+        if (sidePending) sidePending.innerText = pendingCount;
+        const sideQueueMetric = document.getElementById('side-metric-queue');
+        if (sideQueueMetric) sideQueueMetric.innerText = pendingCount;
 
+        // Update all applied badges & labels
         const tabApplied = document.getElementById('tab-count-applied');
         if (tabApplied) tabApplied.innerText = appliedCount;
-        const mobApplied = document.getElementById('mob-count-applied');
-        if (mobApplied) mobApplied.innerText = appliedCount;
+        const tabAppliedBadge = document.getElementById('tab-count-applied-badge');
+        if (tabAppliedBadge) tabAppliedBadge.innerText = appliedCount;
+        const appliedBadgeElem = document.getElementById('applied-count-badge');
+        if (appliedBadgeElem) appliedBadgeElem.innerText = `${appliedCount} applications`;
+        
+        // Side drawer applied counts
+        const sideApplied = document.getElementById('side-count-applied');
+        if (sideApplied) sideApplied.innerText = appliedCount;
+        const sideAppliedMetric = document.getElementById('side-metric-applied');
+        if (sideAppliedMetric) sideAppliedMetric.innerText = appliedCount;
+
+        // Mobile header count
+        const mobHeaderCount = document.getElementById('mobile-active-section-count');
+        if (mobHeaderCount) {
+          mobHeaderCount.innerText = activeTab === 'applied' ? appliedCount : pendingCount;
+        }
 
         document.getElementById('metric-model').innerText = data.llm?.model || 'gemini-3.8-flash';
         if (data.integrations?.bridgeRunning) {
           const badge = document.getElementById('tab-tg-status');
           if (badge) {
             badge.innerText = 'Online';
-            badge.className = 'text-emerald-400 font-mono';
+            badge.className = 'text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10';
+          }
+          const sideTgBadge = document.getElementById('side-tg-status');
+          if (sideTgBadge) {
+            sideTgBadge.innerText = 'Online';
+            sideTgBadge.className = 'text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10';
           }
         }
       } catch (e) {
@@ -1319,6 +2198,18 @@
         const jobs = data.jobs || [];
         document.getElementById('tab-count-pending').innerText = jobs.length;
         document.getElementById('metric-pending').innerText = jobs.length;
+        const pBadge = document.getElementById('tab-count-pending-badge');
+        if (pBadge) pBadge.innerText = jobs.length;
+        const feedChip = document.getElementById('feed-pending-chip');
+        if (feedChip) feedChip.innerText = `${jobs.length} pending`;
+        const sidePending = document.getElementById('side-count-pending');
+        if (sidePending) sidePending.innerText = jobs.length;
+        const sideQueueMetric = document.getElementById('side-metric-queue');
+        if (sideQueueMetric) sideQueueMetric.innerText = jobs.length;
+        if (activeTab === 'feed') {
+          const mobHeaderCount = document.getElementById('mobile-active-section-count');
+          if (mobHeaderCount) mobHeaderCount.innerText = jobs.length;
+        }
 
         if (jobs.length === 0) {
           container.innerHTML = `
@@ -1414,6 +2305,16 @@
         document.getElementById('tab-count-applied').innerText = applied.length;
         document.getElementById('metric-applied').innerText = applied.length;
         document.getElementById('applied-count-badge').innerText = `${applied.length} applications`;
+        const aBadge = document.getElementById('tab-count-applied-badge');
+        if (aBadge) aBadge.innerText = applied.length;
+        const sideApplied = document.getElementById('side-count-applied');
+        if (sideApplied) sideApplied.innerText = applied.length;
+        const sideAppliedMetric = document.getElementById('side-metric-applied');
+        if (sideAppliedMetric) sideAppliedMetric.innerText = applied.length;
+        if (activeTab === 'applied') {
+          const mobHeaderCount = document.getElementById('mobile-active-section-count');
+          if (mobHeaderCount) mobHeaderCount.innerText = applied.length;
+        }
 
         if (applied.length === 0) {
           container.innerHTML = `
@@ -1746,20 +2647,61 @@
       if (!prof) prof = {};
       currentProfile = prof;
 
-      document.getElementById('prof-name').value = prof.name || '';
-      document.getElementById('prof-email').value = (prof.contact && prof.contact.email) || '';
-      document.getElementById('prof-phone').value = (prof.contact && prof.contact.phone) || '';
-      document.getElementById('prof-location').value = (prof.contact && prof.contact.location) || (prof.locations && prof.locations[0]) || '';
-      document.getElementById('prof-target-roles').value = (prof.target_titles || []).join(', ');
-      document.getElementById('prof-skills').value = (prof.skills || []).join(', ');
-      document.getElementById('prof-summary').value = prof.summary || prof.writing_sample || '';
-      document.getElementById('prof-json').value = JSON.stringify(prof, null, 2);
+      if (document.getElementById('prof-name')) document.getElementById('prof-name').value = prof.name || '';
+      if (document.getElementById('prof-email')) document.getElementById('prof-email').value = (prof.contact && prof.contact.email) || '';
+      if (document.getElementById('prof-phone')) document.getElementById('prof-phone').value = (prof.contact && prof.contact.phone) || '';
+      if (document.getElementById('prof-location')) document.getElementById('prof-location').value = (prof.contact && prof.contact.location) || (prof.locations && prof.locations[0]) || '';
+      if (document.getElementById('prof-status')) document.getElementById('prof-status').value = (prof.contact && prof.contact.status) || '';
+      if (document.getElementById('prof-linkedin')) document.getElementById('prof-linkedin').value = (prof.contact && prof.contact.linkedin) || '';
+      if (document.getElementById('prof-github')) document.getElementById('prof-github').value = (prof.contact && prof.contact.github) || '';
+      const targetRoles = (Array.isArray(prof.target_titles) && prof.target_titles.length)
+        ? prof.target_titles
+        : ((Array.isArray(prof.target_roles) && prof.target_roles.length) ? prof.target_roles : (prof.role ? [prof.role] : []));
+      if (document.getElementById('prof-target-roles')) document.getElementById('prof-target-roles').value = targetRoles.join(', ');
+      if (document.getElementById('prof-total-exp')) document.getElementById('prof-total-exp').value = prof.total_experience_stated || (prof.years_of_experience ? `${prof.years_of_experience} years` : '');
+      if (document.getElementById('prof-skills')) document.getElementById('prof-skills').value = (prof.skills || []).join(', ');
+      if (document.getElementById('prof-skills-familiar')) document.getElementById('prof-skills-familiar').value = (prof.skills_familiar || []).join(', ');
+      if (document.getElementById('prof-summary')) document.getElementById('prof-summary').value = prof.summary || prof.writing_sample || '';
+      
+      renderCategorizedSkillsPreview(prof.skills_categorized || []);
+      
+      const jsonEl = document.getElementById('prof-json');
+      if (jsonEl) jsonEl.value = JSON.stringify(prof, null, 2);
 
       renderExperienceCards(prof.experience || []);
       renderProjectCards(prof.projects || []);
       renderCertificationCards(prof.certifications || []);
       renderEducationCards(prof.education || []);
       updateProfileCounters();
+    }
+
+    function renderCategorizedSkillsPreview(categories = []) {
+      const container = document.getElementById('prof-categorized-skills-preview');
+      const countEl = document.getElementById('prof-cat-count');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!Array.isArray(categories) || categories.length === 0) {
+        if (countEl) countEl.innerText = '0 categories';
+        container.innerHTML = '<div class="text-[11px] text-[#5F6B76] italic">No skill categories extracted yet. Upload a resume to automatically detect domain groupings.</div>';
+        return;
+      }
+      if (countEl) countEl.innerText = `${categories.length} categories`;
+      categories.forEach(cat => {
+        const catBox = document.createElement('div');
+        catBox.className = 'p-2 rounded bg-[#111317] border border-[#2B3036]/80 text-xs';
+        const items = Array.isArray(cat.items) ? cat.items : (Array.isArray(cat.skills) ? cat.skills : []);
+        const badgesHtml = items.map(item => `
+          <span class="inline-block px-1.5 py-0.5 m-0.5 rounded text-[10px] bg-[#1C1F24] border border-[#2B3036] text-[#E8E6E1] font-mono">${escapeHtml(item)}</span>
+        `).join('');
+        catBox.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-semibold text-[#D9A441]">${escapeHtml(cat.category || 'Domain')}</span>
+            <span class="text-[9px] text-[#9AA0A6] font-mono">${items.length} skills</span>
+          </div>
+          <div class="flex flex-wrap">${badgesHtml}</div>
+        `;
+        container.appendChild(catBox);
+      });
     }
 
     // Work Experience
@@ -1784,8 +2726,9 @@
       const card = document.createElement('div');
       card.className = 'exp-card p-4 rounded-md bg-[#1C1F24] border border-[#2B3036] space-y-3 relative group';
 
-      const role = item.role || item.title || '';
+      const role = item.role || item.title || item.job_title || '';
       const company = item.company || '';
+      const project = item.project || '';
       let start = item.start_date || '';
       let end = item.end_date || '';
       if (!start && !end && item.dates) {
@@ -1805,13 +2748,13 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[#D9A441]"></span>
-            <span class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1] exp-card-title">${escapeHtml(role || 'New Role')} @ ${escapeHtml(company || 'Company')}</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1] exp-card-title">${escapeHtml(role || 'New Role')}${project ? ` (${escapeHtml(project)})` : ''} @ ${escapeHtml(company || 'Company')}</span>
           </div>
           <button type="button" onclick="removeExperienceCard(this)" title="Remove Role" class="text-xs text-[#9AA0A6] hover:text-rose-400 p-1 rounded hover:bg-[#242830] transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           <div>
             <label class="block text-[10px] font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Role / Job Title</label>
             <input type="text" value="${escapeHtml(role)}" oninput="updateExpCardHeader(this); syncFormToJson();" class="exp-role w-full px-3 py-1.5 rounded bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Senior Java Developer">
@@ -1819,6 +2762,14 @@
           <div>
             <label class="block text-[10px] font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Company / Organization</label>
             <input type="text" value="${escapeHtml(company)}" oninput="updateExpCardHeader(this); syncFormToJson();" class="exp-company w-full px-3 py-1.5 rounded bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Northwind Digital Inc.">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Project / Domain (Optional)</label>
+            <input type="text" value="${escapeHtml(project)}" oninput="updateExpCardHeader(this); syncFormToJson();" class="exp-project w-full px-3 py-1.5 rounded bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Power Trading Analytics">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Client Name (Optional)</label>
+            <input type="text" value="${escapeHtml(item.client || '')}" oninput="updateExpCardHeader(this); syncFormToJson();" class="exp-client w-full px-3 py-1.5 rounded bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none" placeholder="e.g. Apple, Barclays">
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -1871,8 +2822,14 @@
       if (!card) return;
       const role = card.querySelector('.exp-role')?.value.trim() || 'New Role';
       const company = card.querySelector('.exp-company')?.value.trim() || 'Company';
+      const project = card.querySelector('.exp-project')?.value.trim() || '';
+      const client = card.querySelector('.exp-client')?.value.trim() || '';
       const title = card.querySelector('.exp-card-title');
-      if (title) title.innerText = `${role} @ ${company}`;
+      const details = [];
+      if (project) details.push(`Project: ${project}`);
+      if (client) details.push(`Client: ${client}`);
+      const detailsStr = details.length ? ` (${details.join(', ')})` : '';
+      if (title) title.innerText = `${role}${detailsStr} @ ${company}`;
     }
 
     // Key Projects
@@ -2158,17 +3115,45 @@
       profile.contact.email = (document.getElementById('prof-email')?.value || '').trim();
       profile.contact.phone = (document.getElementById('prof-phone')?.value || '').trim();
       profile.contact.location = (document.getElementById('prof-location')?.value || '').trim();
+      if (document.getElementById('prof-status')) {
+        profile.contact.status = (document.getElementById('prof-status')?.value || '').trim();
+      }
+      if (document.getElementById('prof-linkedin')) {
+        profile.contact.linkedin = (document.getElementById('prof-linkedin')?.value || '').trim();
+      }
+      if (document.getElementById('prof-github')) {
+        profile.contact.github = (document.getElementById('prof-github')?.value || '').trim();
+      }
       if (profile.contact.location) {
         profile.locations = [profile.contact.location];
       }
 
+      if (document.getElementById('prof-total-exp')) {
+        const stated = (document.getElementById('prof-total-exp')?.value || '').trim();
+        if (stated) {
+          profile.total_experience_stated = stated;
+          const numMatch = stated.match(/\d+/);
+          if (numMatch) profile.years_of_experience = parseInt(numMatch[0], 10);
+        }
+      }
+
       const roles = (document.getElementById('prof-target-roles')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-      if (roles.length) profile.target_titles = roles;
+      if (roles.length) {
+        profile.target_titles = roles;
+        profile.target_roles = roles;
+        profile.role = roles[0];
+        profile.title = roles[0];
+      }
 
       const skills = (document.getElementById('prof-skills')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
       if (skills.length) profile.skills = skills;
 
+      if (document.getElementById('prof-skills-familiar')) {
+        profile.skills_familiar = (document.getElementById('prof-skills-familiar')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+      }
+
       profile.summary = (document.getElementById('prof-summary')?.value || '').trim();
+      profile.writing_sample = profile.summary;
 
       // Experience cards
       const expCards = document.querySelectorAll('#prof-experience-container .exp-card');
@@ -2176,6 +3161,8 @@
       expCards.forEach(card => {
         const role = (card.querySelector('.exp-role')?.value || '').trim();
         const company = (card.querySelector('.exp-company')?.value || '').trim();
+        const project = (card.querySelector('.exp-project')?.value || '').trim();
+        const client = (card.querySelector('.exp-client')?.value || '').trim();
         const start = (card.querySelector('.exp-start')?.value || '').trim();
         const end = (card.querySelector('.exp-end')?.value || '').trim();
         const location = (card.querySelector('.exp-loc')?.value || '').trim();
@@ -2186,6 +3173,10 @@
           const dates = (start && end) ? `${start} – ${end}` : (start || end || '');
           experiences.push({
             role,
+            title: role,
+            job_title: role,
+            project,
+            client,
             company,
             start_date: start,
             end_date: end,
@@ -2237,7 +3228,7 @@
         const institution = (card.querySelector('.edu-inst')?.value || '').trim();
         const dates = (card.querySelector('.edu-dates')?.value || '').trim();
         if (degree || institution) {
-          education.push({ degree, institution, dates });
+          education.push({ degree, institution, dates, year: dates });
         }
       });
       profile.education = education;
@@ -2277,6 +3268,43 @@
       if (fileInput) fileInput.click();
     }
 
+    function showResumeValidationPrompt(msg) {
+      const banner = document.getElementById('prof-validation-banner');
+      const bannerMsg = document.getElementById('prof-validation-banner-msg');
+      if (banner) {
+        banner.classList.remove('hidden');
+        if (bannerMsg && msg) bannerMsg.innerText = msg;
+      }
+      const modal = document.getElementById('resume-validation-modal');
+      const modalMsg = document.getElementById('resume-validation-modal-msg');
+      if (modal) {
+        modal.classList.remove('hidden');
+        if (modalMsg && msg) {
+          modalMsg.innerText = `${msg} (Your Master Profile JSON was NOT modified).`;
+        }
+      }
+      showToast('⚠️ Format or resume is not correct. Please fill the below master profile from UI.', 'error');
+    }
+
+    function hideResumeValidationPrompt() {
+      const banner = document.getElementById('prof-validation-banner');
+      if (banner) banner.classList.add('hidden');
+      const modal = document.getElementById('resume-validation-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function closeResumeValidationModal(scrollToForm = false) {
+      const modal = document.getElementById('resume-validation-modal');
+      if (modal) modal.classList.add('hidden');
+      if (scrollToForm) {
+        const formEl = document.getElementById('prof-name');
+        if (formEl) {
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => formEl.focus(), 300);
+        }
+      }
+    }
+
     async function handleResumeFileSelected(event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -2294,7 +3322,20 @@
         // If JSON file uploaded directly:
         if (ext === '.json') {
           const text = await file.text();
-          const parsed = JSON.parse(text);
+          let parsed = null;
+          try {
+            parsed = JSON.parse(text);
+          } catch (e) {
+            showResumeValidationPrompt('Invalid JSON file format. Format or resume is not correct please fill the below master profile from UI.');
+            return;
+          }
+          const hasExp = parsed && Array.isArray(parsed.experience) && parsed.experience.length > 0;
+          const hasSkills = parsed && Array.isArray(parsed.skills) && parsed.skills.length > 0;
+          if (!parsed || (!hasExp && !hasSkills && !parsed.name)) {
+            showResumeValidationPrompt('The JSON does not contain valid resume info or work experience. Format or resume is not correct please fill the below master profile from UI.');
+            return;
+          }
+          hideResumeValidationPrompt();
           currentProfile = { ...currentProfile, ...parsed };
           populateProfileForm(currentProfile);
           syncFormToJson();
@@ -2330,20 +3371,17 @@
         });
 
         const data = await res.json();
-        if (data.success && data.profile) {
-          currentProfile = {
-            ...currentProfile,
-            ...data.profile,
-            contact: { ...(currentProfile.contact || {}), ...(data.profile.contact || {}) }
-          };
+        if (res.ok && data.success && data.profile) {
+          hideResumeValidationPrompt();
+          currentProfile = data.profile;
           populateProfileForm(currentProfile);
-          syncFormToJson();
           showToast('📄 Resume parsed into detailed Master Profile! Click "Save Profile" to commit.');
         } else {
-          showToast('Could not extract resume: ' + (data.error || 'Unknown error'), 'error');
+          const errDetail = data.message || data.error || 'Format or resume is not correct please fill the below master profile from UI.';
+          showResumeValidationPrompt(errDetail);
         }
       } catch (err) {
-        showToast('Failed to parse resume: ' + err.message, 'error');
+        showResumeValidationPrompt('Failed to process resume: ' + err.message);
       } finally {
         event.target.value = '';
         if (btnLabel) btnLabel.innerText = originalLabel;
@@ -2467,10 +3505,14 @@
         if (data.targetChatId) {
           const chatElem = document.getElementById('tg-info-chat');
           if (chatElem) chatElem.innerText = data.targetChatId;
+          const customChatDisplay = document.getElementById('tg-custom-chat-display');
+          if (customChatDisplay) customChatDisplay.innerText = `Recipient: Chat ${data.targetChatId}`;
         }
         const badge = document.getElementById('tg-bridge-badge');
         const pidElem = document.getElementById('tg-info-pid');
         const tabBadge = document.getElementById('tab-tg-status');
+        const sideBadge = document.getElementById('side-tg-status');
+        const tabDot = document.getElementById('tab-tg-status-dot');
 
         if (data.bridge?.running) {
           if (badge) {
@@ -2482,6 +3524,13 @@
             tabBadge.innerText = 'Active';
             tabBadge.className = 'text-emerald-400 font-mono';
           }
+          if (sideBadge) {
+            sideBadge.innerText = 'Active';
+            sideBadge.className = 'text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10';
+          }
+          if (tabDot) {
+            tabDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+          }
         } else {
           if (badge) {
             badge.className = 'px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5 font-mono';
@@ -2492,6 +3541,13 @@
             tabBadge.innerText = 'Standby';
             tabBadge.className = 'text-amber-400 font-mono';
           }
+          if (sideBadge) {
+            sideBadge.innerText = 'Standby';
+            sideBadge.className = 'text-[10px] font-mono text-amber-400 font-semibold px-1.5 py-0.5 rounded bg-amber-500/10';
+          }
+          if (tabDot) {
+            tabDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+          }
         }
       } catch (err) {
         console.error('loadTelegramStatus error:', err);
@@ -2499,14 +3555,27 @@
     }
 
     async function sendTelegramTestPing() {
-      const btn = document.getElementById('btn-tg-ping');
+      const btn1 = document.getElementById('btn-tg-ping');
+      const btn2 = document.getElementById('btn-tg-custom-ping');
       const customMsg = document.getElementById('tg-custom-msg')?.value.trim();
       const resBox = document.getElementById('tg-ping-result');
 
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Dispatching...`;
-      }
+      const setButtonsLoading = (loading) => {
+        if (btn1) {
+          btn1.disabled = loading;
+          btn1.innerHTML = loading
+            ? `<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Dispatching...`
+            : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> <span>Send Test Ping</span>`;
+        }
+        if (btn2) {
+          btn2.disabled = loading;
+          btn2.innerHTML = loading
+            ? `<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Dispatching...`
+            : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg> <span>Send Ping Now</span>`;
+        }
+      };
+
+      setButtonsLoading(true);
 
       try {
         const payload = {};
@@ -2535,10 +3604,7 @@
       } catch (err) {
         showToast(`⚠️ Connection error: ${err.message}`, 'error');
       } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> <span>Send Test Ping</span>`;
-        }
+        setButtonsLoading(false);
       }
     }
 
@@ -2584,6 +3650,39 @@
 
     window.addEventListener('DOMContentLoaded', init);
   </script>
+
+  <!-- Modal for Resume Validation Failure Prompt -->
+  <div id="resume-validation-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-[#1C1F24] border-2 border-amber-500 rounded-xl p-6 max-w-lg w-full mx-4 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-start gap-3.5">
+        <div class="p-3 bg-amber-500/20 text-amber-400 rounded-lg shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-base font-bold text-white tracking-wide">Format or Resume is Not Correct</h3>
+          <p class="text-xs text-[#9AA0A6] mt-1.5 leading-relaxed" id="resume-validation-modal-msg">
+            The uploaded file is not a valid CV/Resume with verifiable work experience. <strong>Your Master Profile JSON was NOT modified.</strong>
+          </p>
+        </div>
+      </div>
+      <div class="p-4 rounded-lg bg-[#111317] border border-[#2B3036] space-y-2">
+        <div class="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+          <span>⚠️ Action Required:</span>
+        </div>
+        <p class="text-xs text-[#E8E6E1] leading-relaxed">
+          Format or resume is not correct. Please fill the below master profile from UI, or upload a proper CV/Resume containing your work experience and skills.
+        </p>
+      </div>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" onclick="closeResumeValidationModal(true)" class="px-4 py-2 bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] text-xs font-bold rounded-md transition shadow flex items-center gap-1.5">
+          <span>✍️ Fill Master Profile from UI</span>
+        </button>
+        <button type="button" onclick="closeResumeValidationModal(false)" class="px-3.5 py-2 bg-[#2B3036] hover:bg-[#3C4043] text-white text-xs font-medium rounded-md transition">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Floating Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>

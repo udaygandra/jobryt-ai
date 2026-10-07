@@ -351,7 +351,7 @@ Return ONLY JSON:
 
   let responseData = null;
 
-  if (provider === 'gemini') {
+  if (provider === 'gemini' || provider === 'google') {
     const apiKey = $env.GEMINI_API_KEY;
     const models = modelOverride ? [modelOverride] : ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
     for (let model of models) {
@@ -481,7 +481,7 @@ Draft:
 
   let responseData = null;
 
-  if (provider === 'gemini') {
+  if (provider === 'gemini' || provider === 'google') {
     const apiKey = $env.GEMINI_API_KEY;
     const models = modelOverride ? [modelOverride] : ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
     for (let model of models) {

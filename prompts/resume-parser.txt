@@ -24,6 +24,7 @@ CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
    - Extract contact information completely: name, email, phone, location, work authorization / residency status (e.g. "Permanent Resident of Canada"), linkedin, github/portfolio when present.
    - For `target_titles`: List target roles directly matching or closely supported by the resume's core functions and experience level.
    - Where an experience header combines role and project/division (e.g. "Data Analyst II — Power Trading & Market Analytics"), split it into `role` ("Data Analyst II") and `project` ("Power Trading & Market Analytics").
+   - CLIENT FIDELITY: If the candidate or resume mentions a client name (e.g. "Client: Apple", "Client: Barclays", "Client: Citigroup", "Client - Target"), extract the exact client name into `client`. NEVER redact, anonymize, or save it as "Highly Confidential" or "Confidential". Keep the exact client name as provided.
    - `writing_sample` must be a verbatim 2-4 sentence excerpt from the resume summary or profile section. Do NOT generate or synthesize a sample.
 
 <resume>
@@ -57,6 +58,7 @@ RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
     {
       "role": "",
       "project": "",
+      "client": "",
       "company": "",
       "dates": "",
       "bullets": []

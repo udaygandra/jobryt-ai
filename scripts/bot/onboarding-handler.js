@@ -49,6 +49,7 @@ async function sendTelegramMessage(chatId, text, replyMarkup = null) {
       hostname: 'api.telegram.org',
       path: `/bot${botToken}/sendMessage`,
       method: 'POST',
+      timeout: 3000,
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload)
@@ -57,6 +58,10 @@ async function sendTelegramMessage(chatId, text, replyMarkup = null) {
       let d = '';
       res.on('data', c => d += c);
       res.on('end', () => resolve(d));
+    });
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(null);
     });
     req.on('error', () => resolve(null));
     req.write(payload);
@@ -141,9 +146,71 @@ async function startOnboarding(filePath, chatId) {
   );
 
   try {
-    const profile = await parseResume(filePath, { dryRun: false, isTest: false, deleteAfterParsing: true });
+    const { extractTextFromFile } = require('../engine/local-resume-extractor');
+    const { validateResumeDocument } = require('../engine/resume-validator');
+
+    let rawText = '';
+    try {
+      rawText = await extractTextFromFile(filePath);
+    } catch (_) {}
+
+    // Early non-resume check (avoids unnecessary LLM call for cover letters, job descriptions, invoices)
+    const earlyValidation = validateResumeDocument(null, rawText, path.basename(filePath));
+    if (!earlyValidation.isValid && earlyValidation.reason !== 'missing_work_experience' && earlyValidation.reason !== 'insufficient_resume_data') {
+      console.warn(`[Onboarding] Document rejected early: ${earlyValidation.reason} - ${earlyValidation.message}`);
+      if (earlyValidation.reason === 'cover_letter') {
+        await sendTelegramMessage(
+          chatId,
+          `⚠️ <b>Cover Letter Detected</b>\n\n` +
+          `It looks like you uploaded a cover letter instead of a CV or Resume.\n\n` +
+          `👉 Please upload a proper <b>CV / Resume</b> (PDF, DOCX, or TXT) containing your work experience, job history, and skills to set up your master profile.`
+        );
+      } else {
+        await sendTelegramMessage(
+          chatId,
+          `⚠️ <b>Proper Resume Required</b>\n\n` +
+          `The uploaded document is not a valid CV/Resume (missing structured work experience or standard resume sections).\n\n` +
+          `👉 Please upload a proper <b>CV / Resume</b> (PDF, DOCX, or TXT) containing your work experience, employers, dates, and skills, or configure your profile via the Web UI.`
+        );
+      }
+      return false;
+    }
+
+    let profile = null;
+    try {
+      profile = await parseResume(filePath, { dryRun: false, isTest: false, deleteAfterParsing: false });
+    } catch (llmErr) {
+      console.warn('⚠️ Onboarding LLM parser failed, falling back to local extractor:', llmErr.message);
+      const { extractResumeLocallyFromText } = require('../engine/local-resume-extractor');
+      const { normalizeProfileFields } = require('../engine/resume-to-profile');
+      profile = extractResumeLocallyFromText(rawText);
+      if (profile) profile = normalizeProfileFields(profile);
+    }
+
     if (!profile || !profile.name) {
       throw new Error('Failed to extract candidate name or experience from resume.');
+    }
+
+    // Validate that this is an authentic CV / Resume with structured work experience
+    const validation = validateResumeDocument(profile, rawText, path.basename(filePath));
+    if (!validation.isValid) {
+      console.warn(`[Onboarding] Document rejected: ${validation.reason} - ${validation.message}`);
+      if (validation.reason === 'cover_letter') {
+        await sendTelegramMessage(
+          chatId,
+          `⚠️ <b>Cover Letter Detected</b>\n\n` +
+          `It looks like you uploaded a cover letter instead of a CV or Resume.\n\n` +
+          `👉 Please upload a proper <b>CV / Resume</b> (PDF, DOCX, or TXT) containing your work experience, job history, and skills to set up your master profile.`
+        );
+      } else {
+        await sendTelegramMessage(
+          chatId,
+          `⚠️ <b>Proper Resume Required</b>\n\n` +
+          `The uploaded document is not a valid CV/Resume (missing structured work experience or standard resume sections).\n\n` +
+          `👉 Please upload a proper <b>CV / Resume</b> (PDF, DOCX, or TXT) containing your work experience, employers, dates, and skills, or configure your profile via the Web UI.`
+        );
+      }
+      return false;
     }
 
     // Stage parsed profile

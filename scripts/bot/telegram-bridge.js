@@ -491,11 +491,30 @@ async function pollLoop() {
               await downloadFile(doc.file_id, tempPath);
 
               if (ext === '.json') {
-                const targetProfile = path.join(dataDir, 'profiles', 'master-profile.json');
-                fs.mkdirSync(path.dirname(targetProfile), { recursive: true });
-                fs.copyFileSync(tempPath, targetProfile);
-                try { fs.unlinkSync(tempPath); } catch (_) { }
-                await sendTelegramMessage(senderId, `✅ Master profile updated via JSON.`);
+                try {
+                  const jsonRaw = fs.readFileSync(tempPath, 'utf8');
+                  const parsedJson = JSON.parse(jsonRaw);
+                  const { validateResumeDocument } = require('../engine/resume-validator');
+                  const validation = validateResumeDocument(parsedJson, jsonRaw, doc.file_name || 'profile.json');
+                  if (!validation.isValid) {
+                    try { fs.unlinkSync(tempPath); } catch (_) { }
+                    await sendTelegramMessage(
+                      senderId,
+                      `⚠️ <b>Invalid Resume Uploaded</b>\n\n` +
+                      `The uploaded document is not a valid CV/Resume (missing structured work experience or resume details).\n\n` +
+                      `👉 Please upload a proper <b>CV / Resume</b> (PDF, DOCX, TXT) with your work experience and skills to update your profile.`
+                    );
+                    continue;
+                  }
+                  const targetProfile = path.join(dataDir, 'profiles', 'master-profile.json');
+                  fs.mkdirSync(path.dirname(targetProfile), { recursive: true });
+                  fs.copyFileSync(tempPath, targetProfile);
+                  try { fs.unlinkSync(tempPath); } catch (_) { }
+                  await sendTelegramMessage(senderId, `✅ Master profile updated via JSON.`);
+                } catch (jsonErr) {
+                  try { fs.unlinkSync(tempPath); } catch (_) { }
+                  await sendTelegramMessage(senderId, `⚠️ <b>Invalid File</b>: Please upload a proper <b>CV / Resume</b> (PDF, DOCX, or TXT).`);
+                }
               } else {
                 onboardingHandler.startOnboarding(tempPath, senderId).catch(err => {
                   console.error('Error starting onboarding:', err);

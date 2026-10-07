@@ -347,6 +347,29 @@ app.post('/api/profile/upload-resume', async (req, res) => {
 
     let parsed = null;
 
+    let rawText = fileText || '';
+    if (!rawText && fs.existsSync(tempPath)) {
+      try {
+        const { extractTextFromFile } = require('./scripts/engine/local-resume-extractor');
+        rawText = await extractTextFromFile(tempPath);
+      } catch (_) {}
+    }
+
+    // Early validation on raw text (e.g. immediate rejection for cover letters, job postings, invoices)
+    const { validateResumeDocument } = require('./scripts/engine/resume-validator');
+    const earlyValidation = validateResumeDocument(null, rawText, filename);
+    if (!earlyValidation.isValid && earlyValidation.reason !== 'missing_work_experience' && earlyValidation.reason !== 'insufficient_resume_data') {
+      if (fs.existsSync(tempPath)) {
+        try { fs.unlinkSync(tempPath); } catch (_) {}
+      }
+      return res.status(422).json({
+        success: false,
+        error: earlyValidation.message,
+        reason: earlyValidation.reason,
+        message: 'Format or resume is not correct please fill the below master profile from UI.'
+      });
+    }
+
     // 1. Try LLM Waterfall Parser if configured
     try {
       const { parseResume } = require('./scripts/engine/resume-to-profile');
@@ -357,9 +380,13 @@ app.post('/api/profile/upload-resume', async (req, res) => {
 
     // 2. Fallback to Local Text & PDF parser
     if (!parsed) {
-      const { extractTextFromFile, extractResumeLocallyFromText } = require('./scripts/engine/local-resume-extractor');
-      const text = await extractTextFromFile(tempPath);
-      parsed = extractResumeLocallyFromText(text || fileText || '');
+      const { extractResumeLocallyFromText } = require('./scripts/engine/local-resume-extractor');
+      parsed = extractResumeLocallyFromText(rawText || '');
+    }
+
+    if (parsed) {
+      const { normalizeProfileFields } = require('./scripts/engine/resume-to-profile');
+      parsed = normalizeProfileFields(parsed);
     }
 
     // Clean up temporary file
@@ -367,8 +394,16 @@ app.post('/api/profile/upload-resume', async (req, res) => {
       try { fs.unlinkSync(tempPath); } catch (_) {}
     }
 
-    if (!parsed || (!parsed.name && (!parsed.experience || parsed.experience.length === 0) && (!parsed.skills || parsed.skills.length === 0))) {
-      return res.status(422).json({ error: 'Could not extract valid profile sections from the uploaded resume.' });
+    // 3. Strict Validation: Ensure valid CV/Resume with verifiable work experience
+    const validation = validateResumeDocument(parsed, rawText, filename);
+
+    if (!validation.isValid) {
+      return res.status(422).json({
+        success: false,
+        error: validation.message,
+        reason: validation.reason,
+        message: 'Format or resume is not correct please fill the below master profile from UI.'
+      });
     }
 
     res.json({
@@ -915,6 +950,41 @@ app.get('/api/export/xlsx', (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="Applied_Jobs_${new Date().toISOString().slice(0, 10)}.xlsx"`);
     res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/export/csv', (req, res) => {
+  try {
+    const applied = jobsDb.getAppliedJobs(1000);
+    const headers = ['ID', 'Applied Date', 'Job Title', 'Company', 'Location', 'Match Score', 'ATS Fit %', 'Job URL', 'Source', 'Status', 'PDF Resume'];
+    const escapeCsv = (val) => {
+      const s = String(val == null ? '' : val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    let csvContent = headers.join(',') + '\n';
+    for (const a of applied) {
+      const row = [
+        escapeCsv(a.id),
+        escapeCsv(a.applied_at),
+        escapeCsv(a.title),
+        escapeCsv(a.company),
+        escapeCsv(a.location),
+        escapeCsv(a.match_score),
+        escapeCsv(a.ats_keyword_fit),
+        escapeCsv(a.job_url),
+        escapeCsv(a.source),
+        escapeCsv(a.status),
+        escapeCsv(a.pdf_filename)
+      ];
+      csvContent += row.join(',') + '\n';
+    }
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="Applied_Jobs_${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send(csvContent);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

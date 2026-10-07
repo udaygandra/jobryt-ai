@@ -37,6 +37,7 @@ CRITICAL RULES - ZERO FABRICATION:
 2. Copy EVERY bullet point verbatim. Do NOT condense or omit.
 3. Extract ALL skills, tools, and technologies as individual strings in an array.
 4. Extract complete contact details (email, phone, location, linkedin).
+5. CLIENT FIDELITY: If a client name is specified (e.g. "Client: Apple", "Client: Barclays"), keep the exact client name in client. NEVER replace or save it as "Highly Confidential" or "Confidential".
 
 Respond ONLY with valid JSON in this schema:
 {
@@ -49,6 +50,8 @@ Respond ONLY with valid JSON in this schema:
   "experience": [
     {
       "role": "Exact Job Title",
+      "project": "",
+      "client": "",
       "company": "Exact Company Name",
       "dates": "Exact Dates",
       "bullets": ["Verbatim bullet 1", "Verbatim bullet 2"]
@@ -216,13 +219,14 @@ function normalizeCategorizedSkills(rawCategorized = [], flatSkills = []) {
     for (const catObj of rawCategorized) {
       if (!catObj || typeof catObj !== 'object') continue;
       const catName = (catObj.category || '').trim();
-      if (!catName || !Array.isArray(catObj.items)) continue;
+      const rawItems = Array.isArray(catObj.items) ? catObj.items : (Array.isArray(catObj.skills) ? catObj.skills : null);
+      if (!catName || !rawItems) continue;
 
       if (!categoryMap.has(catName)) {
         categoryMap.set(catName, []);
       }
 
-      for (const item of catObj.items) {
+      for (const item of rawItems) {
         if (typeof item !== 'string') continue;
         const norm = item.trim().toLowerCase();
         // Rule: item must exist in flatSkills, and appear in exactly one category
@@ -379,7 +383,229 @@ function extractDocxText(buf) {
   return '';
 }
 
-// ── Step 2: Core Parsing Logic ──────────────────────────────────────────────
+// ── Step 2: Profile Normalization & Core Parsing Logic ──────────────────────
+function normalizeProfileFields(parsedProfile) {
+  if (!parsedProfile || typeof parsedProfile !== 'object') return parsedProfile;
+
+  // Clean strings
+  if (typeof parsedProfile.name === 'string') {
+    parsedProfile.name = cleanDocxAndMarkdownArtifacts(parsedProfile.name).trim();
+  }
+  if (typeof parsedProfile.summary === 'string') {
+    parsedProfile.summary = cleanDocxAndMarkdownArtifacts(parsedProfile.summary).trim();
+  }
+  if (!parsedProfile.writing_sample) {
+    parsedProfile.writing_sample = parsedProfile.summary || '';
+  }
+
+  // Contact
+  if (!parsedProfile.contact || typeof parsedProfile.contact !== 'object') {
+    parsedProfile.contact = {};
+  }
+  const c = parsedProfile.contact;
+  c.email = (c.email || '').trim();
+  c.phone = (c.phone || '').trim();
+  c.location = (c.location || (Array.isArray(parsedProfile.locations) && parsedProfile.locations[0]) || '').trim();
+  c.status = (c.status || '').trim();
+  c.linkedin = (c.linkedin || '').trim();
+  c.github = (c.github || '').trim();
+
+  // Locations
+  if (!Array.isArray(parsedProfile.locations) || parsedProfile.locations.length === 0) {
+    parsedProfile.locations = c.location ? [c.location] : ['Remote'];
+  }
+
+  // Skills
+  if (Array.isArray(parsedProfile.skills)) {
+    parsedProfile.skills = parsedProfile.skills
+      .map(s => cleanDocxAndMarkdownArtifacts(s).trim())
+      .filter(s => s && s.length >= 2 && s.length <= 50 && !s.match(/^(?:INNER|LEFT|FULL|RANK|DENSE_RANK|LAG|LEAD|PARTITION BY\)?|\(Familiar\))$/i));
+    parsedProfile.skills = [...new Set(parsedProfile.skills)];
+  } else {
+    parsedProfile.skills = [];
+  }
+
+  if (Array.isArray(parsedProfile.skills_familiar)) {
+    parsedProfile.skills_familiar = parsedProfile.skills_familiar.map(s => cleanDocxAndMarkdownArtifacts(s)).filter(Boolean);
+  } else {
+    parsedProfile.skills_familiar = [];
+  }
+
+  // Experience
+  if (Array.isArray(parsedProfile.experience)) {
+    const normExp = [];
+    for (const exp of parsedProfile.experience) {
+      if (!exp || typeof exp !== 'object') continue;
+      const role = cleanDocxAndMarkdownArtifacts(exp.role || exp.title || '').trim();
+      const company = cleanDocxAndMarkdownArtifacts(exp.company || '').trim() || 'Direct Employer';
+      const project = cleanDocxAndMarkdownArtifacts(exp.project || '').trim();
+      const dates = (exp.dates || '').trim();
+      let start_date = (exp.start_date || '').trim();
+      let end_date = (exp.end_date || '').trim();
+
+      if ((!start_date || !end_date) && dates) {
+        const parts = dates.split(/\s*(?:–|—|-|\bto\b)\s*/i).filter(Boolean);
+        if (parts.length >= 2) {
+          if (!start_date) start_date = parts[0].trim();
+          if (!end_date) end_date = parts[1].trim();
+        } else if (parts.length === 1 && !start_date) {
+          start_date = parts[0].trim();
+        }
+      }
+
+      const location = (exp.location || c.location || 'Remote / Hybrid').trim();
+      let bullets = [];
+      if (Array.isArray(exp.bullets)) {
+        bullets = exp.bullets
+          .map(b => cleanDocxAndMarkdownArtifacts(b).replace(/^[\s•*·\-–—]+\s*/, '').trim())
+          .filter(Boolean);
+      } else if (typeof exp.bullets === 'string') {
+        bullets = exp.bullets.split('\n').map(b => b.replace(/^[\s•*·\-–—]+\s*/, '').trim()).filter(Boolean);
+      }
+
+      // Strip any trailing next-job titles that accidentally got attached to the end of a bullet
+      bullets = bullets.map(b => {
+        return b.replace(/\.\s+(?:Data Analyst|Senior|Software Engineer|Cloud|Architect|Engineer|Consultant|Developer)\s*(?:[—–-]|at|@).+$/i, '.').trim();
+      });
+
+      let client = cleanDocxAndMarkdownArtifacts(exp.client || '').trim();
+      if (!client && company) {
+        const clientMatch = company.match(/\(Client:\s*([^)]+)\)/i) || company.match(/\bClient\s*[:\-–—]\s*([^,\n|()]+)/i);
+        if (clientMatch) client = clientMatch[1].trim();
+      }
+      if (!client && project) {
+        const clientMatch = project.match(/\(Client:\s*([^)]+)\)/i) || project.match(/\bClient\s*[:\-–—]\s*([^,\n|()]+)/i);
+        if (clientMatch) client = clientMatch[1].trim();
+      }
+      if (/^highly\s+confidential$/i.test(client)) {
+        const rawBulletClient = bullets.join(' ').match(/\b(?:Client|End Client)\s*[:\-–—]\s*([A-Za-z0-9&.\s]{2,30})/i);
+        if (rawBulletClient && !/confidential/i.test(rawBulletClient[1])) {
+          client = rawBulletClient[1].trim();
+        }
+      }
+
+      if (role || company !== 'Direct Employer' || bullets.length > 0) {
+        const syncedTitle = role || 'Professional Role';
+        normExp.push({
+          role: syncedTitle,
+          title: syncedTitle,
+          job_title: syncedTitle,
+          project,
+          client: client || '',
+          company,
+          location,
+          start_date,
+          end_date,
+          dates: dates || ((start_date && end_date) ? `${start_date} – ${end_date}` : (start_date || end_date || '')),
+          bullets
+        });
+      }
+    }
+    parsedProfile.experience = normExp;
+  } else {
+    parsedProfile.experience = [];
+  }
+
+  // Target titles & role synchronization
+  if (!Array.isArray(parsedProfile.target_titles) || parsedProfile.target_titles.length === 0) {
+    const titles = [];
+    for (const exp of parsedProfile.experience) {
+      if (exp.role && !titles.includes(exp.role)) titles.push(exp.role);
+    }
+    parsedProfile.target_titles = titles.length > 0 ? titles.slice(0, 3) : ['Data Analyst'];
+  }
+  parsedProfile.target_roles = parsedProfile.target_titles;
+  parsedProfile.role = parsedProfile.target_titles[0] || (parsedProfile.experience[0] && parsedProfile.experience[0].role) || 'Professional';
+  parsedProfile.title = parsedProfile.role;
+
+  // Education with synchronized dates & degrees
+  if (Array.isArray(parsedProfile.education)) {
+    parsedProfile.education = parsedProfile.education.map(edu => {
+      let degree = '';
+      let institution = '';
+      let dates = '';
+      if (typeof edu === 'string') {
+        degree = cleanDocxAndMarkdownArtifacts(edu).trim();
+      } else if (edu && typeof edu === 'object') {
+        degree = cleanDocxAndMarkdownArtifacts(edu.degree || '').trim();
+        institution = cleanDocxAndMarkdownArtifacts(edu.institution || edu.school || '').trim();
+        dates = cleanDocxAndMarkdownArtifacts(edu.dates || edu.year || '').trim();
+      }
+
+      // If dates are missing, extract from degree or institution strings
+      if (!dates) {
+        const dMatch = degree.match(/\b(?:19|20)\d\d\s*(?:–|—|-|\bto\b)\s*(?:Present|Current|(?:19|20)\d\d)\b/i) ||
+                       degree.match(/\b(?:19|20)\d\d\b/);
+        if (dMatch) {
+          dates = dMatch[0].trim();
+          degree = degree.replace(dMatch[0], '').replace(/[()•·\-,|]+$/, '').replace(/^[()•·\-,|]+/, '').trim();
+        }
+      }
+      if (!dates) {
+        const iMatch = institution.match(/\b(?:19|20)\d\d\s*(?:–|—|-|\bto\b)\s*(?:Present|Current|(?:19|20)\d\d)\b/i) ||
+                       institution.match(/\b(?:19|20)\d\d\b/);
+        if (iMatch) {
+          dates = iMatch[0].trim();
+          institution = institution.replace(iMatch[0], '').replace(/[()•·\-,|]+$/, '').replace(/^[()•·\-,|]+/, '').trim();
+        }
+      }
+
+      return {
+        degree,
+        institution,
+        dates,
+        year: dates
+      };
+    }).filter(e => e.degree || e.institution);
+  } else {
+    parsedProfile.education = [];
+  }
+
+  // Certifications
+  if (Array.isArray(parsedProfile.certifications)) {
+    parsedProfile.certifications = parsedProfile.certifications.map(cert => {
+      if (typeof cert === 'string') {
+        const statusMatch = cert.match(/(?:—|–|-|\bdate:\s*)\s*(In Progress|Active|Completed|20\d\d|19\d\d)/i);
+        const certDate = statusMatch ? statusMatch[1].trim() : 'Verified';
+        const certName = statusMatch ? cert.replace(statusMatch[0], '').trim() : cert.trim();
+        const issuerMatch = certName.match(/\b(Microsoft|AWS|Amazon|Google|Oracle|IBM|Cisco|CompTIA|Databricks|Snowflake)\b/i);
+        return {
+          name: certName,
+          issuer: issuerMatch ? issuerMatch[1].trim() : 'Authorized Provider',
+          date: certDate
+        };
+      }
+      return {
+        name: (cert.name || cert.title || '').trim(),
+        issuer: (cert.issuer || cert.organization || 'Authorized Provider').trim(),
+        date: (cert.date || cert.year || 'Verified').trim()
+      };
+    }).filter(c => c.name);
+  } else {
+    parsedProfile.certifications = [];
+  }
+
+  // Projects
+  if (!Array.isArray(parsedProfile.projects)) {
+    parsedProfile.projects = [];
+  } else {
+    parsedProfile.projects = parsedProfile.projects.map(p => ({
+      name: cleanDocxAndMarkdownArtifacts(p.name || p.title || '').trim(),
+      technologies: Array.isArray(p.technologies) ? p.technologies : (p.technologies ? [p.technologies] : []),
+      description: cleanDocxAndMarkdownArtifacts(p.description || '').trim()
+    })).filter(p => p.name || p.description);
+  }
+
+  parsedProfile.years_of_experience = calculateYearsOfExperience(parsedProfile.experience);
+  if (!parsedProfile.total_experience_stated && parsedProfile.years_of_experience > 0) {
+    parsedProfile.total_experience_stated = `${parsedProfile.years_of_experience} years`;
+  }
+
+  parsedProfile.skills_categorized = normalizeCategorizedSkills(parsedProfile.skills_categorized, parsedProfile.skills);
+
+  return parsedProfile;
+}
+
 async function parseResume(inputFilePath, options = {}) {
   const isDryRun = options.dryRun || false;
   const isTest = options.isTest || false;
@@ -563,7 +789,7 @@ async function parseResume(inputFilePath, options = {}) {
     throw lastError || new Error('No response from LLM waterfall');
   }
 
-  const parsedProfile = JSON.parse(rawText.replace(/```json/gi, '').replace(/```/g, '').trim());
+  const parsedProfile = normalizeProfileFields(JSON.parse(rawText.replace(/```json/gi, '').replace(/```/g, '').trim()));
 
   if (!parsedProfile.name && !parsedProfile.skills) {
     console.error('❌ Profile missing key fields.');
@@ -573,7 +799,11 @@ async function parseResume(inputFilePath, options = {}) {
   // Clean formatting artifacts from experience bullets, names, and summaries
   if (Array.isArray(parsedProfile.experience)) {
     for (const exp of parsedProfile.experience) {
-      if (typeof exp.role === 'string') exp.role = cleanDocxAndMarkdownArtifacts(exp.role);
+      if (typeof exp.role === 'string') {
+        exp.role = cleanDocxAndMarkdownArtifacts(exp.role);
+        exp.title = exp.role;
+        exp.job_title = exp.role;
+      }
       if (typeof exp.project === 'string') exp.project = cleanDocxAndMarkdownArtifacts(exp.project);
       if (Array.isArray(exp.bullets)) {
         exp.bullets = exp.bullets.map(b => cleanDocxAndMarkdownArtifacts(b)).filter(Boolean);
@@ -685,6 +915,7 @@ if (require.main === module) {
 
 module.exports = {
   parseResume,
+  normalizeProfileFields,
   SYSTEM_PROMPT,
   calculateYearsOfExperience,
   roundYearsOfExperience,
