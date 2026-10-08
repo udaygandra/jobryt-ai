@@ -82,15 +82,15 @@ function switchTab(tab) {
   closeAllDropdowns();
   document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
 
-  // 4-Pillar category association map
+  // 5-Pillar category association map
   const catMap = {
+    guide: 'guide',
     feed: 'opportunities',
     custom: 'opportunities',
     recruiters: 'opportunities',
     applied: 'applications',
     profile: 'dossier',
-    config: 'settings',
-    telegram: 'settings'
+    config: 'settings'
   };
   const activeCat = catMap[tab] || 'opportunities';
 
@@ -110,7 +110,7 @@ function switchTab(tab) {
   const activeDesktop = document.getElementById(`tab-${tab}`);
   if (activeDesktop) {
     activeDesktop.classList.add('tab-active');
-    if (tab === 'profile') {
+    if (tab === 'profile' || tab === 'guide') {
       activeDesktop.classList.add('group-active');
     }
   }
@@ -135,17 +135,17 @@ function switchTab(tab) {
 
   // Update mobile top bar chip
   const sectionLabels = {
+    guide: 'Workflow Guide · Onboarding',
     feed: 'Opportunities · Discovery Queue',
     custom: 'Opportunities · Job Tailor',
     recruiters: 'Opportunities · Recruiter Intel',
     applied: 'Applications · Pipeline',
     profile: 'Dossier · Master Profile',
-    config: 'Engine · Search Rules',
-    telegram: 'Engine · Telegram Bot'
+    config: 'Engine · Search Rules'
   };
   const mobHeaderName = document.getElementById('mobile-active-section-name');
   if (mobHeaderName) {
-    mobHeaderName.innerText = sectionLabels[tab] || 'Opportunities · Discovery Queue';
+    mobHeaderName.innerText = sectionLabels[tab] || 'Workflow Guide';
   }
 
   // Update mobile count indicator based on view
@@ -159,10 +159,9 @@ function switchTab(tab) {
     } else if (tab === 'feed') {
       mobHeaderCount.innerText = pendingCount;
       mobHeaderCount.className = 'font-mono text-[10px] text-[#D9A441] font-bold';
-    } else if (tab === 'telegram') {
-      const isRunning = document.getElementById('tab-tg-status')?.innerText === 'Active';
-      mobHeaderCount.innerText = isRunning ? 'Active' : 'Standby';
-      mobHeaderCount.className = isRunning ? 'font-mono text-[10px] text-emerald-400 font-bold' : 'font-mono text-[10px] text-amber-400 font-bold';
+    } else if (tab === 'guide') {
+      mobHeaderCount.innerText = '6 Steps';
+      mobHeaderCount.className = 'font-mono text-[10px] text-amber-400 font-bold';
     } else {
       mobHeaderCount.innerText = '·';
       mobHeaderCount.className = 'font-mono text-[10px] text-[#9AA0A6] font-bold';
@@ -172,9 +171,10 @@ function switchTab(tab) {
   const targetView = document.getElementById(`view-${tab}`);
   if (targetView) targetView.classList.remove('hidden');
 
+  if (tab === 'guide' && typeof refreshWorkflowGuide === 'function') refreshWorkflowGuide();
   if (tab === 'feed') loadPendingJobs();
   if (tab === 'applied') loadAppliedJobs();
-  if (tab === 'telegram') loadTelegramStatus();
+  if (tab === 'config') loadSettings();
 }
 
 // Global Event Listeners for Navigation

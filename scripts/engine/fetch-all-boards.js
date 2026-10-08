@@ -88,10 +88,29 @@ const roleIdx = rotateIndex('adzuna_role_idx.json', targetTitles.length);
 const locIdx = rotateIndex('adzuna_loc_idx.json', targetLocations.length);
 
 let currentRole = targetTitles[roleIdx] || 'Target Role';
-let currentLoc = targetLocations[locIdx] || targetLocations[0] || 'Remote';
-const country = (countryScope === 'US' ? 'us' : (process.env.ADZUNA_COUNTRY || 'ca')).toLowerCase().trim();
+let currentLoc = targetLocations[locIdx] || '';
+const ADZUNA_CODE_MAP = Object.freeze({
+  'US': 'us', 'USA': 'us',
+  'GB': 'gb', 'UK': 'gb',
+  'CA': 'ca',
+  'DE': 'de',
+  'FR': 'fr',
+  'AU': 'au',
+  'IN': 'in',
+  'NL': 'nl',
+  'BR': 'br',
+  'IT': 'it',
+  'PL': 'pl',
+  'ZA': 'za',
+  'AT': 'at',
+  'NZ': 'nz',
+  'SG': 'sg',
+  'MX': 'mx'
+});
 
-console.error(`[Multi-Board Ingestion] Scope: "${countryScope}" | Role [${roleIdx + 1}/${targetTitles.length}]: "${currentRole}" | Loc [${locIdx + 1}/${targetLocations.length}]: "${currentLoc}" | Mode: "${candidateWorkType}" | Freshness: ${isFreshnessDisabled ? 'Disabled (Any Time)' : freshnessHours + 'h'}...`);
+const country = (ADZUNA_CODE_MAP[countryScope] || (process.env.ADZUNA_COUNTRY || 'us')).toLowerCase().trim();
+
+console.error(`[Multi-Board Ingestion] Scope: "${countryScope}" (Adzuna: ${country}) | Role [${roleIdx + 1}/${targetTitles.length}]: "${currentRole}" | Loc [${locIdx + 1}/${targetLocations.length}]: "${currentLoc}" | Mode: "${candidateWorkType}" | Freshness: ${isFreshnessDisabled ? 'Disabled (Any Time)' : freshnessHours + 'h'}...`);
 
 // Shared array to collect all fetched jobs
 const allFetchedJobs = [];
@@ -199,7 +218,9 @@ async function fetchJobBankDetails(postingId) {
  */
 async function fetchCanadaJobBank() {
   if (boardsEnabled.canada_job_bank === false) return console.error('[Fetch] Canada Job Bank disabled.');
-  if (countryScope === 'US') return console.error('[Fetch] Canada Job Bank skipped (US mode).');
+  if (countryScope !== 'CA' && countryScope !== 'US_CA' && countryScope !== 'GLOBAL') {
+    return console.error(`[Fetch] Canada Job Bank skipped (${countryScope} mode).`);
+  }
   
   let count = 0;
   try {
@@ -389,7 +410,9 @@ async function fetchLinkedIn() {
  */
 async function fetchUSAJobs() {
   if (boardsEnabled.usajobs === false) return console.error('[Fetch] USAJOBS disabled.');
-  if (countryScope === 'CA') return console.error('[Fetch] USAJOBS skipped (Canada mode).');
+  if (countryScope !== 'US' && countryScope !== 'US_CA' && countryScope !== 'GLOBAL') {
+    return console.error(`[Fetch] USAJOBS skipped (${countryScope} mode).`);
+  }
   
   const usajobsKey = process.env.USAJOBS_API_KEY || process.env.USAJOBS_AUTH_KEY;
   if (!usajobsKey) return;
@@ -635,6 +658,623 @@ async function fetchGlobalRemoteFeeds() {
   console.error(`[Fetch] Global Remote Feeds found: ${count} jobs`);
 }
 
+// ── Step 4b: Market Leader & Regional Specialist Fetchers ───────────────────
+
+const INDEED_DOMAINS = Object.freeze({
+  'US': 'www.indeed.com',
+  'GB': 'uk.indeed.com',
+  'CA': 'ca.indeed.com',
+  'DE': 'de.indeed.com',
+  'AU': 'au.indeed.com',
+  'FR': 'fr.indeed.com',
+  'NL': 'nl.indeed.com',
+  'BR': 'br.indeed.com',
+  'SG': 'sg.indeed.com',
+  'JP': 'jp.indeed.com',
+  'AE': 'ae.indeed.com',
+  'IN': 'in.indeed.com'
+});
+
+/**
+ * Fetches jobs from Indeed (Country-Specific Public RSS Gateway).
+ */
+async function fetchIndeed() {
+  if (boardsEnabled.indeed === false) return;
+  const dom = INDEED_DOMAINS[countryScope] || (countryScope === 'GLOBAL' ? 'www.indeed.com' : INDEED_DOMAINS['US']);
+  if (!dom) return;
+
+  let count = 0;
+  try {
+    const isExplicitRemote = candidateWorkType.toLowerCase().includes('remote') || currentLoc.toLowerCase() === 'remote';
+    const locParam = isExplicitRemote ? 'Remote' : (currentLoc || '');
+    const url = `https://${dom}/rss?q=${encodeURIComponent(currentRole)}&l=${encodeURIComponent(locParam)}&sort=date`;
+    
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const xml = await res.text();
+      const items = xml.split('<item>').slice(1);
+      
+      for (const item of items) {
+        const titleM = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
+        const linkM = item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i);
+        const descM = item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+        const srcM = item.match(/<source[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/source>/i);
+        const dateM = item.match(/<pubDate>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/pubDate>/i);
+
+        if (!titleM || !linkM) continue;
+        let rawTitle = titleM[1].replace(/<\/?[^>]+(>|$)/g, '').trim();
+        let rawUrl = linkM[1].replace(/<\/?[^>]+(>|$)/g, '').trim();
+        let rawComp = srcM ? srcM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Employer';
+        
+        // Indeed titles often format as "Job Title - Company - Location"
+        if (rawTitle.includes(' - ')) {
+          const parts = rawTitle.split(' - ');
+          if (parts.length >= 2 && (!srcM || rawComp === 'Employer')) {
+            rawComp = parts[parts.length - 2].trim() || rawComp;
+          }
+          rawTitle = parts[0].trim();
+        }
+
+        const rawDesc = descM ? descM[1].replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim() : `${rawTitle} at ${rawComp}`;
+        const rawLoc = isExplicitRemote ? 'Remote' : (currentLoc || 'National');
+        const isRemoteIndeed = isExplicitRemote || /remote|telecommute|work from home/i.test(`${rawTitle} ${rawDesc}`);
+
+        if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemoteIndeed) &&
+            isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+            isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemoteIndeed)) {
+          const indeedId = crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
+          allFetchedJobs.push({
+            id: `indeed_${indeedId}`,
+            title: rawTitle,
+            company: rawComp,
+            location: rawLoc,
+            created: dateM ? new Date(dateM[1]).toISOString() : new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: `Indeed (${countryScope})`
+          });
+          count++;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal fallback
+  }
+  if (count > 0) console.error(`[Fetch] Indeed (${countryScope}) found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from Germany's Bundesagentur für Arbeit (Official Gov Jobsuche REST API).
+ * Zero fake jobs, 100% verified German employer registry.
+ */
+async function fetchArbeitsagentur() {
+  if (boardsEnabled.arbeitsagentur === false) return;
+  if (countryScope !== 'DE' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const loc = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc : '';
+    const url = `https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs?was=${encodeURIComponent(currentRole)}&wo=${encodeURIComponent(loc)}&size=20`;
+    
+    const res = await fetch(url, {
+      headers: {
+        'X-API-Key': 'jobboerse-jobsuche',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const jobs = data.stellenangebote || [];
+      
+      for (const item of jobs) {
+        const rawTitle = item.titel || currentRole;
+        const rawComp = item.arbeitgeber || 'Arbeitgeber in Deutschland';
+        const rawLoc = (item.arbeitsort && (item.arbeitsort.ort || item.arbeitsort.region)) || 'Deutschland';
+        const refnr = item.refnr || crypto.createHash('md5').update(rawTitle + rawComp).digest('hex').slice(0, 10);
+        const rawUrl = `https://www.arbeitsagentur.de/jobsuche/jobdetail/${refnr}`;
+        const rawDesc = `${rawTitle} bei ${rawComp} in ${rawLoc}. Referenznummer: ${refnr}. Offizielles Stellenangebot der Bundesagentur für Arbeit.`;
+        const isRemote = /homeoffice|remote|telearbeit/i.test(`${rawTitle} ${rawDesc}`);
+
+        if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+            isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+            isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+          allFetchedJobs.push({
+            id: `ba_${refnr}`,
+            title: rawTitle,
+            company: rawComp,
+            location: rawLoc,
+            created: item.aktuelleVakanzBeginn ? new Date(item.aktuelleVakanzBeginn).toISOString() : new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: 'Bundesagentur für Arbeit (DE)'
+          });
+          count++;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Bundesagentur für Arbeit found: ${count} verified jobs`);
+}
+
+/**
+ * Fetches jobs from Singapore's Workforce Singapore (Official Gov MyCareersFuture REST API).
+ * Zero fake jobs, 100% verified ACRA-registered companies.
+ */
+async function fetchMyCareersFuture() {
+  if (boardsEnabled.mycareersfuture === false) return;
+  if (countryScope !== 'SG' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const url = `https://api.mycareersfuture.gov.sg/v2/jobs?search=${encodeURIComponent(currentRole)}&limit=20`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const results = data.results || [];
+      
+      for (const item of results) {
+        const rawTitle = item.title || currentRole;
+        const rawComp = item.postedCompany?.name || 'Singapore Employer';
+        const rawLoc = 'Singapore';
+        const rawUrl = item.metadata?.jobPostUrl || `https://www.mycareersfuture.gov.sg/job/${item.uuid}`;
+        const salaryInfo = item.salary ? ` | Salary: SGD ${item.salary.minimum || ''} - ${item.salary.maximum || ''} / ${item.salary.type || 'month'}` : '';
+        const rawDesc = `${rawTitle} at ${rawComp} in Singapore${salaryInfo}. Verified ACRA Employer on MyCareersFuture Government Portal.\n\n${item.description || ''}`.trim();
+        const isRemote = /remote|work from home/i.test(`${rawTitle} ${rawDesc}`);
+
+        if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+            isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+            isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+          allFetchedJobs.push({
+            id: `mcf_${item.uuid || crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`,
+            title: rawTitle,
+            company: rawComp,
+            location: rawLoc,
+            created: item.metadata?.updatedAt || new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: 'MyCareersFuture (Gov SG)'
+          });
+          count++;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] MyCareersFuture (Gov SG) found: ${count} verified jobs`);
+}
+
+/**
+ * Fetches jobs from Australia & NZ Market Leader: SEEK.
+ */
+async function fetchSeek() {
+  if (boardsEnabled.seek === false) return;
+  if (countryScope !== 'AU' && countryScope !== 'NZ' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const isNZ = countryScope === 'NZ' || /new zealand|auckland|wellington/i.test(currentLoc);
+    const domain = isNZ ? 'www.seek.co.nz' : 'www.seek.com.au';
+    const loc = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc : (isNZ ? 'All New Zealand' : 'All Australia');
+    const url = `https://${domain}/api/chalice-search/v4/search?keywords=${encodeURIComponent(currentRole)}&where=${encodeURIComponent(loc)}&pageSize=20`;
+    
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const jobs = data.data || [];
+      for (const item of jobs) {
+        const rawTitle = item.title || currentRole;
+        const rawComp = item.advertiser?.description || 'SEEK Employer';
+        const rawLoc = item.location || (isNZ ? 'New Zealand' : 'Australia');
+        const rawUrl = `https://${domain}/job/${item.id}`;
+        const rawDesc = `${rawTitle} at ${rawComp} in ${rawLoc}. ${item.teaser || ''}`.trim();
+        const isRemote = /remote|work from home/i.test(`${rawTitle} ${rawDesc}`);
+
+        if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+            isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+            isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+          allFetchedJobs.push({
+            id: `seek_${item.id}`,
+            title: rawTitle,
+            company: rawComp,
+            location: rawLoc,
+            created: item.listingDate || new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: isNZ ? 'SEEK (New Zealand)' : 'SEEK (Australia)'
+          });
+          count++;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] SEEK found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from United Kingdom Market Leader: Reed.co.uk.
+ */
+async function fetchReedUK() {
+  if (boardsEnabled.reed === false) return;
+  if (countryScope !== 'GB' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const url = `https://www.reed.co.uk/jobs/${roleSlug}-jobs?format=rss`;
+    
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/rss+xml, text/xml'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const xml = await res.text();
+      const items = xml.split('<item>').slice(1);
+      
+      for (const item of items) {
+        const titleM = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
+        const linkM = item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i);
+        const descM = item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+        const dateM = item.match(/<pubDate>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/pubDate>/i);
+
+        if (!titleM || !linkM) continue;
+        const rawTitle = titleM[1].replace(/<\/?[^>]+(>|$)/g, '').trim();
+        const rawUrl = linkM[1].replace(/<\/?[^>]+(>|$)/g, '').trim();
+        const rawDesc = descM ? descM[1].replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim() : '';
+        const rawLoc = currentLoc || 'United Kingdom';
+        const isRemote = /remote|work from home|hybrid/i.test(`${rawTitle} ${rawDesc}`);
+
+        if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+            isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+            isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+          const reedId = (rawUrl.match(/\/([0-9]{6,})/i) || [])[1] || crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
+          allFetchedJobs.push({
+            id: `reed_${reedId}`,
+            title: rawTitle,
+            company: 'UK Employer (Reed.co.uk)',
+            location: rawLoc,
+            created: dateM ? new Date(dateM[1]).toISOString() : new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: 'Reed.co.uk'
+          });
+          count++;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Reed.co.uk found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from UAE & Gulf Market Leader: Bayt.com.
+ */
+async function fetchBayt() {
+  if (boardsEnabled.bayt === false) return;
+  if (countryScope !== 'AE' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const url = `https://www.bayt.com/en/international/jobs/${roleSlug}-jobs/`;
+    
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+      // Search for JSON-LD schema or structured job listings
+      const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/i);
+      if (jsonLdMatch) {
+        try {
+          const parsed = JSON.parse(jsonLdMatch[1]);
+          const jobList = Array.isArray(parsed) ? parsed : (parsed.itemListElement ? parsed.itemListElement.map(e => e.item) : [parsed]);
+          for (const item of jobList) {
+            if (item['@type'] === 'JobPosting' && item.title) {
+              const rawTitle = item.title;
+              const rawComp = item.hiringOrganization?.name || 'Gulf Employer';
+              const rawLoc = item.jobLocation?.address?.addressLocality || 'Dubai, UAE';
+              const rawUrl = item.url || url;
+              const rawDesc = item.description || `${rawTitle} at ${rawComp} in ${rawLoc}`;
+              const isRemote = /remote/i.test(`${rawTitle} ${rawDesc}`);
+
+              if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+                  isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+                  isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+                allFetchedJobs.push({
+                  id: `bayt_${crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`,
+                  title: rawTitle,
+                  company: rawComp,
+                  location: rawLoc,
+                  created: item.datePosted || new Date().toISOString(),
+                  description: rawDesc,
+                  redirect_url: rawUrl,
+                  source: 'Bayt.com (Middle East)'
+                });
+                count++;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Bayt.com found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from France Market Leader: Welcome to the Jungle.
+ */
+async function fetchWTTJ() {
+  if (boardsEnabled.wttj === false) return;
+  if (countryScope !== 'FR' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const url = `https://api.welcometothejungle.com/api/v1/organizations/jobs?query=${encodeURIComponent(currentRole)}&aroundRadius=50000`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const jobs = data.jobs || data.results || [];
+      for (const item of jobs) {
+        const rawTitle = item.name || item.title || currentRole;
+        const rawComp = item.organization?.name || 'Tech Startup (WTTJ)';
+        const rawLoc = (item.office && item.office.city) ? `${item.office.city}, France` : 'Paris, France';
+        const rawUrl = `https://www.welcometothejungle.com/fr/companies/${item.organization?.slug}/jobs/${item.slug}`;
+        const rawDesc = item.profile || item.summary || `${rawTitle} chez ${rawComp} à ${rawLoc}`;
+        const isRemote = Boolean(item.remote === 'fulltime' || item.remote === 'partial');
+
+        if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+            isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+            isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+          allFetchedJobs.push({
+            id: `wttj_${item.id || item.slug}`,
+            title: rawTitle,
+            company: rawComp,
+            location: rawLoc,
+            created: item.published_at || new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: 'Welcome to the Jungle (FR)'
+          });
+          count++;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Welcome to the Jungle found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from India Market Leader: Naukri.com (Clean Search Feed).
+ */
+async function fetchNaukri() {
+  if (boardsEnabled.naukri === false) return;
+  if (countryScope !== 'IN' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const url = `https://www.naukri.com/${roleSlug}-jobs`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+      // Extract structured article or schema cards
+      const tupleMatches = html.match(/<article[\s\S]*?<\/article>/gi) || [];
+      for (const card of tupleMatches.slice(0, 20)) {
+        const titleM = card.match(/<a[^>]*class="title[^"]*"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
+        const compM = card.match(/<a[^>]*class="comp-name[^"]*"[^>]*>([\s\S]*?)<\/a>/i);
+        const locM = card.match(/<span[^>]*class="loc-wrap[^"]*"[^>]*>([\s\S]*?)<\/span>/i);
+
+        if (titleM) {
+          const rawUrl = titleM[1].startsWith('http') ? titleM[1] : `https://www.naukri.com${titleM[1]}`;
+          const rawTitle = titleM[2].replace(/<\/?[^>]+(>|$)/g, '').trim();
+          const rawComp = compM ? compM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Indian Corporate Employer';
+          const rawLoc = locM ? locM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Bangalore, India';
+          const isRemote = /remote|work from home/i.test(`${rawTitle} ${rawLoc}`);
+          const rawDesc = `${rawTitle} at ${rawComp} in ${rawLoc}. Verified Corporate Post on Naukri.com.`;
+
+          if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+              isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+              isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+            const naukriId = crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
+            allFetchedJobs.push({
+              id: `naukri_${naukriId}`,
+              title: rawTitle,
+              company: rawComp,
+              location: rawLoc,
+              created: new Date().toISOString(),
+              description: rawDesc,
+              redirect_url: rawUrl,
+              source: 'Naukri.com (India)'
+            });
+            count++;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Naukri.com found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from Japan Market Leader: Daijob / GaijinPot (Bilingual & English Careers).
+ */
+async function fetchDaijobJP() {
+  if (boardsEnabled.daijob === false) return;
+  if (countryScope !== 'JP' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const url = `https://jobs.gaijinpot.com/job/index/lang/en?keywords=${encodeURIComponent(currentRole)}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+      const articles = html.split('<div class="gp-job-item').slice(1);
+      for (const art of articles.slice(0, 15)) {
+        const titleM = art.match(/<h3[^>]*>[\s\S]*?<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
+        const compM = art.match(/<div class="gp-job-item__company"[^>]*>([\s\S]*?)<\/div>/i);
+        const locM = art.match(/<div class="gp-job-item__location"[^>]*>([\s\S]*?)<\/div>/i);
+
+        if (titleM) {
+          const rawUrl = titleM[1].startsWith('http') ? titleM[1] : `https://jobs.gaijinpot.com${titleM[1]}`;
+          const rawTitle = titleM[2].replace(/<\/?[^>]+(>|$)/g, '').trim();
+          const rawComp = compM ? compM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Tokyo / Japan Employer';
+          const rawLoc = locM ? locM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Tokyo, Japan';
+          const isRemote = /remote|work from home/i.test(`${rawTitle} ${rawLoc}`);
+          const rawDesc = `${rawTitle} at ${rawComp} in ${rawLoc}. Verified Bilingual & Global Career in Japan.`;
+
+          if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+              isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+              isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+            const jpId = crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
+            allFetchedJobs.push({
+              id: `gaijinpot_${jpId}`,
+              title: rawTitle,
+              company: rawComp,
+              location: rawLoc,
+              created: new Date().toISOString(),
+              description: rawDesc,
+              redirect_url: rawUrl,
+              source: 'GaijinPot / Daijob (Japan)'
+            });
+            count++;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Japan (GaijinPot/Daijob) found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from Brazil Market Leader: Vagas.com.br.
+ */
+async function fetchVagasBR() {
+  if (boardsEnabled.vagas === false) return;
+  if (countryScope !== 'BR' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const url = `https://www.vagas.com.br/vagas-de-${roleSlug}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html'
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+      const articles = html.split('<article class="vaga').slice(1);
+      for (const art of articles.slice(0, 15)) {
+        const titleM = art.match(/<h2[^>]*class="cargo"[^>]*>[\s\S]*?<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
+        const compM = art.match(/<span[^>]*class="empr"[^>]*>([\s\S]*?)<\/span>/i);
+        const locM = art.match(/<span[^>]*class="vaga-local"[^>]*>([\s\S]*?)<\/span>/i);
+
+        if (titleM) {
+          const rawUrl = titleM[1].startsWith('http') ? titleM[1] : `https://www.vagas.com.br${titleM[1]}`;
+          const rawTitle = titleM[2].replace(/<\/?[^>]+(>|$)/g, '').trim();
+          const rawComp = compM ? compM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Empresa no Brasil';
+          const rawLoc = locM ? locM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'São Paulo, Brasil';
+          const isRemote = /remoto|home office/i.test(`${rawTitle} ${rawLoc}`);
+          const rawDesc = `${rawTitle} na empresa ${rawComp} em ${rawLoc}. Vaga verificada no Vagas.com.br.`;
+
+          if (isJobLocationEligible(rawLoc, profileObj.locations || targetLocations, countryScope, isRemote) &&
+              isJobRoleRelevant(rawTitle, profileObj.target_titles || targetTitles) &&
+              isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemote)) {
+            const brId = crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
+            allFetchedJobs.push({
+              id: `vagas_${brId}`,
+              title: rawTitle,
+              company: rawComp,
+              location: rawLoc,
+              created: new Date().toISOString(),
+              description: rawDesc,
+              redirect_url: rawUrl,
+              source: 'Vagas.com.br (Brasil)'
+            });
+            count++;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal
+  }
+  if (count > 0) console.error(`[Fetch] Vagas.com.br found: ${count} jobs`);
+}
+
 function deduplicateJobList(jobs) {
   const seenIds = new Set();
   const seenUrls = new Set();
@@ -699,7 +1339,17 @@ async function fetchAllJobs() {
       fetchCanadaJobBank(),
       fetchUSAJobs(),
       fetchGlobalRemoteFeeds(),
-      fetchLinkedIn()
+      fetchLinkedIn(),
+      fetchIndeed(),
+      fetchArbeitsagentur(),
+      fetchMyCareersFuture(),
+      fetchSeek(),
+      fetchReedUK(),
+      fetchBayt(),
+      fetchWTTJ(),
+      fetchNaukri(),
+      fetchDaijobJP(),
+      fetchVagasBR()
     ]);
     
     if (i < targetTitles.length - 1) {

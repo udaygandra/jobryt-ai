@@ -14,10 +14,10 @@ RUN npm ci --omit=dev
 
 # Copy application source code
 COPY server.js ./
+COPY src/ ./src/
 COPY public/ ./public/
 COPY scripts/ ./scripts/
 COPY prompts/ ./prompts/
-COPY workflows/ ./workflows/
 
 # Ensure data directory exists
 RUN mkdir -p /app/data /app/data/profiles /app/data/tracking /app/data/config

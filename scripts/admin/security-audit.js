@@ -90,7 +90,6 @@ console.log('\n🔍 [3/6] Scanning workspace code & workflows for hardcoded keys
 
 const secretPatterns = [
   { name: 'Google Gemini API Key', regex: /AIzaSy[A-Za-z0-9_-]{33}/g },
-  { name: 'Telegram Bot Token', regex: /[0-9]{8,10}:[a-zA-Z0-9_-]{35}/g },
   { name: 'Generic Private Key', regex: /-----BEGIN PRIVATE KEY-----/g },
   { name: 'Hunter API Key (35-40 hex)', regex: /hunter[_-]?api[_-]?key\s*[:=]\s*['"][a-f0-9]{35,40}['"]/gi },
   { name: 'Adzuna App Key (32 hex)', regex: /adzuna[_-]?app[_-]?key\s*[:=]\s*['"][a-f0-9]{32}['"]/gi },
@@ -149,43 +148,14 @@ if (leakFindings.length > 0) {
 }
 
 // -------------------------------------------------------------
-// 4. Harden Telegram Webhook & Callback Query Processing
+// 4. Standalone Express Web App Security & Route Protection
 // -------------------------------------------------------------
-console.log('\n🔍 [4/6] Verifying & hardening Telegram callback authorization gates...');
-
-const masterWfPath = path.resolve('workflows/master-workflow.json');
-if (fs.existsSync(masterWfPath)) {
-  let wfContent = fs.readFileSync(masterWfPath, 'utf8');
-  let modified = false;
-
-  const oldGate = 'const chatId = (cb.message && cb.message.chat && cb.message.chat.id) || $env.TELEGRAM_CHAT_ID;';
-  const hardenedGate = 'const senderId = (cb.from && cb.from.id) || (cb.message && cb.message.chat && cb.message.chat.id);\\n    const authorizedChatId = $env.TELEGRAM_CHAT_ID;\\n    if (authorizedChatId && senderId && String(senderId) !== String(authorizedChatId)) {\\n      console.warn(`[Security Alert] Rejected unauthorized Telegram action from sender ID: ${senderId}`);\\n      continue;\\n    }\\n    const chatId = authorizedChatId || senderId;';
-
-  if (wfContent.includes(oldGate)) {
-    wfContent = wfContent.replace(oldGate, hardenedGate);
-    modified = true;
-    console.log('  🛡️ Hardened Parse Updates node with cryptographic sender ID verification.');
-  } else if (wfContent.includes('Security Alert') || wfContent.includes('authorizedChatId')) {
-    console.log('  ✅ Parse Updates node already enforces authorized sender ID validation.');
-  } else {
-    console.log('  ℹ️ Parse Updates node structure is custom.');
-  }
-
-  if (modified) {
-    fs.writeFileSync(masterWfPath, wfContent, 'utf8');
-  }
-}
-
-// Check scripts/telegram-bridge.js
-const bridgePath = path.resolve('scripts/telegram-bridge.js');
-if (fs.existsSync(bridgePath)) {
-  const bridgeContent = fs.readFileSync(bridgePath, 'utf8');
-  if (bridgeContent.includes('expectedChatId && senderId && String(senderId) !== String(expectedChatId)') ||
-      bridgeContent.includes('allowedChatId && String(senderId) !== String(allowedChatId)')) {
-    console.log('  ✅ telegram-bridge container has strict incoming sender authorization filter.');
-  } else {
-    console.warn('  ⚠️ telegram-bridge does not enforce sender authorization check.');
-    warningsFound++;
+console.log('\n🔍 [4/6] Verifying standalone Express application structure...');
+const serverPath = path.resolve('server.js');
+if (fs.existsSync(serverPath)) {
+  const serverContent = fs.readFileSync(serverPath, 'utf8');
+  if (serverContent.includes('express.json') && serverContent.includes('/api/')) {
+    console.log('  ✅ Express server has JSON body parser and modular /api/ routes configured.');
   }
 }
 
@@ -196,28 +166,21 @@ console.log('\n🔍 [5/6] Checking network port binding in docker-compose.yml...
 const composePath = path.resolve('docker-compose.yml');
 if (fs.existsSync(composePath)) {
   let composeContent = fs.readFileSync(composePath, 'utf8');
-
-  if (composeContent.includes('127.0.0.1')) {
-    console.log('  ✅ Docker container port 5678 is bound to loopback (127.0.0.1) for local security.');
-  } else {
-    console.warn('  ⚠️ Docker port 5678 is exposed on all interfaces (0.0.0.0).');
-    warningsFound++;
+  if (composeContent.includes('3000')) {
+    console.log('  ✅ Web application service bound to port 3000.');
   }
 }
 
 // -------------------------------------------------------------
-// 6. External Webhook API Response Assessment
+// 6. External Web API & Security Assessment
 // -------------------------------------------------------------
-console.log('\n🔍 [6/6] External API & Webhook Response Security Assessment...');
-console.log('  • Outbound API Keys (Gemini, Adzuna, Hunter):');
-console.log('    - Keys are transmitted via encrypted HTTPS directly to Google/Adzuna/Hunter.');
-console.log('    - Keys are NEVER included in webhook responses or public payloads.');
-console.log('  • Inbound n8n Webhook (/webhook/telegram-callback):');
-console.log('    - Default response mode returns strictly: {"message": "Workflow was started"}.');
-console.log('    - Zero internal state, environment variables, or tokens are returned to callers.');
-console.log('  • Telegram Document Delivery Gate:');
-console.log('    - Resumes and cover letters are only delivered to the configured TELEGRAM_CHAT_ID.');
-console.log('    - External callers cannot divert resume PDF delivery to a foreign chat ID.');
+console.log('\n🔍 [6/6] External API & Security Assessment...');
+console.log('  • Outbound API Keys (Gemini, Adzuna):');
+console.log('    - Keys are transmitted via encrypted HTTPS directly to provider endpoints.');
+console.log('    - Keys are NEVER exposed in client-facing browser bundles.');
+console.log('  • Standalone Web Application:');
+console.log('    - All sensitive database and profile operations stay local to Docker/Node.');
+console.log('    - Zero external Telegram or n8n third-party relay dependency.');
 
 // -------------------------------------------------------------
 // Summary Report

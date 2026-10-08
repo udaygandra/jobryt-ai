@@ -340,23 +340,19 @@
             </div>
           </button>
 
-          <!-- Telegram Bot -->
-          <button onclick="selectSideTab('telegram')" id="side-tab-telegram" data-accent="sky"
+          <!-- Workflow Guide -->
+          <button onclick="selectSideTab('guide')" id="side-tab-guide" data-accent="amber"
             class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
             <div
-              class="w-8 h-8 rounded-md bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+              class="w-8 h-8 rounded-md bg-[#D9A441]/10 border border-[#D9A441]/20 flex items-center justify-center text-[#D9A441] shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-[#E8E6E1]">Telegram Bot Companion</span>
-                <span id="side-tg-status"
-                  class="text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10">Active</span>
-              </div>
-              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Mobile notifications & bot controls</p>
+              <span class="text-xs font-semibold text-[#E8E6E1]">Workflow Guide & Steps</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Resume, profile, scan & tracking guide</p>
             </div>
           </button>
         </div>
@@ -620,6 +616,16 @@
           <span>Candidate Dossier</span>
         </button>
 
+        <!-- Category: Workflow Guide (Direct Nav Link) -->
+        <button onclick="selectNavTab('guide')" id="tab-guide" data-group="guide"
+          class="nav-tab nav-group-btn py-5 border-b-2 whitespace-nowrap active:scale-[0.98] flex items-center gap-1.5 text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Workflow Guide</span>
+        </button>
+
         <!-- Category 4: Engine & Settings Dropdown -->
         <div class="relative nav-dropdown-group" data-group="settings">
           <button id="group-btn-settings" onclick="toggleDropdown('settings')" aria-haspopup="true"
@@ -667,24 +673,22 @@
               </div>
             </button>
 
-            <!-- Subcategory 2: Telegram Bot -->
-            <button onclick="selectNavTab('telegram')" id="tab-telegram" data-accent="sky"
+            <!-- Subcategory 2: Autonomous Scheduler -->
+            <button onclick="selectNavTab('config'); setTimeout(() => { const el = document.getElementById('scheduler-card'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 150);" id="tab-scheduler" data-accent="emerald"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
               <div
-                class="w-8 h-8 rounded-md bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0 group-hover:bg-sky-500/20">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                class="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 group-hover:bg-emerald-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-sky-400">Telegram Bot
-                    Companion</span>
-                  <span id="tab-tg-status"
-                    class="text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10">Active</span>
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-emerald-400">Autonomous Scheduler</span>
+                  <span class="text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10">Active</span>
                 </div>
-                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Mobile notifications & bot controls</p>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Background cron daemon & intervals</p>
               </div>
             </button>
           </div>
@@ -862,6 +866,85 @@
           </div>
         </div>
 
+        <!-- Autonomous Background Scanner (Cron Scheduler) Banner Card -->
+        <div class="mt-6 p-5 rounded-lg bg-[#181B20] border border-[#2B3036] shadow-sm">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036]/70 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-[#D9A441]/10 border border-[#D9A441]/25 flex items-center justify-center text-[#D9A441] shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">Autonomous Background Scanner (Cron Scheduler)</h3>
+                  <span id="sched-badge-status" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                    ● Active
+                  </span>
+                </div>
+                <p class="text-[12px] text-[#9AA0A6] mt-0.5">
+                  Automatically sweeps job boards on a recurring cron interval, scores new listings with Gemini, and populates your queue.
+                </p>
+              </div>
+            </div>
+
+            <!-- Enable/Disable Switch -->
+            <div class="flex items-center gap-3 shrink-0">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="sched-enabled" onchange="onSchedulerToggleChange()" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-[#2B3036] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#E8E6E1] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D9A441] relative"></div>
+                <span id="sched-enabled-label" class="text-xs font-semibold text-[#E8E6E1]">Auto-Scan Enabled</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Scheduler Controls & Schedule Picker -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-1">
+            <!-- Preset Selector -->
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Scan Frequency Preset</label>
+              <select id="sched-preset-select" onchange="onSchedulePresetChange()" class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
+                <option value="DAILY">Daily at 9:00 AM (0 9 * * *)</option>
+                <option value="TWICE">Twice Daily: 9 AM & 5 PM (0 9,17 * * *)</option>
+                <option value="3X">3 Times Daily: 8 AM, 1 PM, 6 PM</option>
+                <option value="5X">5 Times Daily: Peak Hours (30 8,11,14,17,20 * * *)</option>
+                <option value="2H">Every 2 Hours (0 */2 * * *)</option>
+                <option value="4H">Every 4 Hours (0 */4 * * *)</option>
+                <option value="HOURLY">Every Hour (0 * * * *)</option>
+                <option value="WEEKDAYS">Weekdays at 9:00 AM (Mon-Fri)</option>
+                <option value="CUSTOM">Custom Cron Expression...</option>
+              </select>
+            </div>
+
+            <!-- Cron Expression Input -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-[#9AA0A6]">Cron Expression</label>
+                <span id="sched-cron-helper" class="text-[10px] text-[#5FA8A0] font-mono">min hr dom mon dow</span>
+              </div>
+              <input type="text" id="sched-cron-input" class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs font-mono text-[#E8E6E1] outline-none" placeholder="0 9 * * *" value="0 9 * * *">
+            </div>
+
+            <!-- Actions & Status Info -->
+            <div class="flex flex-col justify-end gap-2">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="saveSchedulerSettings()" id="btn-save-scheduler" class="flex-1 py-2 px-3 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                  <span>Save Schedule</span>
+                </button>
+                <button type="button" onclick="triggerBackgroundScanNow()" id="btn-trigger-scheduler" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98]" title="Run one scan in background right now">
+                  <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span>Trigger Now</span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-[#9AA0A6] font-mono px-1">
+                <span id="sched-last-run-label">Last scan: Idle</span>
+                <span id="sched-found-label" class="text-[#5FA8A0]">0 qualified found</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Form Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
 
@@ -890,16 +973,32 @@
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Country
-                  Scope</label>
-                <select id="cfg-scope"
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Target Country & Global Scope</label>
+                <select id="cfg-scope" onchange="onCountryScopeChange()"
                   class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
-                  <option value="AUTO">AUTO (Detect from profile)</option>
-                  <option value="CA">Canada Only (CA)</option>
-                  <option value="US">USA Only (US)</option>
-                  <option value="US_CA">USA & Canada</option>
-                  <option value="GLOBAL">Global / Worldwide Remote</option>
+                  <option value="AUTO">🤖 AUTO (Detect from master profile)</option>
+                  <option value="US">🇺🇸 United States</option>
+                  <option value="GB">🇬🇧 United Kingdom</option>
+                  <option value="CA">🇨🇦 Canada</option>
+                  <option value="DE">🇩🇪 Germany (DACH)</option>
+                  <option value="AU">🇦🇺 Australia</option>
+                  <option value="FR">🇫🇷 France</option>
+                  <option value="IN">🇮🇳 India</option>
+                  <option value="NL">🇳🇱 Netherlands</option>
+                  <option value="AE">🇦🇪 UAE & Gulf (Middle East)</option>
+                  <option value="SG">🇸🇬 Singapore</option>
+                  <option value="JP">🇯🇵 Japan</option>
+                  <option value="BR">🇧🇷 Brazil</option>
+                  <option value="IT">🇮🇹 Italy</option>
+                  <option value="PL">🇵🇱 Poland</option>
+                  <option value="ZA">🇿🇦 South Africa</option>
+                  <option value="AT">🇦🇹 Austria</option>
+                  <option value="NZ">🇳🇿 New Zealand</option>
+                  <option value="MX">🇲🇽 Mexico</option>
+                  <option value="US_CA">🌎 North America (USA & Canada)</option>
+                  <option value="GLOBAL">🌐 Worldwide / Global Remote</option>
                 </select>
+                <p class="text-[10px] text-[#9AA0A6] mt-1">Automatically switches Adzuna, LinkedIn & regional boards to this market.</p>
               </div>
 
               <div>
@@ -945,46 +1044,20 @@
 
           <!-- Column 2: Job Boards & Environment Keys -->
           <div class="space-y-5">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1] border-b border-[#2B3036] pb-2">
-              Active Job Boards Ingestion</h3>
+            <div class="flex items-center justify-between border-b border-[#2B3036] pb-2">
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1]">
+                  Active Job Boards Ingestion (Free & Open Feeds)
+                </h3>
+                <span id="boards-filter-badge" class="text-[10px] text-[#D9A441] font-mono">Filtering for: Selected Country</span>
+              </div>
+              <button type="button" onclick="toggleShowAllBoards()" id="btn-toggle-all-boards" class="px-2.5 py-1 rounded text-[11px] font-mono font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95 cursor-pointer">
+                Show All Global Sources
+              </button>
+            </div>
 
-            <div class="grid grid-cols-2 gap-3" id="boards-toggles">
-              <label
-                class="flex items-center gap-2.5 p-3 rounded-md bg-[#111317] border border-[#2B3036] hover:border-[#3D444D] cursor-pointer">
-                <input type="checkbox" id="board-adzuna" checked
-                  class="w-4 h-4 rounded bg-[#1C1F24] border-[#2B3036] accent-[#D9A441]">
-                <span class="text-xs font-medium text-[#E8E6E1]">Adzuna API</span>
-              </label>
-              <label
-                class="flex items-center gap-2.5 p-3 rounded-md bg-[#111317] border border-[#2B3036] hover:border-[#3D444D] cursor-pointer">
-                <input type="checkbox" id="board-canada_job_bank" checked
-                  class="w-4 h-4 rounded bg-[#1C1F24] border-[#2B3036] accent-[#D9A441]">
-                <span class="text-xs font-medium text-[#E8E6E1]">Canada Job Bank</span>
-              </label>
-              <label
-                class="flex items-center gap-2.5 p-3 rounded-md bg-[#111317] border border-[#2B3036] hover:border-[#3D444D] cursor-pointer">
-                <input type="checkbox" id="board-linkedin" checked
-                  class="w-4 h-4 rounded bg-[#1C1F24] border-[#2B3036] accent-[#D9A441]">
-                <span class="text-xs font-medium text-[#E8E6E1]">LinkedIn Jobs</span>
-              </label>
-              <label
-                class="flex items-center gap-2.5 p-3 rounded-md bg-[#111317] border border-[#2B3036] hover:border-[#3D444D] cursor-pointer">
-                <input type="checkbox" id="board-usajobs" checked
-                  class="w-4 h-4 rounded bg-[#1C1F24] border-[#2B3036] accent-[#D9A441]">
-                <span class="text-xs font-medium text-[#E8E6E1]">USAJobs (Federal)</span>
-              </label>
-              <label
-                class="flex items-center gap-2.5 p-3 rounded-md bg-[#111317] border border-[#2B3036] hover:border-[#3D444D] cursor-pointer">
-                <input type="checkbox" id="board-jobicy" checked
-                  class="w-4 h-4 rounded bg-[#1C1F24] border-[#2B3036] accent-[#D9A441]">
-                <span class="text-xs font-medium text-[#E8E6E1]">Jobicy Remote</span>
-              </label>
-              <label
-                class="flex items-center gap-2.5 p-3 rounded-md bg-[#111317] border border-[#2B3036] hover:border-[#3D444D] cursor-pointer">
-                <input type="checkbox" id="board-remotive" checked
-                  class="w-4 h-4 rounded bg-[#1C1F24] border-[#2B3036] accent-[#D9A441]">
-                <span class="text-xs font-medium text-[#E8E6E1]">Remotive Feed</span>
-              </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="boards-toggles">
+              <!-- Dynamically populated per country scope -->
             </div>
 
             <h3
@@ -1006,24 +1079,22 @@
 
               <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036] flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                  <span class="w-2 h-2 rounded-full bg-[#D9A441]"></span>
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                   <div>
-                    <span class="text-xs font-semibold text-[#E8E6E1] block">Telegram Bot Bridge</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">@sahana_job_tracker_bot</span>
+                    <span class="text-xs font-semibold text-[#E8E6E1] block">ArbeitNow & Public ATS Feeds</span>
+                    <span class="text-[10px] text-[#9AA0A6] font-mono">Zero Key Required • Europe & Global Remote</span>
                   </div>
                 </div>
-                <button onclick="switchTab('telegram')"
-                  class="text-[11px] font-semibold text-[#D9A441] hover:text-[#C59132] bg-[#D9A441]/10 px-2.5 py-0.5 rounded border border-[#D9A441]/25 active:scale-[0.98]">
-                  Manage &rarr;
-                </button>
+                <span
+                  class="text-[11px] font-mono text-emerald-400 font-semibold bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/25">Active</span>
               </div>
 
               <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036] flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                   <span class="w-2 h-2 rounded-full bg-[#5FA8A0]"></span>
                   <div>
-                    <span class="text-xs font-semibold text-[#E8E6E1] block">Adzuna Ingestion API</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">App ID: 4a0cc767 (Canada & Remote)</span>
+                    <span class="text-xs font-semibold text-[#E8E6E1] block">Adzuna Multi-Country Gateway</span>
+                    <span class="text-[10px] text-[#9AA0A6] font-mono">Dynamic routing across 16 countries</span>
                   </div>
                 </div>
                 <span
@@ -1035,38 +1106,11 @@
                   <span class="w-2 h-2 rounded-full bg-[#5FA8A0]"></span>
                   <div>
                     <span class="text-xs font-semibold text-[#E8E6E1] block">USAJOBS Federal API</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">Federal Search Pipeline Active</span>
+                    <span class="text-[10px] text-[#9AA0A6] font-mono">US Federal Pipeline Available</span>
                   </div>
                 </div>
                 <span
                   class="text-[11px] font-mono text-[#5FA8A0] font-semibold bg-[#5FA8A0]/10 px-2 py-0.5 rounded border border-[#5FA8A0]/25">Connected</span>
-              </div>
-
-              <div class="pt-2">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Active LLM
-                  Model</label>
-                <input type="text" id="env-llm-model"
-                  class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono outline-none"
-                  placeholder="gemini-3.8-flash">
-                <p class="text-[10px] text-[#9AA0A6] mt-1">Leaves empty to automatically balance quota across Gemini
-                  3.8, 3.7, 3.6, and Gemma models.</p>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Telegram Bot
-                    Token</label>
-                  <input type="password" id="env-telegram-token"
-                    class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono outline-none"
-                    placeholder="Optional token override">
-                </div>
-                <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Telegram Chat
-                    ID</label>
-                  <input type="text" id="env-telegram-chat"
-                    class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono outline-none"
-                    placeholder="6970333300">
-                </div>
               </div>
             </div>
 
@@ -1325,6 +1369,26 @@
                 </div>
               </div>
 
+              <!-- Country-Specific Verified Job Boards Display in Master Profile -->
+              <div id="prof-country-boards-card" class="p-4 rounded-lg bg-[#111317] border border-[#2B3036] space-y-2.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-[#2B3036]/60 pb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-[#E8E6E1]">🎯 Target Country Job Sources</span>
+                    <span id="prof-country-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/20">Auto-Detecting...</span>
+                  </div>
+                  <span class="text-[10px] text-emerald-400 font-mono font-semibold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Verified Real Employers Only
+                  </span>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-relaxed">
+                  Only the premier market leaders and verified free APIs for your target market are active:
+                </p>
+                <div id="prof-country-boards-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <!-- Populated dynamically based on candidate's country -->
+                </div>
+              </div>
+
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Professional
                   Summary</label>
@@ -1515,6 +1579,28 @@
         </div>
       </div>
 
+      <!-- Stage Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
+        <button onclick="filterAppliedJobs('all')" data-filter="all" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] text-[#14161A] shadow-xs cursor-pointer">
+          All Stages
+        </button>
+        <button onclick="filterAppliedJobs('applied')" data-filter="applied" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+          🚀 Applied (Submitted)
+        </button>
+        <button onclick="filterAppliedJobs('tailored')" data-filter="tailored" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+          📝 Tailored (Ready to Submit)
+        </button>
+        <button onclick="filterAppliedJobs('interviewing')" data-filter="interviewing" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+          💬 Interviewing
+        </button>
+        <button onclick="filterAppliedJobs('offer')" data-filter="offer" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+          🏆 Offer Received
+        </button>
+        <button onclick="filterAppliedJobs('rejected')" data-filter="rejected" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+          🚫 Archived
+        </button>
+      </div>
+
       <!-- Applied Jobs List -->
       <div id="applied-jobs-list" class="space-y-4">
         <!-- Rendered dynamically -->
@@ -1572,160 +1658,226 @@
 
     </div>
 
-    <!-- ── TAB 7: Telegram Bot Management ─────────────────────────────────── -->
-    <div id="view-telegram" class="tab-view hidden space-y-6">
+    <!-- ── TAB: Workflow Guide & Candidate Onboarding ──────────────────── -->
+    <div id="view-guide" class="tab-view hidden space-y-6">
 
-      <!-- Top Telegram Overview Card -->
-      <div class="app-card p-6">
-        <div
-          class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036] pb-5">
+      <!-- Guide Header Banner -->
+      <div class="app-card p-6 border border-[#2B3036] bg-[#16191E]">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036] pb-5">
           <div class="flex items-center gap-3.5">
-            <div
-              class="w-10 h-10 rounded-md bg-[#242830] border border-[#2B3036] flex items-center justify-center text-[#D9A441] shrink-0">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-              </svg>
+            <div class="w-11 h-11 rounded-lg bg-[#D9A441]/10 border border-[#D9A441]/20 flex items-center justify-center text-[#D9A441] shrink-0 text-xl font-bold">
+              📖
             </div>
             <div>
-              <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
-                <span>Engine & Settings</span>
+              <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1">
+                <span>Jobryt AI Agent</span>
                 <span class="text-[#3D444D]" aria-hidden="true">/</span>
-                <span class="text-sky-400 font-semibold">Telegram Bot Companion</span>
+                <span class="text-[#D9A441] font-semibold">Autonomous Workflow & Tracking Guide</span>
               </div>
-              <div class="flex items-center gap-2.5">
-                <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">Telegram Bot Companion & Bridge
-                </h2>
-                <span id="tg-bridge-badge"
-                  class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-[#5FA8A0]/10 text-[#5FA8A0] border border-[#5FA8A0]/25 flex items-center gap-1.5 font-mono">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#5FA8A0]"></span> Bridge Active
-                </span>
-              </div>
+              <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">Candidate Workflow & Application Tracking Roadmap</h2>
               <p class="text-xs text-[#9AA0A6] mt-1 max-w-2xl leading-relaxed">
-                Real-time bidirectional long-polling bridge connecting your Telegram client directly with the pipeline,
-                approval queue, and resume engine.
+                Follow these 6 integrated steps to automate job discovery, ensure zero-fabrication ATS tailoring, and accurately track application lifecycles like major job boards.
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button onclick="restartTelegramBridge()" id="btn-tg-restart"
-              class="px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Restart Bridge</span>
-            </button>
-            <button onclick="sendTelegramTestPing()" id="btn-tg-ping"
-              class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-[0.98]">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span>Send Test Ping</span>
+            <button onclick="refreshWorkflowGuide()" class="px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
+              <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Refresh Status</span>
             </button>
           </div>
         </div>
 
-        <!-- Bot Metadata Details Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          <div class="p-4 rounded-md bg-[#111317] border border-[#2B3036]">
-            <span class="text-[10px] uppercase font-semibold tracking-wider text-[#9AA0A6] block mb-1">Bot
-              Username</span>
-            <span class="text-sm font-bold text-[#D9A441] font-mono"
-              id="tg-info-username">@sahana_job_tracker_bot</span>
-            <span class="text-[10px] text-[#9AA0A6] mt-1 block">Sahana Job Bot</span>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5">
+          <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036]">
+            <span class="text-[10px] uppercase font-semibold text-[#9AA0A6] block mb-0.5">Architecture</span>
+            <span class="text-xs font-bold text-emerald-400 font-mono">100% Native Standalone</span>
+            <p class="text-[10px] text-slate-400 mt-0.5">Zero n8n or external bot dependency</p>
           </div>
-
-          <div class="p-4 rounded-md bg-[#111317] border border-[#2B3036]">
-            <span class="text-[10px] uppercase font-semibold tracking-wider text-[#9AA0A6] block mb-1">Authorized Chat
-              ID</span>
-            <span class="text-sm font-bold text-[#E8E6E1] font-mono tabular-nums" id="tg-info-chat">6970333300</span>
-            <span class="text-[10px] text-[#5FA8A0] mt-1 block">Authorized Recipient</span>
+          <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036]">
+            <span class="text-[10px] uppercase font-semibold text-[#9AA0A6] block mb-0.5">Ground Truth Policy</span>
+            <span class="text-xs font-bold text-[#D9A441] font-mono">Zero Hallucination</span>
+            <p class="text-[10px] text-slate-400 mt-0.5">Strict verifiable profile alignment</p>
           </div>
-
-          <div class="p-4 rounded-md bg-[#111317] border border-[#2B3036]">
-            <span class="text-[10px] uppercase font-semibold tracking-wider text-[#9AA0A6] block mb-1">Process
-              Status</span>
-            <span class="text-sm font-bold text-[#E8E6E1] font-mono" id="tg-info-pid">Active</span>
-            <span class="text-[10px] text-[#9AA0A6] mt-1 block" id="tg-info-uptime">Continuous Polling</span>
-          </div>
-
-          <div class="p-4 rounded-md bg-[#111317] border border-[#2B3036]">
-            <span class="text-[10px] uppercase font-semibold tracking-wider text-[#9AA0A6] block mb-1">Alert
-              Dispatch</span>
-            <span class="text-sm font-bold text-[#5FA8A0] font-mono">Automated</span>
-            <span class="text-[10px] text-[#9AA0A6] mt-1 block">Interactive Actions</span>
+          <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036]">
+            <span class="text-[10px] uppercase font-semibold text-[#9AA0A6] block mb-0.5">Application Tracker</span>
+            <span class="text-xs font-bold text-sky-400 font-mono">LinkedIn / Indeed Model</span>
+            <p class="text-[10px] text-slate-400 mt-0.5">2-step verification & lifecycle stages</p>
           </div>
         </div>
-
       </div>
 
-      <!-- Quick Action / Interactive Simulator -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 6-Step Interactive Stepper Grid -->
+      <div id="workflow-guide-content" class="space-y-4">
 
-        <!-- Action 1: Send Custom Ping -->
-        <div class="app-card p-6 space-y-4">
-          <div class="border-b border-[#2B3036] pb-3">
-            <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">
-              Instant Telegram Notification Test
-            </h3>
-            <p class="text-xs text-[#9AA0A6] mt-1">Dispatches a live message with interactive buttons to your authorized
-              Telegram chat.</p>
+        <!-- STEP 1: Import Resume -->
+        <div class="app-card p-5 border border-[#2B3036] hover:border-[#D9A441]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-9 h-9 rounded-full bg-[#D9A441]/10 text-[#D9A441] font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-[#D9A441]/20">
+              1
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-sm font-bold text-[#E8E6E1]">Import Resume & Extract Baseline</h3>
+                <span id="guide-step1-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Checking...</span>
+              </div>
+              <p id="guide-step1-desc" class="text-xs text-[#9AA0A6] mt-1 leading-relaxed">
+                Upload your PDF, DOCX, or paste resume text. The local regex and LLM parser extracts your contact info, verifiable employment history, and technical toolset.
+              </p>
+            </div>
           </div>
-
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Notification
-              Message</label>
-            <textarea id="tg-custom-msg" rows="3"
-              class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none"
-              placeholder="Optional custom message text..."></textarea>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <span id="tg-custom-chat-display" class="text-[11px] text-[#9AA0A6] font-mono">Recipient: Chat
-              6970333300</span>
-            <button onclick="sendTelegramTestPing()" id="btn-tg-custom-ping"
-              class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-2 active:scale-[0.98]">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-              <span>Send Ping Now</span>
+          <div class="shrink-0 w-full md:w-auto flex justify-end">
+            <button onclick="openUploadResumeModal()" class="w-full md:w-auto px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-95 shadow-xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Import Resume Now</span>
             </button>
           </div>
-
-          <div id="tg-ping-result" class="hidden p-3 rounded-md bg-[#111317] border border-[#2B3036] text-xs"></div>
         </div>
 
-        <!-- Action 2: Bot Features & In-Chat Commands -->
-        <div class="app-card p-6 space-y-4">
-          <div class="border-b border-[#2B3036] pb-3">
-            <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">
-              Supported Telegram Commands
-            </h3>
-            <p class="text-xs text-[#9AA0A6] mt-1">Interact with your bot anytime from mobile or desktop Telegram:</p>
+        <!-- STEP 2: Adjust Master Profile -->
+        <div class="app-card p-5 border border-[#2B3036] hover:border-[#D9A441]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-9 h-9 rounded-full bg-[#D9A441]/10 text-[#D9A441] font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-[#D9A441]/20">
+              2
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-sm font-bold text-[#E8E6E1]">Fine-Tune Candidate Master Profile</h3>
+                <span id="guide-step2-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Checking...</span>
+              </div>
+              <p id="guide-step2-desc" class="text-xs text-[#9AA0A6] mt-1 leading-relaxed">
+                Review your verifiable career background. Jobryt uses this profile as ground truth: skills and bullets are NEVER fabricated or exaggerated during tailoring.
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0 w-full md:w-auto flex justify-end">
+            <button onclick="switchTab('profile')" class="w-full md:w-auto px-4 py-2 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
+              <span>👤 Edit Master Profile</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Job Search Preferences -->
+        <div class="app-card p-5 border border-[#2B3036] hover:border-[#D9A441]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-9 h-9 rounded-full bg-[#D9A441]/10 text-[#D9A441] font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-[#D9A441]/20">
+              3
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-sm font-bold text-[#E8E6E1]">Check & Change Job Search Preferences</h3>
+                <span id="guide-step3-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Checking...</span>
+              </div>
+              <p id="guide-step3-desc" class="text-xs text-[#9AA0A6] mt-1 leading-relaxed">
+                Set target job titles (e.g., Data Analyst, Software Engineer), locations (Remote, Hybrid, Cities), minimum qualification score threshold (e.g. 60+), and posting freshness window.
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0 w-full md:w-auto flex justify-end">
+            <button onclick="switchTab('config')" class="w-full md:w-auto px-4 py-2 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
+              <span>⚙️ Adjust Preferences</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Autonomous Cron or Manual Scan -->
+        <div class="app-card p-5 border border-[#2B3036] hover:border-[#D9A441]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-9 h-9 rounded-full bg-[#D9A441]/10 text-[#D9A441] font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-[#D9A441]/20">
+              4
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-sm font-bold text-[#E8E6E1]">Schedule Cron or Trigger Manual Scan</h3>
+                <span id="guide-step4-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Checking...</span>
+              </div>
+              <p id="guide-step4-desc" class="text-xs text-[#9AA0A6] mt-1 leading-relaxed">
+                The native Node.js cron scheduler wakes up autonomously on your interval (e.g., Daily at 9:00 AM) to pull listings from Adzuna, Canada Job Bank, USAJobs, LinkedIn, Indeed, and Remotive.
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0 w-full md:w-auto flex flex-wrap gap-2 justify-end">
+            <button onclick="triggerPipelineScan()" class="px-3.5 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-95 shadow-xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Scan Now</span>
+            </button>
+            <button onclick="switchTab('config'); setTimeout(() => { const el = document.getElementById('scheduler-card'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 150);" class="px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95">
+              <span>⏰ Scheduler Config</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 5: Review Jobs & ATS Tailoring -->
+        <div class="app-card p-5 border border-[#2B3036] hover:border-[#D9A441]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4 flex-1">
+            <div class="w-9 h-9 rounded-full bg-[#D9A441]/10 text-[#D9A441] font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-[#D9A441]/20">
+              5
+            </div>
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h3 class="text-sm font-bold text-[#E8E6E1]">Review Matched Jobs & 1-Click ATS Tailor</h3>
+                <span id="guide-step5-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Checking...</span>
+              </div>
+              <p id="guide-step5-desc" class="text-xs text-[#9AA0A6] mt-1 leading-relaxed">
+                Review qualified opportunities scored by the AI engine. Click "Apply & Tailor PDF" to instantly generate an ATS-formatted PDF resume and targeted cover letter highlighting your real accomplishments.
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0 w-full md:w-auto flex justify-end">
+            <button onclick="switchTab('feed')" class="w-full md:w-auto px-4 py-2 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
+              <span>🎯 Review Opportunities</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 6: Real Application Tracking (LinkedIn / Indeed Model) -->
+        <div class="app-card p-5 border border-[#2B3036] hover:border-[#D9A441]/40 transition-all space-y-4">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-start gap-4 flex-1">
+              <div class="w-9 h-9 rounded-full bg-[#5FA8A0]/10 text-[#5FA8A0] font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-[#5FA8A0]/20">
+                6
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <h3 class="text-sm font-bold text-[#E8E6E1]">LinkedIn / Indeed Style Application Tracking</h3>
+                  <span id="guide-step6-status" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">Checking...</span>
+                </div>
+                <p id="guide-step6-desc" class="text-xs text-[#9AA0A6] mt-1 leading-relaxed">
+                  How Jobryt solves the external application tracking challenge.
+                </p>
+              </div>
+            </div>
+            <div class="shrink-0 w-full md:w-auto flex justify-end">
+              <button onclick="switchTab('applied')" class="w-full md:w-auto px-4 py-2 rounded-md text-xs font-semibold bg-[#5FA8A0] hover:bg-[#4E948C] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-95 shadow-xs">
+                <span>📊 Open Application Tracker</span>
+              </button>
+            </div>
           </div>
 
-          <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between p-2.5 rounded-md bg-[#111317] border border-[#2B3036]">
-              <code class="text-[#D9A441] font-mono font-semibold">/scan</code>
-              <span class="text-[#E8E6E1]">Run instant multi-board job search & scoring</span>
+          <!-- Deep-Dive Application Tracking Mechanism Box -->
+          <div class="p-4 rounded-xl bg-[#111317] border border-[#2B3036] space-y-3">
+            <div class="flex items-center gap-2 text-xs font-bold text-[#E8E6E1]">
+              <span class="text-[#D9A441]">💡 How Major Job Boards Track Applications (And How Jobryt Does It):</span>
             </div>
-            <div class="flex items-center justify-between p-2.5 rounded-md bg-[#111317] border border-[#2B3036]">
-              <code class="text-[#D9A441] font-mono font-semibold">/profile</code>
-              <span class="text-[#E8E6E1]">Review verified profile, experience & skills</span>
-            </div>
-            <div class="flex items-center justify-between p-2.5 rounded-md bg-[#111317] border border-[#2B3036]">
-              <code class="text-[#D9A441] font-mono font-semibold">/recruiters &lt;company&gt;</code>
-              <span class="text-[#E8E6E1]">Generate X-Ray search & hiring manager leads</span>
-            </div>
-            <div class="flex items-center justify-between p-2.5 rounded-md bg-[#111317] border border-[#2B3036]">
-              <code class="text-[#D9A441] font-mono font-semibold">Send .pdf resume</code>
-              <span class="text-[#E8E6E1]">Attach resume to parse & re-calibrate profile</span>
-            </div>
-            <div class="flex items-center justify-between p-2.5 rounded-md bg-[#111317] border border-[#2B3036]">
-              <code class="text-[#5FA8A0] font-mono font-semibold">[Apply] button</code>
-              <span class="text-[#E8E6E1]">Builds zero-fabrication ATS PDF resume & sends back file</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-[#9AA0A6]">
+              <div class="p-3 rounded-lg bg-[#16191E] border border-[#2B3036]/60 space-y-1">
+                <span class="text-[11px] font-bold text-[#E8E6E1] block">1. The Challenge</span>
+                <p class="leading-relaxed">
+                  When you apply on Workday, Greenhouse, or Lever, external career portals do not send webhook notifications back to standalone tools.
+                </p>
+              </div>
+              <div class="p-3 rounded-lg bg-[#16191E] border border-[#2B3036]/60 space-y-1">
+                <span class="text-[11px] font-bold text-amber-400 block">2. Post-Tailor Confirmation</span>
+                <p class="leading-relaxed">
+                  After generating your ATS PDF, Jobryt asks: <em>"Did you submit your application?"</em> 1-click moves it to <strong>Applied</strong>, or keeps it as <strong>Tailored (Ready)</strong>.
+                </p>
+              </div>
+              <div class="p-3 rounded-lg bg-[#16191E] border border-[#2B3036]/60 space-y-1">
+                <span class="text-[11px] font-bold text-emerald-400 block">3. Lifecycle Stages & Notes</span>
+                <p class="leading-relaxed">
+                  In Applications, change stages anytime (Applied ➔ Interviewing ➔ Offer ➔ Archived) and log interview dates and recruiter contacts directly in SQLite.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1799,11 +1951,67 @@
     </div>
   </div>
 
+  <!-- LinkedIn-Style Application Confirmation Interstitial Modal -->
+  <div id="applied-confirm-modal" class="fixed inset-0 z-50 bg-[#14161A]/95 hidden flex items-center justify-center p-4">
+    <div class="app-card max-w-lg w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-[#2B3036] pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-[#E8E6E1] text-base tracking-tight" id="confirm-modal-title">Tailored Package Ready!</h3>
+            <p class="text-xs text-[#9AA0A6]" id="confirm-modal-subtitle">Target Role • Employer</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('applied-confirm-modal').classList.add('hidden')" class="text-[#9AA0A6] hover:text-[#E8E6E1] p-1 rounded-md hover:bg-[#242830]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-4 rounded-lg bg-[#111317] border border-[#2B3036] space-y-2">
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-[#E8E6E1]">
+          <span class="text-[#D9A441]">Application Tracking (LinkedIn/Indeed Model)</span>
+        </div>
+        <p class="text-xs text-[#CBD5E1] leading-relaxed">
+          Did you submit your application on the company's career page?
+        </p>
+        <p class="text-[11px] text-[#9AA0A6] leading-relaxed">
+          Because external application portals don't return webhooks, this confirmation ensures your tracker accurately differentiates between drafted/tailored resumes and real submissions.
+        </p>
+      </div>
+
+      <!-- Quick Action Links -->
+      <div class="flex items-center gap-2 pt-1">
+        <a id="confirm-modal-pdf-link" href="#" target="_blank" download class="hidden flex-1 py-2 px-3 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
+          <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download PDF</span>
+        </a>
+        <a id="confirm-modal-job-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden flex-1 py-2 px-3 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
+          <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          <span>View Job Page</span>
+        </a>
+      </div>
+
+      <!-- Confirmation Choices -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2 border-t border-[#2B3036]/60">
+        <button id="btn-confirm-tailored" type="button" class="px-3.5 py-2 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95 cursor-pointer">
+          📝 Saved for Later / In Progress
+        </button>
+        <button id="btn-confirm-applied" type="button" class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          <span>Yes, I Submitted!</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Client-side Logic Script -->
   <!-- Modular Zero-Build Client Scripts -->
   <script src="/js/utils.js"></script>
   <script src="/js/navigation.js"></script>
   <script src="/js/status.js"></script>
+  <script src="/js/guide.js"></script>
   <script src="/js/opportunities.js"></script>
   <script src="/js/custom-tailor.js"></script>
   <script src="/js/applied.js"></script>
@@ -1850,6 +2058,69 @@
           Dismiss
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal for API Key Prompt & Real-time Validation -->
+  <div id="api-key-prompt-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+    <div
+      class="bg-[#1C1F24] border border-[#2B3036] rounded-xl p-6 max-w-lg w-full mx-auto shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-[#2B3036] pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#D9A441]/10 border border-[#D9A441]/20 flex items-center justify-center text-[#D9A441] text-lg font-bold shrink-0">
+            🔑
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-[#E8E6E1] tracking-tight" id="api-key-modal-title">API Key Required</h3>
+            <p class="text-xs text-[#9AA0A6]" id="api-key-modal-subtitle">Enter credentials to activate this job board</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeApiKeyPromptModal(false)" class="text-[#9AA0A6] hover:text-[#E8E6E1] p-1 rounded-md hover:bg-[#242830]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Help Info Card -->
+      <div class="p-3.5 rounded-lg bg-[#111317] border border-[#2B3036] space-y-1.5">
+        <div class="flex items-center justify-between text-xs font-semibold text-[#E8E6E1]">
+          <span class="text-[#D9A441]">Free Developer Access</span>
+          <a id="api-key-help-link" href="#" target="_blank" rel="noopener noreferrer" class="text-[11px] text-[#5FA8A0] hover:underline flex items-center gap-1 font-mono">
+            <span>Get Free Key</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+        </div>
+        <p class="text-[11px] text-[#9AA0A6] leading-relaxed" id="api-key-help-text">
+          This board requires free personal credentials to search postings. Keys are stored locally in your secure .env file.
+        </p>
+      </div>
+
+      <!-- Dynamic Input Fields -->
+      <div id="api-key-fields-container" class="space-y-3 pt-1">
+        <!-- Injected dynamically per board -->
+      </div>
+
+      <!-- Feedback / Error Banner -->
+      <div id="api-key-feedback" class="hidden p-3 rounded-md text-xs font-medium border"></div>
+
+      <!-- Modal Actions -->
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-[#2B3036]/60">
+        <button type="button" onclick="closeApiKeyPromptModal(false)"
+          class="px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95 cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" id="btn-validate-key" onclick="validateAndSaveApiKey()"
+          class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-95 shadow-xs cursor-pointer">
+          <svg id="api-key-spinner" class="w-3.5 h-3.5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <span id="btn-validate-text">Test & Validate API Key</span>
+        </button>
+      </div>
+
     </div>
   </div>
 

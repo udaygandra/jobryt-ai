@@ -52,6 +52,72 @@ function populateProfileForm(prof) {
   renderCertificationCards(prof.certifications || []);
   renderEducationCards(prof.education || []);
   updateProfileCounters();
+  renderProfileCountryBoards(prof);
+}
+
+async function renderProfileCountryBoards(prof = currentProfile) {
+  const container = document.getElementById('prof-country-boards-list');
+  const badge = document.getElementById('prof-country-badge');
+  if (!container) return;
+
+  const loc = (prof?.contact?.location || (prof?.locations && prof.locations[0]) || document.getElementById('prof-location')?.value || '').trim();
+  
+  let countryCode = 'GLOBAL';
+  if (/canada|toronto|vancouver|montreal|ottawa|calgary|edmonton|ontario|quebec|alberta|\bon\b|\bbc\b/i.test(loc)) countryCode = 'CA';
+  else if (/usa|united states|new york|nyc|san francisco|austin|seattle|chicago|los angeles|california|texas|\bny\b|\btx\b|\bca\b/i.test(loc)) countryCode = 'US';
+  else if (/uk|united kingdom|london|england|great britain|manchester|edinburgh/i.test(loc)) countryCode = 'GB';
+  else if (/germany|deutschland|berlin|munich|frankfurt|hamburg/i.test(loc)) countryCode = 'DE';
+  else if (/france|paris|lyon|marseille/i.test(loc)) countryCode = 'FR';
+  else if (/india|bangalore|bengaluru|hyderabad|pune|mumbai|delhi|gurgaon|noida/i.test(loc)) countryCode = 'IN';
+  else if (/australia|sydney|melbourne|brisbane|perth/i.test(loc)) countryCode = 'AU';
+  else if (/netherlands|holland|amsterdam|rotterdam|utrecht/i.test(loc)) countryCode = 'NL';
+  else if (/uae|united arab emirates|dubai|abu dhabi|sharjah|gulf/i.test(loc)) countryCode = 'AE';
+  else if (/singapore/i.test(loc)) countryCode = 'SG';
+  else if (/japan|tokyo|osaka|kyoto/i.test(loc)) countryCode = 'JP';
+  else if (/brazil|brasil|são paulo|sao paulo|rio de janeiro/i.test(loc)) countryCode = 'BR';
+
+  const FLAG_MAP = {
+    'US': '🇺🇸 USA', 'GB': '🇬🇧 United Kingdom', 'CA': '🇨🇦 Canada', 'DE': '🇩🇪 Germany',
+    'FR': '🇫🇷 France', 'IN': '🇮🇳 India', 'AU': '🇦🇺 Australia', 'NL': '🇳🇱 Netherlands',
+    'AE': '🇦🇪 UAE & Gulf', 'SG': '🇸🇬 Singapore', 'JP': '🇯🇵 Japan', 'BR': '🇧🇷 Brazil',
+    'GLOBAL': '🌐 Worldwide'
+  };
+
+  if (badge) {
+    badge.innerText = FLAG_MAP[countryCode] || `🌐 ${countryCode}`;
+  }
+
+  try {
+    const res = await fetch(`/api/settings/boards?country=${encodeURIComponent(countryCode)}`);
+    const data = await res.json();
+    if (!data.success || !Array.isArray(data.boards)) return;
+
+    const displayBoards = data.boards.slice(0, 6);
+
+    container.innerHTML = displayBoards.map(b => {
+      const isLeader = b.tier === 'primary';
+      const isGov = Boolean(b.official_gov);
+      const badgeClass = isGov
+        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+        : (isLeader ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-sky-500/10 text-sky-400 border-sky-500/20');
+      const badgeText = isGov ? 'Gov Verified' : (isLeader ? 'Market Leader' : 'Tech Specialist');
+
+      return `
+        <div class="p-2.5 rounded-md bg-[#16191E] border border-[#2B3036]/70 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-xs font-semibold text-[#E8E6E1] truncate">${b.name}</span>
+              <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeClass}">${badgeText}</span>
+            </div>
+            <span class="text-[10px] text-[#9AA0A6] block truncate mt-0.5">${b.description || ''}</span>
+          </div>
+          <span class="text-[10px] font-mono text-emerald-400 shrink-0 font-semibold">Active</span>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('renderProfileCountryBoards error:', err);
+  }
 }
 
 function renderCategorizedSkillsPreview(categories = []) {
@@ -616,6 +682,11 @@ function syncFormToJson() {
   const jsonEl = document.getElementById('prof-json');
   if (jsonEl) jsonEl.value = JSON.stringify(profile, null, 2);
   updateProfileCounters();
+
+  clearTimeout(window._profCountryBoardsTimer);
+  window._profCountryBoardsTimer = setTimeout(() => {
+    renderProfileCountryBoards(profile);
+  }, 400);
 }
 
 function syncJsonToForm() {

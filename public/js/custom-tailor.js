@@ -149,8 +149,12 @@ async function applyToCustomEvaluated(job) {
       showToast('✅ Application & ATS PDF Resume generated successfully!');
       await loadStatus();
       await loadAppliedJobs();
-      switchTab('applied');
-      previewLetter(data.appliedJob.title, data.appliedJob.company, data.appliedJob.cover_letter);
+      if (typeof showApplicationPrompt === 'function') {
+        showApplicationPrompt(data.appliedJob);
+      } else {
+        switchTab('applied');
+        previewLetter(data.appliedJob.title, data.appliedJob.company, data.appliedJob.cover_letter);
+      }
     } else {
       showToast('Could not apply: ' + (data.error || 'Unknown error'), 'error');
     }

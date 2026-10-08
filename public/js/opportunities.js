@@ -308,7 +308,7 @@ async function applyToJob(jobId) {
       }
       await loadStatus();
       await loadAppliedJobs();
-      previewLetter(data.appliedJob.title, data.appliedJob.company, data.appliedJob.cover_letter);
+      showApplicationPrompt(data.appliedJob);
     } else {
       showToast('Could not apply: ' + (data.error || 'Unknown error'), 'error');
     }
@@ -316,6 +316,56 @@ async function applyToJob(jobId) {
     showToast('Application error: ' + e.message, 'error');
   } finally {
     if (btn) btn.disabled = false;
+  }
+}
+
+function showApplicationPrompt(appliedJob) {
+  const modal = document.getElementById('applied-confirm-modal');
+  if (!modal) {
+    previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
+    return;
+  }
+  const titleEl = document.getElementById('confirm-modal-title');
+  const subEl = document.getElementById('confirm-modal-subtitle');
+  if (titleEl) titleEl.innerText = `Tailored Package Ready!`;
+  if (subEl) subEl.innerText = `${appliedJob.title} • ${appliedJob.company}`;
+
+  const btnApplied = document.getElementById('btn-confirm-applied');
+  const btnTailored = document.getElementById('btn-confirm-tailored');
+  const pdfLink = document.getElementById('confirm-modal-pdf-link');
+  const jobLink = document.getElementById('confirm-modal-job-link');
+
+  if (pdfLink && appliedJob.pdf_filename) {
+    pdfLink.href = `/api/resume/download/${encodeURIComponent(appliedJob.pdf_filename)}`;
+    pdfLink.classList.remove('hidden');
+  } else if (pdfLink) {
+    pdfLink.classList.add('hidden');
+  }
+
+  const externalUrl = appliedJob.job_url || appliedJob.redirect_url;
+  if (jobLink && externalUrl) {
+    jobLink.href = externalUrl;
+    jobLink.classList.remove('hidden');
+  } else if (jobLink) {
+    jobLink.classList.add('hidden');
+  }
+
+  modal.classList.remove('hidden');
+
+  if (btnApplied) {
+    btnApplied.onclick = async () => {
+      modal.classList.add('hidden');
+      await updateApplicationStatus(appliedJob.id, 'Applied');
+      previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
+    };
+  }
+
+  if (btnTailored) {
+    btnTailored.onclick = async () => {
+      modal.classList.add('hidden');
+      await updateApplicationStatus(appliedJob.id, 'Tailored');
+      previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
+    };
   }
 }
 

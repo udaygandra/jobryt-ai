@@ -12,19 +12,3 @@ services:
       resources:
         limits:
           memory: 640M
-
-  n8n:
-    environment:
-      - NODE_OPTIONS=--max-old-space-size=768
-    deploy:
-      resources:
-        limits:
-          memory: 1024M
-
-  telegram-bridge:
-    environment:
-      - NODE_OPTIONS=--max-old-space-size=256
-    deploy:
-      resources:
-        limits:
-          memory: 384M
