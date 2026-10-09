@@ -871,12 +871,43 @@ async function searchLiveCities(query, countryCode) {
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.results)) {
+        // Fast map of US/CA state/province names to 2-letter codes
+        const stateCodeMap = {
+          alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA', colorado: 'CO',
+          connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA', hawaii: 'HI', idaho: 'ID',
+          illinois: 'IL', indiana: 'IN', iowa: 'IA', kansas: 'KS', kentucky: 'KY', louisiana: 'LA',
+          maine: 'ME', maryland: 'MD', massachusetts: 'MA', michigan: 'MI', minnesota: 'MN',
+          mississippi: 'MS', missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV',
+          'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+          'north carolina': 'NC', 'north dakota': 'ND', ohio: 'OH', oklahoma: 'OK', oregon: 'OR',
+          pennsylvania: 'PA', 'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD',
+          tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT', virginia: 'VA', washington: 'WA',
+          'west virginia': 'WV', wisconsin: 'WI', wyoming: 'WY', 'district of columbia': 'DC',
+          ontario: 'ON', quebec: 'QC', 'british columbia': 'BC', alberta: 'AB', manitoba: 'MB',
+          saskatchewan: 'SK', 'nova scotia': 'NS', 'new brunswick': 'NB', 'newfoundland and labrador': 'NL',
+          'prince edward island': 'PE', 'northwest territories': 'NT', nunavut: 'NU', yukon: 'YT'
+        };
+
         for (const r of data.results) {
           const itemCountryCode = (r.country_code || '').toUpperCase();
           if (!isCountryMatch(itemCountryCode)) continue;
 
-          const region = r.admin1 || '';
-          const country = r.country || itemCountryCode;
+          const rawRegion = (r.admin1 || '').trim();
+          let region = rawRegion;
+          const lowerRegion = rawRegion.toLowerCase();
+          if (stateCodeMap[lowerRegion]) {
+            region = stateCodeMap[lowerRegion];
+          }
+
+          let country = r.country || itemCountryCode;
+          if (itemCountryCode === 'US' || /united states|usa/i.test(country)) {
+            country = 'USA';
+          } else if (itemCountryCode === 'CA' || /canada/i.test(country)) {
+            country = 'Canada';
+          } else if (itemCountryCode === 'GB' || /united kingdom|uk/i.test(country)) {
+            country = 'UK';
+          }
+
           const formatted = `${r.name}, ${region ? region + ', ' : ''}${country}`;
 
           results.push({

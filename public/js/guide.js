@@ -340,6 +340,12 @@ function addWizardLocation(loc) {
   if (!loc || typeof loc !== 'string') return;
   const clean = loc.trim();
   if (!clean) return;
+  if (wizardLocationsList.length >= 5) {
+    if (typeof showToast === 'function') {
+      showToast('Maximum 5 cities allowed to prevent exceeding API scoring limits.', 'warning');
+    }
+    return;
+  }
   if (!wizardLocationsList.some(l => l.toLowerCase() === clean.toLowerCase())) {
     wizardLocationsList.push(clean);
     renderWizardLocations();

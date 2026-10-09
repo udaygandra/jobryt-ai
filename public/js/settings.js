@@ -831,6 +831,8 @@ function removeRoleTag(idx) {
   }
 }
 
+const MAX_LOCATIONS = 5;
+
 function detectLocationFlag(locStr) {
   const lower = (locStr || '').toLowerCase();
   if (lower.includes('remote') || lower.includes('worldwide')) return '🌐';
@@ -840,17 +842,32 @@ function detectLocationFlag(locStr) {
     );
     if (match && match.flag) return match.flag;
   }
-  if (lower.includes('canada') || lower.endsWith(', on') || lower.endsWith(', bc') || lower.endsWith(', qc') || lower.endsWith(', ab')) return '🇨🇦';
-  if (lower.includes('usa') || lower.endsWith(', ny') || lower.endsWith(', ca') || lower.endsWith(', tx') || lower.endsWith(', wa')) return '🇺🇸';
-  if (lower.includes('uk') || lower.includes('london')) return '🇬🇧';
-  if (lower.includes('germany') || lower.includes('berlin')) return '🇩🇪';
-  if (lower.includes('india') || lower.includes('bengaluru')) return '🇮🇳';
+  if (lower.includes('canada') || /,\s*(on|bc|qc|ab|mb|sk|ns|nb|nl|pe|nt|nu|yt)\b/i.test(lower)) return '🇨🇦';
+  if (lower.includes('usa') || lower.includes('united states') || /,\s*(al|ak|az|ar|ca|co|ct|de|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy|dc)\b/i.test(lower)) return '🇺🇸';
+  if (lower.includes('uk') || lower.includes('united kingdom') || lower.includes('london')) return '🇬🇧';
+  if (lower.includes('germany') || lower.includes('deutschland') || lower.includes('berlin')) return '🇩🇪';
+  if (lower.includes('india') || lower.includes('bengaluru') || lower.includes('delhi')) return '🇮🇳';
+  if (lower.includes('australia') || lower.includes('sydney')) return '🇦🇺';
+  if (lower.includes('france') || lower.includes('paris')) return '🇫🇷';
   return '📍';
 }
 
 function renderLocationTags() {
   const container = document.getElementById('locations-badges-list');
   const hiddenInput = document.getElementById('cfg-locations');
+  const countLabel = document.getElementById('settings-cities-count-label');
+  const locCount = (window.targetLocationsList || []).length;
+
+  if (countLabel) {
+    countLabel.innerText = `(${locCount}/${MAX_LOCATIONS})`;
+    countLabel.className = locCount >= MAX_LOCATIONS ? 'text-amber-400 font-mono text-[10px] font-bold' : 'text-[#5FA8A0] font-mono text-[10px]';
+  }
+
+  const locInput = document.getElementById('input-add-location');
+  if (locInput && locCount >= MAX_LOCATIONS) {
+    locInput.placeholder = 'Maximum 5 cities reached';
+  }
+
   if (hiddenInput) hiddenInput.value = (window.targetLocationsList || []).join(', ');
   if (!container) return;
   container.innerHTML = (window.targetLocationsList || []).map((loc, idx) => {
@@ -869,6 +886,12 @@ function addLocationTag(rawLoc) {
   const loc = (rawLoc || '').trim().replace(/^,+|,+$/g, '');
   if (!loc) return;
   if (!window.targetLocationsList) window.targetLocationsList = [];
+  if (window.targetLocationsList.length >= MAX_LOCATIONS) {
+    if (typeof showToast === 'function') {
+      showToast(`Maximum ${MAX_LOCATIONS} cities allowed to prevent exceeding free API scoring limits.`, 'warning');
+    }
+    return;
+  }
   if (!window.targetLocationsList.some(l => l.toLowerCase() === loc.toLowerCase())) {
     window.targetLocationsList.push(loc);
     renderLocationTags();
@@ -879,6 +902,10 @@ function removeLocationTag(idx) {
   if (window.targetLocationsList) {
     window.targetLocationsList.splice(idx, 1);
     renderLocationTags();
+    const locInput = document.getElementById('input-add-location');
+    if (locInput && (window.targetLocationsList.length < MAX_LOCATIONS)) {
+      onCountryScopeChange();
+    }
   }
 }
 
