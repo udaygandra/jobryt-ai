@@ -328,3 +328,25 @@ a:active {
   color: #64748B !important;
 }
 
+.combobox-item.add-custom-option {
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--surface-inset);
+  font-weight: 500;
+}
+
+[data-theme="light"] .combobox-item.add-custom-option {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+.combobox-live-badge {
+  font-size: 9px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: rgba(95, 168, 160, 0.15);
+  color: #5FA8A0;
+  border: 1px solid rgba(95, 168, 160, 0.25);
+}
+

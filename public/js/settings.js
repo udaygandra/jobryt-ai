@@ -360,6 +360,9 @@ window.globalCitiesList = [];
 window.allGlobalCitiesDataset = [];
 let activeComboboxIndex = -1;
 let comboboxDebounceTimer = null;
+let liveGeocodingDebounceTimer = null;
+let liveGeocodingAbortController = null;
+let currentLiveResults = [];
 
 const COUNTRY_METADATA = {
   US: { name: 'United States', flag: '🇺🇸', sampleCity: 'Austin, TX' },
@@ -535,13 +538,14 @@ function onCountryScopeChange() {
   }
 }
 
-// Combobox filtering & rendering controller with STRICT country scoping
-function filterAndRenderLocationSuggestions(query) {
+// Google Maps-Grade Hybrid Combobox with Live Edge Geocoding & Custom Fallback
+function filterAndRenderLocationSuggestions(query, liveResults = null, isSearchingLive = false) {
   const dropdown = document.getElementById('location-combobox-dropdown');
   const input = document.getElementById('input-add-location');
   if (!dropdown || !input || input.disabled) return;
 
-  const trimmed = (query || '').trim().toLowerCase();
+  const rawQuery = (query || '').trim();
+  const trimmed = rawQuery.toLowerCase();
   const scopeSelect = document.getElementById('cfg-scope');
   const scope = (scopeSelect ? scopeSelect.value.trim() : '').toUpperCase();
 
@@ -579,12 +583,12 @@ function filterAndRenderLocationSuggestions(query) {
     results = results.filter(p => p.formatted.toLowerCase().includes(trimmed));
   }
 
-  // STRICT Country Filtering: ONLY include cities matching the chosen country!
+  // Tier 1 (Instant 0ms): Local major cities dataset
   if (Array.isArray(window.allGlobalCitiesDataset) && window.allGlobalCitiesDataset.length > 0) {
     const scopedPool = window.allGlobalCitiesDataset.filter(c => {
       if (scope === 'GLOBAL' || scope === 'AUTO') return true;
       if (scope === 'US_CA') return c.country_code === 'US' || c.country_code === 'CA';
-      return c.country_code === scope; // STRICT: only cities in selected country
+      return c.country_code === scope;
     });
 
     const scored = [];
@@ -606,11 +610,21 @@ function filterAndRenderLocationSuggestions(query) {
     }
 
     scored.sort((a, b) => b.score - a.score);
-    const topCities = scored.slice(0, trimmed ? 12 : 8).map(s => s.city);
+    const topCities = scored.slice(0, trimmed ? 10 : 8).map(s => s.city);
     results.push(...topCities);
   }
 
-  // Deduplicate results by formatted string
+  // Tier 2: Merge live geocoding results if available
+  const activeLiveList = Array.isArray(liveResults) ? liveResults : currentLiveResults;
+  if (Array.isArray(activeLiveList) && activeLiveList.length > 0) {
+    for (const item of activeLiveList) {
+      if (!results.some(r => (r.city || '').toLowerCase() === (item.city || '').toLowerCase() && (r.region || '').toLowerCase() === (item.region || '').toLowerCase())) {
+        results.push(item);
+      }
+    }
+  }
+
+  // Deduplicate results
   const seen = new Set();
   results = results.filter(item => {
     const key = (item.formatted || item.city || '').toLowerCase();
@@ -619,39 +633,62 @@ function filterAndRenderLocationSuggestions(query) {
     return true;
   });
 
-  if (results.length === 0) {
-    if (trimmed) {
-      dropdown.innerHTML = `
-        <div class="combobox-header">Custom Location (${escapeHtml(countryName)})</div>
-        <div class="combobox-item" onclick="selectComboboxLocation('${escapeHtml(query)}, ${escapeHtml(countryName)}', '${escapeHtml(scope)}')">
-          <div class="flex items-center gap-2">
-            <span class="text-sm">${flag}</span>
-            <span class="text-xs text-[#E8E6E1]">Add custom: "<b>${escapeHtml(query)}</b>" (${escapeHtml(countryName)})</span>
-          </div>
-          <span class="text-[10px] text-[#9AA0A6] font-mono">Press Enter</span>
-        </div>
-      `;
-      dropdown.classList.remove('hidden');
-      input.setAttribute('aria-expanded', 'true');
-    } else {
-      dropdown.classList.add('hidden');
-      input.setAttribute('aria-expanded', 'false');
+  // Tier 3: Guaranteed custom fallback if user typed something
+  if (trimmed.length > 0) {
+    const hasExactCity = results.some(r => (r.city || '').toLowerCase() === trimmed);
+    if (!hasExactCity) {
+      results.push({
+        city: rawQuery,
+        formatted: `${rawQuery}, ${countryName}`,
+        country_code: scope,
+        isCustomAdd: true
+      });
     }
+  }
+
+  if (results.length === 0) {
+    dropdown.classList.add('hidden');
+    input.setAttribute('aria-expanded', 'false');
     activeComboboxIndex = -1;
     return;
   }
 
+  // Build header with live status indication
+  const liveIndicator = isSearchingLive
+    ? `<span class="text-[9px] text-[#5FA8A0] font-mono animate-pulse">🌐 searching live cities...</span>`
+    : `<span class="font-mono text-[9px] lowercase text-[#D9A441]">↑↓ arrows · enter to select</span>`;
+
   let html = `<div class="combobox-header flex items-center justify-between">
     <span>${trimmed ? `Cities in ${escapeHtml(countryName)}` : `Top Cities & Presets (${escapeHtml(countryName)})`}</span>
-    <span class="font-mono text-[9px] lowercase text-[#D9A441]">↑↓ arrows · enter to select</span>
+    ${liveIndicator}
   </div>`;
 
   results.forEach((item, idx) => {
+    if (item.isCustomAdd) {
+      html += `
+        <div class="combobox-item add-custom-option" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(item.formatted)}', '${escapeHtml(item.country_code)}')">
+          <div class="flex items-center gap-2 text-[#D9A441]">
+            <span class="text-sm">➕</span>
+            <span class="text-xs font-semibold">Add custom location: "<b>${escapeHtml(item.city)}</b>" (${escapeHtml(countryName)})</span>
+          </div>
+          <span class="text-[10px] text-[#9AA0A6] font-mono">Press Enter to add</span>
+        </div>
+      `;
+      return;
+    }
+
     const fmt = item.formatted || item.city || '';
     const itemFlag = item.flag || (item.country_code ? getFlagEmoji(item.country_code) : flag);
     const itemCountryCode = item.country_code || scope;
-    const tierPill = item.tier === 1 ? '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Hub</span>'
-      : (item.tierLabel ? `<span class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6]">${escapeHtml(item.tierLabel)}</span>` : '');
+    let badgeHtml = '';
+
+    if (item.source === 'live_geocoding') {
+      badgeHtml = '<span class="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 border border-sky-500/25">📍 Live Geocoding</span>';
+    } else if (item.tier === 1) {
+      badgeHtml = '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Hub</span>';
+    } else if (item.tierLabel) {
+      badgeHtml = `<span class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6]">${escapeHtml(item.tierLabel)}</span>`;
+    }
 
     html += `
       <div class="combobox-item" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(fmt)}', '${escapeHtml(itemCountryCode)}')">
@@ -663,7 +700,7 @@ function filterAndRenderLocationSuggestions(query) {
         </div>
         <div class="flex items-center gap-1.5 shrink-0 ml-2">
           ${itemCountryCode ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6] border border-[#2B3036]">${escapeHtml(itemCountryCode)}</span>` : ''}
-          ${tierPill}
+          ${badgeHtml}
         </div>
       </div>
     `;
@@ -673,6 +710,41 @@ function filterAndRenderLocationSuggestions(query) {
   dropdown.classList.remove('hidden');
   input.setAttribute('aria-expanded', 'true');
   activeComboboxIndex = -1;
+
+  // Trigger debounced live search if query >= 2 and not already rendered with live results
+  if (trimmed.length >= 2 && liveResults === null) {
+    triggerLiveGeocodingSearch(trimmed, scope);
+  }
+}
+
+function triggerLiveGeocodingSearch(trimmedQuery, scope) {
+  clearTimeout(liveGeocodingDebounceTimer);
+  if (liveGeocodingAbortController) {
+    liveGeocodingAbortController.abort();
+  }
+  liveGeocodingAbortController = new AbortController();
+
+  liveGeocodingDebounceTimer = setTimeout(async () => {
+    try {
+      const input = document.getElementById('input-add-location');
+      if (!input || input.value.trim().toLowerCase() !== trimmedQuery) return;
+
+      // Update header with micro-loader
+      filterAndRenderLocationSuggestions(input.value, currentLiveResults, true);
+
+      const url = `/api/settings/cities/live-search?q=${encodeURIComponent(trimmedQuery)}&country=${encodeURIComponent(scope)}`;
+      const res = await fetch(url, { signal: liveGeocodingAbortController.signal });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (input.value.trim().toLowerCase() === trimmedQuery && Array.isArray(data.cities)) {
+        currentLiveResults = data.cities;
+        filterAndRenderLocationSuggestions(input.value, currentLiveResults, false);
+      }
+    } catch (err) {
+      // Abort or network failure — keep current suggestions
+    }
+  }, 220);
 }
 
 function getFlagEmoji(countryCode) {
@@ -700,7 +772,6 @@ function selectComboboxLocation(locationString, countryCode) {
   if (countryCode && countryCode !== 'GLOBAL') {
     const scopeSelect = document.getElementById('cfg-scope');
     if (scopeSelect && scopeSelect.value === 'AUTO') {
-      // Auto-detect & sync scope if on AUTO
       scopeSelect.value = countryCode;
       onCountryScopeChange();
     }
@@ -716,6 +787,12 @@ function closeComboboxDropdown() {
     input.setAttribute('aria-expanded', 'false');
   }
   activeComboboxIndex = -1;
+  currentLiveResults = [];
+  clearTimeout(liveGeocodingDebounceTimer);
+  if (liveGeocodingAbortController) {
+    liveGeocodingAbortController.abort();
+    liveGeocodingAbortController = null;
+  }
 }
 
 function renderRoleTags() {
