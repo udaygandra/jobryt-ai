@@ -873,6 +873,10 @@
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <button type="button" onclick="openWelcomeWizard()"
+              class="px-3.5 py-1.5 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#D9A441]/50 flex items-center gap-1.5 active:scale-[0.98] cursor-pointer shadow-xs" title="Launch the 4-step quick onboarding and setup wizard">
+              <span>✨ Setup Wizard</span>
+            </button>
             <button onclick="saveAllSettings()"
               class="px-3.5 py-1.5 text-xs font-semibold rounded-md bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-[0.98]">
               Save Settings
@@ -2398,7 +2402,7 @@
 
       <!-- Wizard Bottom Navigation -->
       <div class="flex items-center justify-between pt-4 border-t border-[#2B3036]">
-        <button type="button" onclick="closeWelcomeWizard()" class="text-xs text-[#9AA0A6] hover:text-[#E8E6E1] px-2 py-1 cursor-pointer">
+        <button type="button" onclick="skipWelcomeWizard()" class="text-xs text-[#9AA0A6] hover:text-[#E8E6E1] px-2 py-1 cursor-pointer">
           Skip for now
         </button>
         <div class="flex items-center gap-2">

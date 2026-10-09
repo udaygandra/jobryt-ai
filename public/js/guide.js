@@ -181,6 +181,19 @@ function openWelcomeWizard() {
 function closeWelcomeWizard() {
   const modal = document.getElementById('welcome-wizard-modal');
   if (modal) modal.classList.add('hidden');
+  const onboarded = localStorage.getItem('jobryt_onboarded');
+  if (!onboarded) {
+    localStorage.setItem('jobryt_onboarded', 'dismissed');
+  }
+}
+
+function skipWelcomeWizard() {
+  localStorage.setItem('jobryt_onboarded', 'dismissed');
+  const modal = document.getElementById('welcome-wizard-modal');
+  if (modal) modal.classList.add('hidden');
+  if (typeof showToast === 'function') {
+    showToast('Setup skipped. You can relaunch the wizard anytime from Settings.', 'info');
+  }
 }
 
 function goToWizardStep(stepNum) {
@@ -491,14 +504,46 @@ async function finishWelcomeWizard() {
   }
 }
 
-function checkFirstTimeOnboarding() {
+async function checkFirstTimeOnboarding() {
   try {
     const onboarded = localStorage.getItem('jobryt_onboarded');
-    if (!onboarded) {
-      setTimeout(() => {
-        openWelcomeWizard();
-      }, 500);
+    if (onboarded === 'true' || onboarded === 'dismissed') {
+      return;
     }
+
+    // Check if user already has an active profile or roles/locations in memory
+    if (window.currentProfile && (
+      (Array.isArray(window.currentProfile.target_titles) && window.currentProfile.target_titles.length > 0) ||
+      (Array.isArray(window.currentProfile.locations) && window.currentProfile.locations.length > 0) ||
+      window.currentProfile.contact?.name
+    )) {
+      localStorage.setItem('jobryt_onboarded', 'true');
+      return;
+    }
+
+    // Double check with backend master profile
+    try {
+      const res = await fetch('/api/profile');
+      if (res.ok) {
+        const data = await res.json();
+        const prof = data.profile || data;
+        if (prof && (
+          (Array.isArray(prof.target_titles) && prof.target_titles.length > 0) ||
+          (Array.isArray(prof.locations) && prof.locations.length > 0) ||
+          prof.contact?.name
+        )) {
+          localStorage.setItem('jobryt_onboarded', 'true');
+          return;
+        }
+      }
+    } catch (e) {
+      // Non-fatal profile check error
+    }
+
+    // Virgin setup only: trigger initial onboarding once
+    setTimeout(() => {
+      openWelcomeWizard();
+    }, 600);
   } catch (err) {
     console.error('checkFirstTimeOnboarding error:', err);
   }
@@ -507,6 +552,7 @@ function checkFirstTimeOnboarding() {
 // Window exports
 window.openWelcomeWizard = openWelcomeWizard;
 window.closeWelcomeWizard = closeWelcomeWizard;
+window.skipWelcomeWizard = skipWelcomeWizard;
 window.addWizardRole = addWizardRole;
 window.removeWizardRole = removeWizardRole;
 window.addWizardLocation = addWizardLocation;
