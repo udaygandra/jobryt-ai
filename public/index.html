@@ -998,19 +998,57 @@
               <p class="text-[11px] text-[#9AA0A6] mt-1">Multi-board searches will look for these titles in priority order. Press <b>Enter</b> to add each role.</p>
             </div>
 
-            <!-- Target Locations (Multi-tag with Enter + Premier Job-Board Combobox Autocomplete) -->
-            <div class="relative" id="location-combobox-wrapper">
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">Target Locations</label>
-                <span id="settings-cities-badge" class="text-[10px] text-[#5FA8A0] font-mono">Global & Country Cities Autocomplete</span>
+            <!-- Step 1: Target Country & Scope -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">
+                  Step 1: Select Target Country / Scope
+                </label>
+                <span id="settings-country-status" class="text-[10px] text-[#D9A441] font-mono">Select country first</span>
+              </div>
+              <select id="cfg-scope" onchange="onCountryScopeChange()"
+                class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
+                <option value="">-- Choose Country to Enable Cities --</option>
+                <option value="AUTO">🤖 AUTO (Detect from master profile)</option>
+                <option value="US">🇺🇸 United States</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="CA">🇨🇦 Canada</option>
+                <option value="DE">🇩🇪 Germany (DACH)</option>
+                <option value="AU">🇦🇺 Australia</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="IN">🇮🇳 India</option>
+                <option value="NL">🇳🇱 Netherlands</option>
+                <option value="AE">🇦🇪 UAE & Gulf (Middle East)</option>
+                <option value="SG">🇸🇬 Singapore</option>
+                <option value="JP">🇯🇵 Japan</option>
+                <option value="BR">🇧🇷 Brazil</option>
+                <option value="IT">🇮🇹 Italy</option>
+                <option value="PL">🇵🇱 Poland</option>
+                <option value="ZA">🇿🇦 South Africa</option>
+                <option value="AT">🇦🇹 Austria</option>
+                <option value="NZ">🇳🇿 New Zealand</option>
+                <option value="MX">🇲🇽 Mexico</option>
+                <option value="US_CA">🌎 North America (USA & Canada)</option>
+                <option value="GLOBAL">🌐 Worldwide / Global Remote</option>
+              </select>
+              <p class="text-[11px] text-[#9AA0A6]">Country market controls regional job boards and filters the available cities list below.</p>
+            </div>
+
+            <!-- Step 2: Target Cities (Strictly within selected country) -->
+            <div class="relative space-y-1.5" id="location-combobox-wrapper">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">
+                  Step 2: Target Cities within Selected Country
+                </label>
+                <span id="settings-cities-badge" class="text-[10px] text-[#9AA0A6] font-mono">Waiting for country selection</span>
               </div>
               
               <div id="locations-tags-container" class="flex flex-wrap items-center gap-1.5 p-2 rounded-md bg-[#111317] border border-[#2B3036] focus-within:border-[#D9A441] min-h-[44px] transition-colors relative">
                 <div id="locations-badges-list" class="flex flex-wrap items-center gap-1.5"></div>
                 <div class="flex-1 min-w-[200px] relative">
-                  <input type="text" id="input-add-location" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-combobox-dropdown"
-                    class="w-full bg-transparent text-xs sm:text-sm text-[#E8E6E1] outline-none placeholder:text-[#5F6B76] px-1 py-0.5"
-                    placeholder="Search city, state, or 'Remote' (e.g. Austin, Toronto, London)...">
+                  <input type="text" id="input-add-location" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-combobox-dropdown" disabled
+                    class="w-full bg-transparent text-xs sm:text-sm text-[#E8E6E1] outline-none placeholder:text-[#5F6B76] px-1 py-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Select a country above to enable city search...">
                 </div>
               </div>
 
@@ -1023,50 +1061,19 @@
                 <!-- Dynamically populated based on chosen country scope -->
               </div>
               <input type="hidden" id="cfg-locations" value="">
-              <p class="text-[11px] text-[#9AA0A6] mt-1">Select from popular hub chips, combobox search, or type any custom location (e.g. "Remote", "London, UK", "Austin, TX") and press <b>Enter</b>.</p>
+              <p class="text-[11px] text-[#9AA0A6]">Only cities matching your selected country are suggested. Press <b>Enter</b> to add.</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Target Country & Global Scope</label>
-                <select id="cfg-scope" onchange="onCountryScopeChange()"
-                  class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
-                  <option value="AUTO">🤖 AUTO (Detect from master profile)</option>
-                  <option value="US">🇺🇸 United States</option>
-                  <option value="GB">🇬🇧 United Kingdom</option>
-                  <option value="CA">🇨🇦 Canada</option>
-                  <option value="DE">🇩🇪 Germany (DACH)</option>
-                  <option value="AU">🇦🇺 Australia</option>
-                  <option value="FR">🇫🇷 France</option>
-                  <option value="IN">🇮🇳 India</option>
-                  <option value="NL">🇳🇱 Netherlands</option>
-                  <option value="AE">🇦🇪 UAE & Gulf (Middle East)</option>
-                  <option value="SG">🇸🇬 Singapore</option>
-                  <option value="JP">🇯🇵 Japan</option>
-                  <option value="BR">🇧🇷 Brazil</option>
-                  <option value="IT">🇮🇹 Italy</option>
-                  <option value="PL">🇵🇱 Poland</option>
-                  <option value="ZA">🇿🇦 South Africa</option>
-                  <option value="AT">🇦🇹 Austria</option>
-                  <option value="NZ">🇳🇿 New Zealand</option>
-                  <option value="MX">🇲🇽 Mexico</option>
-                  <option value="US_CA">🌎 North America (USA & Canada)</option>
-                  <option value="GLOBAL">🌐 Worldwide / Global Remote</option>
-                </select>
-                <p class="text-[10px] text-[#9AA0A6] mt-1">Automatically switches Adzuna, LinkedIn & regional boards to this market.</p>
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Workplace
-                  Arrangement</label>
-                <select id="cfg-worktype"
-                  class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
-                  <option value="Open to All">Open to All (Remote/Hybrid/Onsite)</option>
-                  <option value="Remote Only">Remote Only</option>
-                  <option value="Hybrid & Remote">Hybrid & Remote</option>
-                  <option value="Onsite Only">Onsite Only</option>
-                </select>
-              </div>
+            <!-- Workplace Arrangement -->
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Workplace Arrangement</label>
+              <select id="cfg-worktype"
+                class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
+                <option value="Open to All">Open to All (Remote/Hybrid/Onsite)</option>
+                <option value="Remote Only">Remote Only</option>
+                <option value="Hybrid & Remote">Hybrid & Remote</option>
+                <option value="Onsite Only">Onsite Only</option>
+              </select>
             </div>
 
             <!-- Scoring Threshold & Freshness Window -->

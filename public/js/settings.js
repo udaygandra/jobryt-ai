@@ -361,12 +361,34 @@ window.allGlobalCitiesDataset = [];
 let activeComboboxIndex = -1;
 let comboboxDebounceTimer = null;
 
-// Preset locations always readily accessible
-const PRESET_LOCATIONS = [
-  { formatted: 'Remote', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Universal' },
-  { formatted: 'Remote (Worldwide)', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Anywhere' },
-  { formatted: 'Hybrid / Flexible', flag: '🏢', country_code: 'GLOBAL', tierLabel: 'Workplace' }
-];
+const COUNTRY_METADATA = {
+  US: { name: 'United States', flag: '🇺🇸', sampleCity: 'Austin, TX' },
+  CA: { name: 'Canada', flag: '🇨🇦', sampleCity: 'Toronto, ON' },
+  GB: { name: 'United Kingdom', flag: '🇬🇧', sampleCity: 'London' },
+  DE: { name: 'Germany', flag: '🇩🇪', sampleCity: 'Berlin' },
+  AU: { name: 'Australia', flag: '🇦🇺', sampleCity: 'Sydney' },
+  FR: { name: 'France', flag: '🇫🇷', sampleCity: 'Paris' },
+  IN: { name: 'India', flag: '🇮🇳', sampleCity: 'Bengaluru' },
+  NL: { name: 'Netherlands', flag: '🇳🇱', sampleCity: 'Amsterdam' },
+  AE: { name: 'UAE & Gulf', flag: '🇦🇪', sampleCity: 'Dubai' },
+  SG: { name: 'Singapore', flag: '🇸🇬', sampleCity: 'Singapore' },
+  JP: { name: 'Japan', flag: '🇯🇵', sampleCity: 'Tokyo' },
+  BR: { name: 'Brazil', flag: '🇧🇷', sampleCity: 'São Paulo' },
+  IT: { name: 'Italy', flag: '🇮🇹', sampleCity: 'Milan' },
+  PL: { name: 'Poland', flag: '🇵🇱', sampleCity: 'Warsaw' },
+  ZA: { name: 'South Africa', flag: '🇿🇦', sampleCity: 'Cape Town' },
+  AT: { name: 'Austria', flag: '🇦🇹', sampleCity: 'Vienna' },
+  NZ: { name: 'New Zealand', flag: '🇳🇿', sampleCity: 'Auckland' },
+  MX: { name: 'Mexico', flag: '🇲🇽', sampleCity: 'Mexico City' },
+  US_CA: { name: 'North America (US & Canada)', flag: '🌎', sampleCity: 'New York / Toronto' },
+  GLOBAL: { name: 'Worldwide / Global Remote', flag: '🌐', sampleCity: 'Remote' },
+  AUTO: { name: 'Auto (Profile Detected)', flag: '🤖', sampleCity: 'Remote' }
+};
+
+function getCountryMeta(code) {
+  if (!code) return null;
+  return COUNTRY_METADATA[code.toUpperCase()] || { name: code, flag: getFlagEmoji(code), sampleCity: 'Capital' };
+}
 
 function updateLocationSuggestionsForCountry(scope, hubs) {
   const container = document.getElementById('settings-location-suggestions');
@@ -374,12 +396,8 @@ function updateLocationSuggestionsForCountry(scope, hubs) {
 
   const defaultHubs = ['Remote', 'New York, NY', 'Toronto, ON', 'London, UK', 'Bengaluru, KA', 'Berlin, Germany'];
   const activeHubs = Array.isArray(hubs) && hubs.length ? hubs : defaultHubs;
-  const labelScope = (scope && scope !== 'ALL' && scope !== 'AUTO') ? scope : 'Global';
-
-  const badge = document.getElementById('settings-cities-badge');
-  if (badge) {
-    badge.innerText = `${labelScope} Cities Combobox`;
-  }
+  const meta = getCountryMeta(scope);
+  const labelScope = meta ? `${meta.flag} ${meta.name}` : ((scope && scope !== 'ALL' && scope !== 'AUTO') ? scope : 'Global');
 
   container.innerHTML = `
     <span class="text-[11px] text-[#9AA0A6] font-medium">Top Hubs (${escapeHtml(labelScope)}):</span>
@@ -426,7 +444,7 @@ async function initGlobalCities(countryCode) {
     }
 
     // 2. Fetch scoped city list for suggestions & hubs
-    let url = `/api/settings/cities?country=${encodeURIComponent(scope)}`;
+    let url = `/api/settings/cities?country=${encodeURIComponent(scope || 'ALL')}`;
     let res = await fetch(url);
     let data;
     if (res.ok) {
@@ -456,34 +474,122 @@ async function initCanadaCities() {
 
 function onCountryScopeChange() {
   const scopeSelect = document.getElementById('cfg-scope');
-  const scope = scopeSelect ? scopeSelect.value : 'AUTO';
+  const locInput = document.getElementById('input-add-location');
+  const countryStatus = document.getElementById('settings-country-status');
+  const citiesBadge = document.getElementById('settings-cities-badge');
+  const suggestionsContainer = document.getElementById('settings-location-suggestions');
+
+  const scope = scopeSelect ? scopeSelect.value.trim() : '';
+  const meta = getCountryMeta(scope);
+
+  if (!scope) {
+    // Disabled state until country selected
+    if (locInput) {
+      locInput.disabled = true;
+      locInput.value = '';
+      locInput.placeholder = 'Select a country above to enable city search...';
+    }
+    if (countryStatus) {
+      countryStatus.innerText = 'Select country first';
+      countryStatus.className = 'text-[10px] text-[#D9A441] font-mono';
+    }
+    if (citiesBadge) {
+      citiesBadge.innerText = 'Waiting for country selection';
+      citiesBadge.className = 'text-[10px] text-[#9AA0A6] font-mono';
+    }
+    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+    closeComboboxDropdown();
+    return;
+  }
+
+  // Country selected: Enable city input and restrict scope
+  if (locInput) {
+    locInput.disabled = false;
+    locInput.placeholder = `Search cities in ${meta ? meta.name : scope} (e.g. ${meta ? meta.sampleCity : 'Remote'})...`;
+  }
+
+  // Count available cities in selected country
+  let availableCount = 0;
+  if (Array.isArray(window.allGlobalCitiesDataset)) {
+    if (scope === 'GLOBAL' || scope === 'AUTO') {
+      availableCount = window.allGlobalCitiesDataset.length;
+    } else if (scope === 'US_CA') {
+      availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === 'US' || c.country_code === 'CA').length;
+    } else {
+      availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === scope).length;
+    }
+  }
+
+  if (countryStatus && meta) {
+    countryStatus.innerHTML = `<span class="text-emerald-400 font-semibold">✓ ${meta.flag} ${meta.name}</span>`;
+  }
+  if (citiesBadge && meta) {
+    citiesBadge.innerText = `${meta.flag} ${availableCount} Cities Available`;
+    citiesBadge.className = 'text-[10px] text-[#5FA8A0] font-mono font-medium';
+  }
+
   initGlobalCities(scope);
+
   if (typeof renderSettingsBoards === 'function') {
     renderSettingsBoards();
   }
 }
 
-// Combobox filtering & rendering controller
+// Combobox filtering & rendering controller with STRICT country scoping
 function filterAndRenderLocationSuggestions(query) {
   const dropdown = document.getElementById('location-combobox-dropdown');
   const input = document.getElementById('input-add-location');
-  if (!dropdown || !input) return;
+  if (!dropdown || !input || input.disabled) return;
 
   const trimmed = (query || '').trim().toLowerCase();
-  const scope = (document.getElementById('cfg-scope')?.value || 'AUTO').toUpperCase();
+  const scopeSelect = document.getElementById('cfg-scope');
+  const scope = (scopeSelect ? scopeSelect.value.trim() : '').toUpperCase();
+
+  if (!scope) {
+    dropdown.innerHTML = `
+      <div class="combobox-header text-amber-400">Step 1 Required</div>
+      <div class="p-3 text-xs text-[#9AA0A6]">Please select a target country above before choosing cities.</div>
+    `;
+    dropdown.classList.remove('hidden');
+    input.setAttribute('aria-expanded', 'true');
+    return;
+  }
+
+  const meta = getCountryMeta(scope);
+  const countryName = meta ? meta.name : scope;
+  const flag = meta ? meta.flag : '📍';
 
   let results = [];
 
-  // Always include matched presets or top presets on empty query
-  const matchedPresets = PRESET_LOCATIONS.filter(p => !trimmed || p.formatted.toLowerCase().includes(trimmed));
-  results.push(...matchedPresets);
+  // Scoped presets for the selected country
+  if (scope === 'GLOBAL') {
+    results.push(
+      { formatted: 'Remote / Anywhere (Worldwide)', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Universal' },
+      { formatted: 'Remote', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Workplace' },
+      { formatted: 'Hybrid / Flexible', flag: '🏢', country_code: 'GLOBAL', tierLabel: 'Workplace' }
+    );
+  } else {
+    results.push(
+      { formatted: `Remote (${countryName})`, flag: flag, country_code: scope, tierLabel: 'Country Remote' },
+      { formatted: `Hybrid (${countryName})`, flag: '🏢', country_code: scope, tierLabel: 'Flexible' }
+    );
+  }
 
+  if (trimmed) {
+    results = results.filter(p => p.formatted.toLowerCase().includes(trimmed));
+  }
+
+  // STRICT Country Filtering: ONLY include cities matching the chosen country!
   if (Array.isArray(window.allGlobalCitiesDataset) && window.allGlobalCitiesDataset.length > 0) {
+    const scopedPool = window.allGlobalCitiesDataset.filter(c => {
+      if (scope === 'GLOBAL' || scope === 'AUTO') return true;
+      if (scope === 'US_CA') return c.country_code === 'US' || c.country_code === 'CA';
+      return c.country_code === scope; // STRICT: only cities in selected country
+    });
+
     const scored = [];
-    for (const c of window.allGlobalCitiesDataset) {
+    for (const c of scopedPool) {
       const fmt = (c.formatted || c.city || '').toLowerCase();
-      const cName = (c.country_name || '').toLowerCase();
-      const code = (c.country_code || '').toLowerCase();
       const city = (c.city || '').toLowerCase();
       const region = (c.region || '').toLowerCase();
 
@@ -493,13 +599,8 @@ function filterAndRenderLocationSuggestions(query) {
       else if (fmt.startsWith(trimmed)) matchScore = 70;
       else if (fmt.includes(trimmed)) matchScore = 50;
       else if (region === trimmed) matchScore = 40;
-      else if (cName.includes(trimmed) || code === trimmed) matchScore = 30;
 
       if (matchScore > 0 || !trimmed) {
-        // Boost priority if city is in active country scope
-        if (scope !== 'ALL' && scope !== 'AUTO' && c.country_code === scope) {
-          matchScore += 25;
-        }
         scored.push({ city: c, score: matchScore });
       }
     }
@@ -521,11 +622,11 @@ function filterAndRenderLocationSuggestions(query) {
   if (results.length === 0) {
     if (trimmed) {
       dropdown.innerHTML = `
-        <div class="combobox-header">Custom Location</div>
-        <div class="combobox-item" onclick="selectComboboxLocation('${escapeHtml(query)}', '')">
+        <div class="combobox-header">Custom Location (${escapeHtml(countryName)})</div>
+        <div class="combobox-item" onclick="selectComboboxLocation('${escapeHtml(query)}, ${escapeHtml(countryName)}', '${escapeHtml(scope)}')">
           <div class="flex items-center gap-2">
-            <span class="text-sm">📍</span>
-            <span class="text-xs text-[#E8E6E1]">Add custom: "<b>${escapeHtml(query)}</b>"</span>
+            <span class="text-sm">${flag}</span>
+            <span class="text-xs text-[#E8E6E1]">Add custom: "<b>${escapeHtml(query)}</b>" (${escapeHtml(countryName)})</span>
           </div>
           <span class="text-[10px] text-[#9AA0A6] font-mono">Press Enter</span>
         </div>
@@ -541,27 +642,27 @@ function filterAndRenderLocationSuggestions(query) {
   }
 
   let html = `<div class="combobox-header flex items-center justify-between">
-    <span>${trimmed ? 'Matching Locations' : 'Quick Presets & Top Hubs'}</span>
+    <span>${trimmed ? `Cities in ${escapeHtml(countryName)}` : `Top Cities & Presets (${escapeHtml(countryName)})`}</span>
     <span class="font-mono text-[9px] lowercase text-[#D9A441]">↑↓ arrows · enter to select</span>
   </div>`;
 
   results.forEach((item, idx) => {
     const fmt = item.formatted || item.city || '';
-    const flag = item.flag || (item.country_code ? getFlagEmoji(item.country_code) : '📍');
-    const countryCode = item.country_code || '';
+    const itemFlag = item.flag || (item.country_code ? getFlagEmoji(item.country_code) : flag);
+    const itemCountryCode = item.country_code || scope;
     const tierPill = item.tier === 1 ? '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Hub</span>'
       : (item.tierLabel ? `<span class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6]">${escapeHtml(item.tierLabel)}</span>` : '');
 
     html += `
-      <div class="combobox-item" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(fmt)}', '${escapeHtml(countryCode)}')">
+      <div class="combobox-item" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(fmt)}', '${escapeHtml(itemCountryCode)}')">
         <div class="flex items-center gap-2.5 min-w-0">
-          <span class="text-base shrink-0">${flag}</span>
+          <span class="text-base shrink-0">${itemFlag}</span>
           <div class="truncate">
             <span class="font-medium text-xs text-[#E8E6E1]">${highlightComboboxMatch(fmt, trimmed)}</span>
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0 ml-2">
-          ${countryCode ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6] border border-[#2B3036]">${escapeHtml(countryCode)}</span>` : ''}
+          ${itemCountryCode ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6] border border-[#2B3036]">${escapeHtml(itemCountryCode)}</span>` : ''}
           ${tierPill}
         </div>
       </div>
