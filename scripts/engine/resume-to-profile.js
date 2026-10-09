@@ -415,6 +415,21 @@ function normalizeProfileFields(parsedProfile) {
     parsedProfile.locations = c.location ? [c.location] : ['Remote'];
   }
 
+  // Country Code Inference
+  if (!parsedProfile.country_code) {
+    try {
+      const { detectTargetCountryScope } = require('../core/geo-helper');
+      const detected = detectTargetCountryScope([
+        parsedProfile.country,
+        c.location,
+        ...(Array.isArray(parsedProfile.locations) ? parsedProfile.locations : [])
+      ].filter(Boolean));
+      if (detected && detected !== 'GLOBAL') {
+        parsedProfile.country_code = detected;
+      }
+    } catch (_) {}
+  }
+
   // Skills
   if (Array.isArray(parsedProfile.skills)) {
     parsedProfile.skills = parsedProfile.skills

@@ -824,6 +824,56 @@ async function handleResumeFileSelected(event) {
       currentProfile = data.profile;
       populateProfileForm(currentProfile);
       showToast('📄 Resume parsed into detailed Master Profile! Click "Save Profile" to commit.');
+
+      // Auto-synchronize country scope & unlock city search
+      const candidateLocText = [
+        data.profile.country_code,
+        data.profile.country,
+        data.profile.contact?.location,
+        ...(Array.isArray(data.profile.locations) ? data.profile.locations : [])
+      ].filter(Boolean).join(' ');
+
+      let detectedCountry = data.profile.country_code;
+      if (!detectedCountry || detectedCountry === 'GLOBAL') {
+        const s = candidateLocText.toLowerCase();
+        if (/\b(canada|toronto|vancouver|montreal|calgary|ottawa|edmonton|ontario|quebec|alberta|british columbia|\bon\b|\bbc\b|\bab\b|\bqc\b)\b/i.test(s)) detectedCountry = 'CA';
+        else if (/\b(usa|united states|new york|california|texas|san francisco|austin|seattle|chicago|los angeles|boston|\bny\b|\btx\b|\bwa\b|\bil\b)\b/i.test(s)) detectedCountry = 'US';
+        else if (/\b(uk|united kingdom|great britain|london|manchester|birmingham|scotland|england)\b/i.test(s)) detectedCountry = 'GB';
+        else if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg)\b/i.test(s)) detectedCountry = 'DE';
+        else if (/\b(india|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai)\b/i.test(s)) detectedCountry = 'IN';
+        else if (/\b(australia|sydney|melbourne|brisbane|perth)\b/i.test(s)) detectedCountry = 'AU';
+      }
+
+      if (detectedCountry && detectedCountry !== 'GLOBAL') {
+        const cfgScope = document.getElementById('cfg-scope');
+        if (cfgScope) {
+          cfgScope.value = detectedCountry;
+          if (typeof onCountryScopeChange === 'function') {
+            onCountryScopeChange();
+          } else if (typeof window.onCountryScopeChange === 'function') {
+            window.onCountryScopeChange();
+          }
+        }
+
+        // Auto-persist country_scope to settings if currently unset or AUTO
+        try {
+          const sRes = await fetch('/api/settings');
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            if (!sData.country_scope || sData.country_scope === 'AUTO') {
+              sData.country_scope = detectedCountry;
+              await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sData)
+              });
+              if (typeof currentSettings === 'object' && currentSettings) {
+                currentSettings.country_scope = detectedCountry;
+              }
+            }
+          }
+        } catch (_) {}
+      }
     } else {
       const errDetail = data.message || data.error || 'Format or resume is not correct please fill the below master profile from UI.';
       showResumeValidationPrompt(errDetail);

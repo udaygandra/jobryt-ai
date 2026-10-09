@@ -483,7 +483,8 @@ function onCountryScopeChange() {
   const suggestionsContainer = document.getElementById('settings-location-suggestions');
 
   const scope = scopeSelect ? scopeSelect.value.trim() : '';
-  const meta = getCountryMeta(scope);
+  const effectiveScope = (scope === 'AUTO' && window.detectedProfileCountry) ? window.detectedProfileCountry : scope;
+  const meta = getCountryMeta(effectiveScope || scope);
 
   if (!scope) {
     // Disabled state until country selected
@@ -508,35 +509,40 @@ function onCountryScopeChange() {
   // Country selected: Enable city input and restrict scope
   if (locInput) {
     locInput.disabled = false;
-    locInput.placeholder = `Search cities in ${meta ? meta.name : scope} (e.g. ${meta ? meta.sampleCity : 'Remote'})...`;
+    locInput.placeholder = `Search cities in ${meta ? meta.name : (effectiveScope || scope)} (e.g. ${meta ? meta.sampleCity : 'Remote'})...`;
   }
 
   // Count available cities in selected country
   let availableCount = 0;
   if (Array.isArray(window.allGlobalCitiesDataset)) {
-    if (scope === 'GLOBAL' || scope === 'AUTO') {
+    if (effectiveScope === 'GLOBAL' || (effectiveScope === 'AUTO' && !window.detectedProfileCountry)) {
       availableCount = window.allGlobalCitiesDataset.length;
-    } else if (scope === 'US_CA') {
+    } else if (effectiveScope === 'US_CA') {
       availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === 'US' || c.country_code === 'CA').length;
     } else {
-      availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === scope).length;
+      availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === effectiveScope).length;
     }
   }
 
   if (countryStatus && meta) {
-    countryStatus.innerHTML = `<span class="text-emerald-400 font-semibold">✓ ${meta.flag} ${meta.name}</span>`;
+    if (scope === 'AUTO' && window.detectedProfileCountry) {
+      countryStatus.innerHTML = `<span class="text-emerald-400 font-semibold">✓ 🤖 Auto (${meta.flag} ${meta.name})</span>`;
+    } else {
+      countryStatus.innerHTML = `<span class="text-emerald-400 font-semibold">✓ ${meta.flag} ${meta.name}</span>`;
+    }
   }
   if (citiesBadge && meta) {
     citiesBadge.innerText = `${meta.flag} ${availableCount} Cities Available`;
     citiesBadge.className = 'text-[10px] text-[#5FA8A0] font-mono font-medium';
   }
 
-  initGlobalCities(scope);
+  initGlobalCities(effectiveScope || scope);
 
   if (typeof renderSettingsBoards === 'function') {
     renderSettingsBoards();
   }
 }
+window.onCountryScopeChange = onCountryScopeChange;
 
 // Google Maps-Grade Hybrid Combobox with Live Edge Geocoding & Custom Fallback
 function filterAndRenderLocationSuggestions(query, liveResults = null, isSearchingLive = false) {
@@ -980,7 +986,6 @@ async function loadSettings() {
     const cfgFreshness = document.getElementById('cfg-freshness');
     if (cfgFreshness) cfgFreshness.value = currentSettings.freshness_hours !== undefined ? currentSettings.freshness_hours : 24;
     const cfgScope = document.getElementById('cfg-scope');
-    if (cfgScope) cfgScope.value = currentSettings.country_scope || 'AUTO';
     const cfgWorktype = document.getElementById('cfg-worktype');
     if (cfgWorktype) cfgWorktype.value = currentSettings.work_type || 'Open to All';
 
@@ -992,10 +997,10 @@ async function loadSettings() {
       }
     } catch (_) {}
 
-    await initGlobalCities(cfgScope ? cfgScope.value : 'AUTO');
     setupTagInputListeners();
 
-    // Initialize tags from current master profile
+    // Initialize tags and country detection from current master profile
+    let detectedProfileCountry = null;
     try {
       const profRes = await fetch('/api/profile');
       const profData = await profRes.json();
@@ -1007,7 +1012,35 @@ async function loadSettings() {
         : ['Remote', 'Toronto, ON'];
       renderRoleTags();
       renderLocationTags();
+
+      // Detect candidate country from master profile
+      detectedProfileCountry = profData.country_code || null;
+      if (!detectedProfileCountry) {
+        const locStr = [profData.contact?.location, ...(window.targetLocationsList || [])].filter(Boolean).join(' ').toLowerCase();
+        if (/\b(canada|toronto|vancouver|montreal|calgary|ottawa|edmonton|ontario|quebec|alberta|british columbia|\bon\b|\bbc\b|\bab\b|\bqc\b)\b/i.test(locStr)) detectedProfileCountry = 'CA';
+        else if (/\b(usa|united states|new york|california|texas|san francisco|austin|seattle|chicago|los angeles|boston|\bny\b|\btx\b|\bwa\b|\bil\b)\b/i.test(locStr)) detectedProfileCountry = 'US';
+        else if (/\b(uk|united kingdom|great britain|london|manchester|birmingham|scotland|england)\b/i.test(locStr)) detectedProfileCountry = 'GB';
+        else if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg)\b/i.test(locStr)) detectedProfileCountry = 'DE';
+        else if (/\b(india|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai)\b/i.test(locStr)) detectedProfileCountry = 'IN';
+        else if (/\b(australia|sydney|melbourne|brisbane|perth)\b/i.test(locStr)) detectedProfileCountry = 'AU';
+      }
+      window.detectedProfileCountry = detectedProfileCountry;
     } catch (_) {}
+
+    // Populate country scope dropdown
+    let targetScope = currentSettings.country_scope;
+    if ((!targetScope || targetScope === 'AUTO') && detectedProfileCountry) {
+      targetScope = detectedProfileCountry;
+    } else if (!targetScope) {
+      targetScope = 'AUTO';
+    }
+
+    if (cfgScope) {
+      cfgScope.value = targetScope;
+    }
+
+    // Trigger onCountryScopeChange to automatically unlock city input, update badge & placeholders
+    onCountryScopeChange();
 
     await renderSettingsBoards();
     await loadSchedulerSettings();
