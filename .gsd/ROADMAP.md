@@ -104,6 +104,16 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 13.2: Google Maps-Grade Hybrid Combobox with Live Remote Suggestions & Custom City Fallback](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/13/13.2-PLAN.md)
 - [x] [Plan 13.3: Resume-Driven Automatic Country Detection & Zero-Friction Scope Unlocking](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/13/13.3-PLAN.md)
 
+### Phase 14: UX Guardrails, City Formatting Consistency, Role & City Quotas, and Settings Layout Refinement
+**Status:** ✅ Complete (Milestone v1.2)
+**Objective:** Resolve Setup Wizard auto-popup loop by respecting user dismissal and existing profile state with on-demand Settings launcher; standardize city formatting to concise City, ST, Country syntax; enforce quotas (max 5 cities, max 10 job roles); streamline Settings page by moving Background Scheduler to the bottom and eliminating redundant static Connected Integrations cards.
+
+**Plans:**
+- [x] [Plan 14.1: Setup Wizard Dismissal & On-Demand Launch Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/14/14.1-PLAN.md)
+- [x] [Plan 14.2: Standardized City Formatting, Flag Detection & 5-City Guardrail](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/14/14.2-PLAN.md)
+- [x] [Plan 14.3: 10 Job Roles Guardrail & Slot Counter](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/14/14.3-PLAN.md)
+- [x] [Plan 14.4: Settings Layout Streamlining & Redundant Integrations Cleanup](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/14/14.4-PLAN.md)
+
 ---
 
 ## Progress Summary
@@ -120,6 +130,8 @@ updated: 2026-10-08T17:36:00Z
 | 11 | ✅ | 3/3 | 100% (v1.2) |
 | 12 | ✅ | 3/3 | 100% (v1.2) |
 | 13 | ✅ | 3/3 | 100% (v1.2) |
+| 14 | ✅ | 4/4 | 100% (v1.2) |
+
 
 
 

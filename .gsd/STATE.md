@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 13 - Live Geocoding City Search, Google Maps-Grade Hybrid Combobox & Resume-Driven Country Unlocking
-- **Task**: All plans complete (13.1, 13.2, 13.3)
-- **Status**: ✅ Phase 13 Verified & Complete
+- **Phase**: 14 - UX Guardrails, City Formatting Consistency, Role & City Quotas, and Settings Layout Refinement
+- **Task**: All plans complete (14.1, 14.2, 14.3, 14.4)
+- **Status**: ✅ Phase 14 Verified & Complete
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -19,11 +19,14 @@
 - [x] **Phase 11: Production UI/UX Polish, Location Intelligence & Instant Bootstrap Engine** (Milestone v1.2)
 - [x] **Phase 12: Country-First Location Architecture, Instant-Load Hydration & Reactive State Engine** (Milestone v1.2)
 - [x] **Phase 13: Live Geocoding City Search, Google Maps-Grade Hybrid Combobox & Resume-Driven Country Unlocking** (Milestone v1.2)
+- [x] **Phase 14: UX Guardrails, City Formatting Consistency, Role & City Quotas, and Settings Layout Refinement** (Milestone v1.2)
 
-## Phase 13 Summary
-- **Plan 13.1**: Implemented `searchLiveCities()` with Open-Meteo Edge Geocoding, country scoping, in-memory LRU caching, and mounted `GET /api/settings/cities/live-search`.
-- **Plan 13.2**: Google Maps-grade 3-Tier hybrid combobox (0ms local search + 220ms debounced live edge geocoding + custom location fallback `➕ Add custom location`).
-- **Plan 13.3**: Resume-driven automatic candidate country detection, Settings synchronization, and zero-friction combobox unlocking without manual re-selection.
+## Phase 14 Summary
+- **Plan 14.1**: Setup Wizard dismissal and auto-popup loop resolved; on-demand "✨ Setup Wizard" button added to Settings header.
+- **Plan 14.2**: City formatting standardized to concise `City, ST, Country` format (e.g. `Redwood City, CA, USA`); 🇺🇸 flag detection fixed; max 5 cities limit enforced.
+- **Plan 14.3**: Max 10 target job roles limit enforced with slot counter `(X/10)` and backend API validation.
+- **Plan 14.4**: Background Scheduler relocated to the bottom of Settings page; redundant static Connected Integrations cards removed.
 
 ## Next Recommended Action
-Audit and complete Milestone v1.2 (`/complete-milestone` or `/audit-milestone`).
+Audit and complete Milestone v1.2 (`/audit-milestone` or `/complete-milestone`).
+
