@@ -133,6 +133,31 @@ router.get('/cities', (req, res) => {
   }
 });
 
+// GET /api/settings/cities/live-search?q=markham&country=CA
+router.get('/cities/live-search', async (req, res) => {
+  try {
+    const query = String(req.query.q || '').trim();
+    const country = String(req.query.country || 'ALL').toUpperCase().trim();
+
+    if (query.length < 2) {
+      return res.json({ success: true, country, query, total: 0, cities: [] });
+    }
+
+    const { searchLiveCities } = require('../../scripts/core/geo-helper');
+    const cities = await searchLiveCities(query, country);
+
+    res.json({
+      success: true,
+      country,
+      query,
+      total: cities.length,
+      cities
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/settings
 router.post('/', (req, res) => {
   try {

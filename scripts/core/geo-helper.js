@@ -829,6 +829,129 @@ function harmonizeLocationAndWorkType(locations, workType, fallbackDetectedCity 
   };
 }
 
+// ── 13. Real-Time Edge Geocoding & Country-Scoped Search ─────────────────────
+const liveGeocodingCache = new Map();
+const GEOCODING_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+async function searchLiveCities(query, countryCode) {
+  const cleanQuery = (query || '').trim().toLowerCase();
+  if (!cleanQuery || cleanQuery.length < 2) return [];
+
+  const scope = (countryCode || 'ALL').toUpperCase().trim();
+  const cacheKey = `${scope}:${cleanQuery}`;
+
+  const now = Date.now();
+  if (liveGeocodingCache.has(cacheKey)) {
+    const entry = liveGeocodingCache.get(cacheKey);
+    if (entry.expiresAt > now) {
+      return entry.data;
+    }
+    liveGeocodingCache.delete(cacheKey);
+  }
+
+  // Country scoping validator
+  const isCountryMatch = (code) => {
+    if (!code) return false;
+    const c = code.toUpperCase();
+    if (scope === 'ALL' || scope === 'GLOBAL' || scope === 'AUTO') return true;
+    if (scope === 'US_CA') return c === 'US' || c === 'CA';
+    return c === scope;
+  };
+
+  let results = [];
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+
+    const apiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanQuery)}&count=15&language=en&format=json`;
+    const res = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.results)) {
+        for (const r of data.results) {
+          const itemCountryCode = (r.country_code || '').toUpperCase();
+          if (!isCountryMatch(itemCountryCode)) continue;
+
+          const region = r.admin1 || '';
+          const country = r.country || itemCountryCode;
+          const formatted = `${r.name}, ${region ? region + ', ' : ''}${country}`;
+
+          results.push({
+            city: r.name,
+            region: region,
+            country: country,
+            country_code: itemCountryCode,
+            formatted: formatted,
+            source: 'live_geocoding'
+          });
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal: if offline or timed out, fall back gracefully to local dataset
+  }
+
+  // Merge with local dataset matches to guarantee coverage
+  try {
+    const globalCitiesPath = path.join(__dirname, '..', '..', 'public', 'data', 'global-cities.json');
+    if (fs.existsSync(globalCitiesPath)) {
+      const globalData = JSON.parse(fs.readFileSync(globalCitiesPath, 'utf8'));
+      let localPool = [];
+      if (scope === 'ALL' || scope === 'GLOBAL' || scope === 'AUTO') {
+        for (const meta of Object.values(globalData.by_country || {})) {
+          if (Array.isArray(meta.cities)) localPool.push(...meta.cities);
+        }
+      } else if (scope === 'US_CA') {
+        if (globalData.by_country?.US?.cities) localPool.push(...globalData.by_country.US.cities);
+        if (globalData.by_country?.CA?.cities) localPool.push(...globalData.by_country.CA.cities);
+      } else if (globalData.by_country?.[scope]?.cities) {
+        localPool.push(...globalData.by_country[scope].cities);
+      }
+
+      const matchingLocal = localPool.filter(c =>
+        c.city.toLowerCase().includes(cleanQuery) ||
+        (c.formatted && c.formatted.toLowerCase().includes(cleanQuery))
+      );
+
+      for (const loc of matchingLocal) {
+        if (!results.some(r => r.city.toLowerCase() === loc.city.toLowerCase() && r.country_code === loc.country_code)) {
+          results.push({
+            city: loc.city,
+            region: loc.region || '',
+            country: loc.country_name || loc.country_code,
+            country_code: loc.country_code,
+            formatted: loc.formatted,
+            source: 'major_city'
+          });
+        }
+      }
+    }
+  } catch (_) {}
+
+  // Deduplicate results
+  const seen = new Set();
+  const uniqueResults = [];
+  for (const item of results) {
+    const key = `${item.city.toLowerCase()}|${item.region.toLowerCase()}|${item.country_code}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueResults.push(item);
+    }
+  }
+
+  // Cache results
+  if (liveGeocodingCache.size > 500) {
+    const oldestKey = liveGeocodingCache.keys().next().value;
+    if (oldestKey) liveGeocodingCache.delete(oldestKey);
+  }
+  liveGeocodingCache.set(cacheKey, { data: uniqueResults, expiresAt: now + GEOCODING_CACHE_TTL_MS });
+
+  return uniqueResults;
+}
+
 module.exports = {
   loadGeoHierarchy,
   formatLocationName,
@@ -844,6 +967,7 @@ module.exports = {
   expandCustomLocationsWithGeo,
   harmonizeLocationAndWorkType,
   detectCandidateTimezone,
+  searchLiveCities,
   SUPPORTED_COUNTRIES,
   COUNTRY_PATTERNS
 };
