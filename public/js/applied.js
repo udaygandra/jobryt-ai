@@ -122,7 +122,7 @@ async function loadAppliedJobs(filterStatus = null) {
                 <p class="text-xs font-medium text-slate-300 mt-0.5">${escapeHtml(app.company)} • ${escapeHtml(app.location || 'Remote')}</p>
               </div>
               ${app.tailored_summary ? `
-                <div class="mt-2.5 p-3 rounded-xl bg-[#111317]/90 border border-[#2B3036] space-y-1.5 transition-all">
+                <div class="pitch-summary-card mt-2.5 p-3 rounded-xl border space-y-1.5 transition-all">
                   <div class="flex items-center justify-between text-[11px] font-mono">
                     <span class="flex items-center gap-1.5 font-bold tracking-wider text-[#D9A441] uppercase">
                       <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
