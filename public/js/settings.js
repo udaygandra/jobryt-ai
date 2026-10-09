@@ -357,6 +357,16 @@ window.targetRolesList = [];
 window.targetLocationsList = [];
 window.canadaCitiesList = [];
 window.globalCitiesList = [];
+window.allGlobalCitiesDataset = [];
+let activeComboboxIndex = -1;
+let comboboxDebounceTimer = null;
+
+// Preset locations always readily accessible
+const PRESET_LOCATIONS = [
+  { formatted: 'Remote', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Universal' },
+  { formatted: 'Remote (Worldwide)', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Anywhere' },
+  { formatted: 'Hybrid / Flexible', flag: '🏢', country_code: 'GLOBAL', tierLabel: 'Workplace' }
+];
 
 function updateLocationSuggestionsForCountry(scope, hubs) {
   const container = document.getElementById('settings-location-suggestions');
@@ -368,34 +378,64 @@ function updateLocationSuggestionsForCountry(scope, hubs) {
 
   const badge = document.getElementById('settings-cities-badge');
   if (badge) {
-    badge.innerText = `${labelScope} Cities Autocomplete`;
+    badge.innerText = `${labelScope} Cities Combobox`;
   }
 
   container.innerHTML = `
-    <span class="text-[11px] text-[#9AA0A6]">Top Hubs (${escapeHtml(labelScope)}):</span>
+    <span class="text-[11px] text-[#9AA0A6] font-medium">Top Hubs (${escapeHtml(labelScope)}):</span>
     ${activeHubs.slice(0, 6).map(hub => {
       const shortName = hub.split(',')[0].trim();
-      return `<button type="button" onclick="addLocationTag('${escapeHtml(hub)}')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#5FA8A0] transition-colors cursor-pointer">+ ${escapeHtml(shortName)}</button>`;
+      return `<button type="button" onclick="addLocationTag('${escapeHtml(hub)}')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#5FA8A0] transition-colors cursor-pointer active:scale-95">+ ${escapeHtml(shortName)}</button>`;
     }).join('')}
   `;
 }
 
 async function initGlobalCities(countryCode) {
   try {
-    const scope = countryCode || (document.getElementById('cfg-scope') ? document.getElementById('cfg-scope').value : 'ALL');
+    const scope = countryCode || (document.getElementById('cfg-scope') ? document.getElementById('cfg-scope').value : 'AUTO');
+    
+    // 1. Fetch full cities dataset if not already in memory
+    if (!window.allGlobalCitiesDataset || window.allGlobalCitiesDataset.length === 0) {
+      try {
+        const fullRes = await fetch('/data/global-cities.json');
+        if (fullRes.ok) {
+          const fullData = await fullRes.json();
+          window.rawGlobalCitiesJson = fullData;
+          const flatList = [];
+          if (fullData.by_country) {
+            for (const [cCode, cMeta] of Object.entries(fullData.by_country)) {
+              if (Array.isArray(cMeta.cities)) {
+                cMeta.cities.forEach(item => {
+                  flatList.push(typeof item === 'string' ? {
+                    city: item.split(',')[0],
+                    formatted: item,
+                    country_code: cCode,
+                    country_name: cMeta.name,
+                    flag: cMeta.flag,
+                    tier: 2
+                  } : item);
+                });
+              }
+            }
+          }
+          window.allGlobalCitiesDataset = flatList;
+        }
+      } catch (err) {
+        console.warn('Could not load global cities json directly:', err);
+      }
+    }
+
+    // 2. Fetch scoped city list for suggestions & hubs
     let url = `/api/settings/cities?country=${encodeURIComponent(scope)}`;
     let res = await fetch(url);
     let data;
     if (res.ok) {
       data = await res.json();
-    } else {
-      // Fallback to static global-cities.json if API is unavailable
-      const staticRes = await fetch('/data/global-cities.json');
-      const staticData = await staticRes.json();
-      const countryEntry = staticData.by_country && staticData.by_country[scope];
+    } else if (window.rawGlobalCitiesJson) {
+      const countryEntry = window.rawGlobalCitiesJson.by_country && window.rawGlobalCitiesJson.by_country[scope];
       data = {
         success: true,
-        cities: countryEntry ? countryEntry.cities : (staticData.all || []),
+        cities: countryEntry ? countryEntry.cities : (window.rawGlobalCitiesJson.all || []),
         popular_hubs: countryEntry ? countryEntry.popular_hubs : ["Remote", "New York, NY", "London, UK", "Toronto, ON", "Bengaluru, KA", "Berlin, Germany"]
       };
     }
@@ -403,17 +443,6 @@ async function initGlobalCities(countryCode) {
     if (data && data.success) {
       window.globalCitiesList = data.cities || [];
       window.canadaCitiesList = window.globalCitiesList;
-
-      const globalDatalist = document.getElementById('global-cities-datalist');
-      if (globalDatalist && Array.isArray(data.cities)) {
-        globalDatalist.innerHTML = data.cities.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
-      }
-
-      const canadaDatalist = document.getElementById('canada-cities-datalist');
-      if (canadaDatalist && Array.isArray(data.cities)) {
-        canadaDatalist.innerHTML = data.cities.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
-      }
-
       updateLocationSuggestionsForCountry(scope, data.popular_hubs);
     }
   } catch (e) {
@@ -423,6 +452,169 @@ async function initGlobalCities(countryCode) {
 
 async function initCanadaCities() {
   return initGlobalCities('CA');
+}
+
+function onCountryScopeChange() {
+  const scopeSelect = document.getElementById('cfg-scope');
+  const scope = scopeSelect ? scopeSelect.value : 'AUTO';
+  initGlobalCities(scope);
+  if (typeof renderSettingsBoards === 'function') {
+    renderSettingsBoards();
+  }
+}
+
+// Combobox filtering & rendering controller
+function filterAndRenderLocationSuggestions(query) {
+  const dropdown = document.getElementById('location-combobox-dropdown');
+  const input = document.getElementById('input-add-location');
+  if (!dropdown || !input) return;
+
+  const trimmed = (query || '').trim().toLowerCase();
+  const scope = (document.getElementById('cfg-scope')?.value || 'AUTO').toUpperCase();
+
+  let results = [];
+
+  // Always include matched presets or top presets on empty query
+  const matchedPresets = PRESET_LOCATIONS.filter(p => !trimmed || p.formatted.toLowerCase().includes(trimmed));
+  results.push(...matchedPresets);
+
+  if (Array.isArray(window.allGlobalCitiesDataset) && window.allGlobalCitiesDataset.length > 0) {
+    const scored = [];
+    for (const c of window.allGlobalCitiesDataset) {
+      const fmt = (c.formatted || c.city || '').toLowerCase();
+      const cName = (c.country_name || '').toLowerCase();
+      const code = (c.country_code || '').toLowerCase();
+      const city = (c.city || '').toLowerCase();
+      const region = (c.region || '').toLowerCase();
+
+      let matchScore = 0;
+      if (city === trimmed) matchScore = 100;
+      else if (city.startsWith(trimmed)) matchScore = 80;
+      else if (fmt.startsWith(trimmed)) matchScore = 70;
+      else if (fmt.includes(trimmed)) matchScore = 50;
+      else if (region === trimmed) matchScore = 40;
+      else if (cName.includes(trimmed) || code === trimmed) matchScore = 30;
+
+      if (matchScore > 0 || !trimmed) {
+        // Boost priority if city is in active country scope
+        if (scope !== 'ALL' && scope !== 'AUTO' && c.country_code === scope) {
+          matchScore += 25;
+        }
+        scored.push({ city: c, score: matchScore });
+      }
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+    const topCities = scored.slice(0, trimmed ? 12 : 8).map(s => s.city);
+    results.push(...topCities);
+  }
+
+  // Deduplicate results by formatted string
+  const seen = new Set();
+  results = results.filter(item => {
+    const key = (item.formatted || item.city || '').toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  if (results.length === 0) {
+    if (trimmed) {
+      dropdown.innerHTML = `
+        <div class="combobox-header">Custom Location</div>
+        <div class="combobox-item" onclick="selectComboboxLocation('${escapeHtml(query)}', '')">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">📍</span>
+            <span class="text-xs text-[#E8E6E1]">Add custom: "<b>${escapeHtml(query)}</b>"</span>
+          </div>
+          <span class="text-[10px] text-[#9AA0A6] font-mono">Press Enter</span>
+        </div>
+      `;
+      dropdown.classList.remove('hidden');
+      input.setAttribute('aria-expanded', 'true');
+    } else {
+      dropdown.classList.add('hidden');
+      input.setAttribute('aria-expanded', 'false');
+    }
+    activeComboboxIndex = -1;
+    return;
+  }
+
+  let html = `<div class="combobox-header flex items-center justify-between">
+    <span>${trimmed ? 'Matching Locations' : 'Quick Presets & Top Hubs'}</span>
+    <span class="font-mono text-[9px] lowercase text-[#D9A441]">↑↓ arrows · enter to select</span>
+  </div>`;
+
+  results.forEach((item, idx) => {
+    const fmt = item.formatted || item.city || '';
+    const flag = item.flag || (item.country_code ? getFlagEmoji(item.country_code) : '📍');
+    const countryCode = item.country_code || '';
+    const tierPill = item.tier === 1 ? '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Hub</span>'
+      : (item.tierLabel ? `<span class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6]">${escapeHtml(item.tierLabel)}</span>` : '');
+
+    html += `
+      <div class="combobox-item" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(fmt)}', '${escapeHtml(countryCode)}')">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-base shrink-0">${flag}</span>
+          <div class="truncate">
+            <span class="font-medium text-xs text-[#E8E6E1]">${highlightComboboxMatch(fmt, trimmed)}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+          ${countryCode ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6] border border-[#2B3036]">${escapeHtml(countryCode)}</span>` : ''}
+          ${tierPill}
+        </div>
+      </div>
+    `;
+  });
+
+  dropdown.innerHTML = html;
+  dropdown.classList.remove('hidden');
+  input.setAttribute('aria-expanded', 'true');
+  activeComboboxIndex = -1;
+}
+
+function getFlagEmoji(countryCode) {
+  if (!countryCode || countryCode === 'GLOBAL') return '🌐';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+function highlightComboboxMatch(text, query) {
+  if (!query) return escapeHtml(text);
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return escapeHtml(text).replace(regex, '<span class="text-[#D9A441] font-semibold underline">$1</span>');
+}
+
+function selectComboboxLocation(locationString, countryCode) {
+  if (locationString) {
+    addLocationTag(locationString);
+  }
+  closeComboboxDropdown();
+
+  // Smart country-scope alignment hint:
+  if (countryCode && countryCode !== 'GLOBAL') {
+    const scopeSelect = document.getElementById('cfg-scope');
+    if (scopeSelect && scopeSelect.value === 'AUTO') {
+      // Auto-detect & sync scope if on AUTO
+      scopeSelect.value = countryCode;
+      onCountryScopeChange();
+    }
+  }
+}
+
+function closeComboboxDropdown() {
+  const dropdown = document.getElementById('location-combobox-dropdown');
+  const input = document.getElementById('input-add-location');
+  if (dropdown) dropdown.classList.add('hidden');
+  if (input) {
+    input.value = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+  activeComboboxIndex = -1;
 }
 
 function renderRoleTags() {
@@ -455,17 +647,38 @@ function removeRoleTag(idx) {
   }
 }
 
+function detectLocationFlag(locStr) {
+  const lower = (locStr || '').toLowerCase();
+  if (lower.includes('remote') || lower.includes('worldwide')) return '🌐';
+  if (Array.isArray(window.allGlobalCitiesDataset)) {
+    const match = window.allGlobalCitiesDataset.find(c =>
+      c.formatted.toLowerCase() === lower || c.city.toLowerCase() === lower || lower.includes(c.city.toLowerCase())
+    );
+    if (match && match.flag) return match.flag;
+  }
+  if (lower.includes('canada') || lower.endsWith(', on') || lower.endsWith(', bc') || lower.endsWith(', qc') || lower.endsWith(', ab')) return '🇨🇦';
+  if (lower.includes('usa') || lower.endsWith(', ny') || lower.endsWith(', ca') || lower.endsWith(', tx') || lower.endsWith(', wa')) return '🇺🇸';
+  if (lower.includes('uk') || lower.includes('london')) return '🇬🇧';
+  if (lower.includes('germany') || lower.includes('berlin')) return '🇩🇪';
+  if (lower.includes('india') || lower.includes('bengaluru')) return '🇮🇳';
+  return '📍';
+}
+
 function renderLocationTags() {
   const container = document.getElementById('locations-badges-list');
   const hiddenInput = document.getElementById('cfg-locations');
   if (hiddenInput) hiddenInput.value = (window.targetLocationsList || []).join(', ');
   if (!container) return;
-  container.innerHTML = (window.targetLocationsList || []).map((loc, idx) => `
-    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#242830] text-[#5FA8A0] border border-[#2B3036] shadow-xs">
-      <span>${escapeHtml(loc)}</span>
-      <button type="button" onclick="removeLocationTag(${idx})" class="text-[#9AA0A6] hover:text-rose-400 focus:outline-none cursor-pointer" title="Remove location">✕</button>
-    </span>
-  `).join('');
+  container.innerHTML = (window.targetLocationsList || []).map((loc, idx) => {
+    const flag = detectLocationFlag(loc);
+    return `
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#242830] text-[#5FA8A0] border border-[#2B3036] shadow-xs">
+        <span class="text-xs">${flag}</span>
+        <span>${escapeHtml(loc)}</span>
+        <button type="button" onclick="removeLocationTag(${idx})" class="text-[#9AA0A6] hover:text-rose-400 focus:outline-none cursor-pointer" title="Remove location">✕</button>
+      </span>
+    `;
+  }).join('');
 }
 
 function addLocationTag(rawLoc) {
@@ -505,19 +718,60 @@ function setupTagInputListeners() {
   }
 
   const locInput = document.getElementById('input-add-location');
+  const dropdown = document.getElementById('location-combobox-dropdown');
+
   if (locInput && !locInput.dataset.listenerAttached) {
     locInput.dataset.listenerAttached = 'true';
+
+    // Focus opens top suggestions
+    locInput.addEventListener('focus', () => {
+      filterAndRenderLocationSuggestions(locInput.value);
+    });
+
+    // Input with debouncing
+    locInput.addEventListener('input', () => {
+      clearTimeout(comboboxDebounceTimer);
+      comboboxDebounceTimer = setTimeout(() => {
+        filterAndRenderLocationSuggestions(locInput.value);
+      }, 100);
+    });
+
+    // Keyboard navigation (ArrowDown, ArrowUp, Enter, Escape)
     locInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ',') {
+      const items = dropdown ? dropdown.querySelectorAll('.combobox-item') : [];
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
-        addLocationTag(locInput.value);
-        locInput.value = '';
+        if (dropdown.classList.contains('hidden')) {
+          filterAndRenderLocationSuggestions(locInput.value);
+          return;
+        }
+        activeComboboxIndex = (activeComboboxIndex + 1) % items.length;
+        items.forEach((it, i) => it.classList.toggle('combobox-item-active', i === activeComboboxIndex));
+        if (items[activeComboboxIndex]) items[activeComboboxIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (dropdown.classList.contains('hidden')) return;
+        activeComboboxIndex = (activeComboboxIndex - 1 + items.length) % items.length;
+        items.forEach((it, i) => it.classList.toggle('combobox-item-active', i === activeComboboxIndex));
+        if (items[activeComboboxIndex]) items[activeComboboxIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        if (!dropdown.classList.contains('hidden') && activeComboboxIndex >= 0 && items[activeComboboxIndex]) {
+          items[activeComboboxIndex].click();
+        } else if (locInput.value.trim()) {
+          addLocationTag(locInput.value);
+          closeComboboxDropdown();
+        }
+      } else if (e.key === 'Escape') {
+        closeComboboxDropdown();
       }
     });
-    locInput.addEventListener('blur', () => {
-      if (locInput.value.trim()) {
-        addLocationTag(locInput.value);
-        locInput.value = '';
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('location-combobox-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeComboboxDropdown();
       }
     });
   }
@@ -533,6 +787,9 @@ window.initGlobalCities = initGlobalCities;
 window.initCanadaCities = initCanadaCities;
 window.updateLocationSuggestionsForCountry = updateLocationSuggestionsForCountry;
 window.onCountryScopeChange = onCountryScopeChange;
+window.selectComboboxLocation = selectComboboxLocation;
+window.filterAndRenderLocationSuggestions = filterAndRenderLocationSuggestions;
+window.closeComboboxDropdown = closeComboboxDropdown;
 
 async function loadSettings() {
   try {

@@ -1002,26 +1002,32 @@
               <p class="text-[11px] text-[#9AA0A6] mt-1">Multi-board searches will look for these titles in priority order. Press <b>Enter</b> to add each role.</p>
             </div>
 
-            <!-- Target Locations (Multi-tag with Enter + Global/Multi-Country Cities datalist) -->
-            <div>
+            <!-- Target Locations (Multi-tag with Enter + Premier Job-Board Combobox Autocomplete) -->
+            <div class="relative" id="location-combobox-wrapper">
               <div class="flex items-center justify-between mb-1.5">
                 <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">Target Locations</label>
                 <span id="settings-cities-badge" class="text-[10px] text-[#5FA8A0] font-mono">Global & Country Cities Autocomplete</span>
               </div>
               
-              <div id="locations-tags-container" class="flex flex-wrap items-center gap-1.5 p-2 rounded-md bg-[#111317] border border-[#2B3036] focus-within:border-[#D9A441] min-h-[44px]">
+              <div id="locations-tags-container" class="flex flex-wrap items-center gap-1.5 p-2 rounded-md bg-[#111317] border border-[#2B3036] focus-within:border-[#D9A441] min-h-[44px] transition-colors relative">
                 <div id="locations-badges-list" class="flex flex-wrap items-center gap-1.5"></div>
-                <input type="text" id="input-add-location" list="global-cities-datalist"
-                  class="flex-1 min-w-[170px] bg-transparent text-xs sm:text-sm text-[#E8E6E1] outline-none placeholder:text-[#5F6B76] px-1 py-0.5"
-                  placeholder="e.g. New York, Toronto, London, Bengaluru, Remote...">
+                <div class="flex-1 min-w-[200px] relative">
+                  <input type="text" id="input-add-location" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-combobox-dropdown"
+                    class="w-full bg-transparent text-xs sm:text-sm text-[#E8E6E1] outline-none placeholder:text-[#5F6B76] px-1 py-0.5"
+                    placeholder="Search city, state, or 'Remote' (e.g. Austin, Toronto, London)...">
+                </div>
               </div>
-              <datalist id="global-cities-datalist"></datalist>
-              <datalist id="canada-cities-datalist"></datalist>
+
+              <!-- Floating Combobox Dropdown -->
+              <div id="location-combobox-dropdown" role="listbox" class="hidden absolute left-0 right-0 top-full mt-1 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50 overflow-hidden max-h-72 overflow-y-auto">
+                <!-- Dropdown items rendered dynamically -->
+              </div>
+
               <div id="settings-location-suggestions" class="flex items-center gap-1.5 flex-wrap mt-2">
                 <!-- Dynamically populated based on chosen country scope -->
               </div>
               <input type="hidden" id="cfg-locations" value="">
-              <p class="text-[11px] text-[#9AA0A6] mt-1">Select from popular hub chips, autocomplete, or type any custom location (e.g. "Remote", "London, UK", "Austin, TX") and press <b>Enter</b>.</p>
+              <p class="text-[11px] text-[#9AA0A6] mt-1">Select from popular hub chips, combobox search, or type any custom location (e.g. "Remote", "London, UK", "Austin, TX") and press <b>Enter</b>.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
