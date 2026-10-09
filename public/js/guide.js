@@ -307,6 +307,12 @@ function addWizardRole(role) {
   if (!role || typeof role !== 'string') return;
   const clean = role.trim();
   if (!clean) return;
+  if (wizardRolesList.length >= 10) {
+    if (typeof showToast === 'function') {
+      showToast('Maximum 10 job roles allowed.', 'warning');
+    }
+    return;
+  }
   if (!wizardRolesList.some(r => r.toLowerCase() === clean.toLowerCase())) {
     wizardRolesList.push(clean);
     renderWizardRoles();

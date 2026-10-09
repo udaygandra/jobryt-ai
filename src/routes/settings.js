@@ -162,6 +162,12 @@ router.get('/cities/live-search', async (req, res) => {
 router.post('/', (req, res) => {
   try {
     const newSettings = req.body;
+    if (Array.isArray(newSettings.target_titles)) {
+      newSettings.target_titles = newSettings.target_titles.slice(0, 10);
+    }
+    if (Array.isArray(newSettings.locations)) {
+      newSettings.locations = newSettings.locations.slice(0, 5);
+    }
     const updated = settingsHelper.updateSettings(newSettings);
 
     // Sync target_titles and locations with master profile if provided

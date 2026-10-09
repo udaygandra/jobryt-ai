@@ -801,9 +801,28 @@ function closeComboboxDropdown() {
   }
 }
 
+const MAX_ROLES = 10;
+
 function renderRoleTags() {
   const container = document.getElementById('roles-badges-list');
   const hiddenInput = document.getElementById('cfg-roles');
+  const countLabel = document.getElementById('settings-roles-count-label');
+  const roleCount = (window.targetRolesList || []).length;
+
+  if (countLabel) {
+    countLabel.innerText = `(${roleCount}/${MAX_ROLES})`;
+    countLabel.className = roleCount >= MAX_ROLES ? 'text-amber-400 font-mono text-[10px] font-bold' : 'text-[#5FA8A0] font-mono text-[10px]';
+  }
+
+  const roleInput = document.getElementById('input-add-role');
+  if (roleInput) {
+    if (roleCount >= MAX_ROLES) {
+      roleInput.placeholder = 'Maximum 10 roles reached';
+    } else {
+      roleInput.placeholder = 'e.g. Data Analyst, Python Developer...';
+    }
+  }
+
   if (hiddenInput) hiddenInput.value = (window.targetRolesList || []).join(', ');
   if (!container) return;
   container.innerHTML = (window.targetRolesList || []).map((role, idx) => `
@@ -818,6 +837,12 @@ function addRoleTag(rawRole) {
   const role = (rawRole || '').trim().replace(/^,+|,+$/g, '');
   if (!role) return;
   if (!window.targetRolesList) window.targetRolesList = [];
+  if (window.targetRolesList.length >= MAX_ROLES) {
+    if (typeof showToast === 'function') {
+      showToast(`Maximum ${MAX_ROLES} job roles allowed to maintain optimal search relevance.`, 'warning');
+    }
+    return;
+  }
   if (!window.targetRolesList.some(r => r.toLowerCase() === role.toLowerCase())) {
     window.targetRolesList.push(role);
     renderRoleTags();
