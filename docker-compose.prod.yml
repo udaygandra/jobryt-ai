@@ -5,18 +5,10 @@
 #   ENV_FILE=.env.prod docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
-  n8n:
+  web:
     environment:
-      - NODE_OPTIONS=--max-old-space-size=768
+      - NODE_OPTIONS=--max-old-space-size=512
     deploy:
       resources:
         limits:
-          memory: 1024M
-
-  telegram-bridge:
-    environment:
-      - NODE_OPTIONS=--max-old-space-size=256
-    deploy:
-      resources:
-        limits:
-          memory: 384M
+          memory: 640M

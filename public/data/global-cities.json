@@ -1,0 +1,6859 @@
+{
+  "version": "2.0",
+  "total_countries": 19,
+  "total_cities": 644,
+  "by_country": {
+    "US": {
+      "code": "US",
+      "name": "United States",
+      "flag": "🇺🇸",
+      "popular_hubs": [
+        "New York, NY",
+        "San Francisco, CA",
+        "Seattle, WA",
+        "Austin, TX",
+        "Boston, MA",
+        "Chicago, IL",
+        "Remote"
+      ],
+      "counts": {
+        "total": 93,
+        "tier1": 16,
+        "tier2": 26,
+        "tier3": 51
+      },
+      "cities": [
+        {
+          "city": "New York",
+          "region": "NY",
+          "formatted": "New York, NY, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "San Francisco",
+          "region": "CA",
+          "formatted": "San Francisco, CA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Los Angeles",
+          "region": "CA",
+          "formatted": "Los Angeles, CA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Chicago",
+          "region": "IL",
+          "formatted": "Chicago, IL, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Seattle",
+          "region": "WA",
+          "formatted": "Seattle, WA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Boston",
+          "region": "MA",
+          "formatted": "Boston, MA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Austin",
+          "region": "TX",
+          "formatted": "Austin, TX, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Dallas",
+          "region": "TX",
+          "formatted": "Dallas, TX, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Houston",
+          "region": "TX",
+          "formatted": "Houston, TX, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Washington",
+          "region": "DC",
+          "formatted": "Washington, DC, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Atlanta",
+          "region": "GA",
+          "formatted": "Atlanta, GA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "San Jose",
+          "region": "CA",
+          "formatted": "San Jose, CA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "San Diego",
+          "region": "CA",
+          "formatted": "San Diego, CA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Denver",
+          "region": "CO",
+          "formatted": "Denver, CO, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Phoenix",
+          "region": "AZ",
+          "formatted": "Phoenix, AZ, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Philadelphia",
+          "region": "PA",
+          "formatted": "Philadelphia, PA, USA",
+          "tier": 1,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Portland",
+          "region": "OR",
+          "formatted": "Portland, OR, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Miami",
+          "region": "FL",
+          "formatted": "Miami, FL, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Raleigh",
+          "region": "NC",
+          "formatted": "Raleigh, NC, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Charlotte",
+          "region": "NC",
+          "formatted": "Charlotte, NC, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Minneapolis",
+          "region": "MN",
+          "formatted": "Minneapolis, MN, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Salt Lake City",
+          "region": "UT",
+          "formatted": "Salt Lake City, UT, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Pittsburgh",
+          "region": "PA",
+          "formatted": "Pittsburgh, PA, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Nashville",
+          "region": "TN",
+          "formatted": "Nashville, TN, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Columbus",
+          "region": "OH",
+          "formatted": "Columbus, OH, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Indianapolis",
+          "region": "IN",
+          "formatted": "Indianapolis, IN, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Baltimore",
+          "region": "MD",
+          "formatted": "Baltimore, MD, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Las Vegas",
+          "region": "NV",
+          "formatted": "Las Vegas, NV, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Detroit",
+          "region": "MI",
+          "formatted": "Detroit, MI, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Tampa",
+          "region": "FL",
+          "formatted": "Tampa, FL, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Orlando",
+          "region": "FL",
+          "formatted": "Orlando, FL, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Kansas City",
+          "region": "MO",
+          "formatted": "Kansas City, MO, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Cleveland",
+          "region": "OH",
+          "formatted": "Cleveland, OH, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Cincinnati",
+          "region": "OH",
+          "formatted": "Cincinnati, OH, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Sacramento",
+          "region": "CA",
+          "formatted": "Sacramento, CA, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Milwaukee",
+          "region": "WI",
+          "formatted": "Milwaukee, WI, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "St. Louis",
+          "region": "MO",
+          "formatted": "St. Louis, MO, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Richmond",
+          "region": "VA",
+          "formatted": "Richmond, VA, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "San Antonio",
+          "region": "TX",
+          "formatted": "San Antonio, TX, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Fort Worth",
+          "region": "TX",
+          "formatted": "Fort Worth, TX, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Jacksonville",
+          "region": "FL",
+          "formatted": "Jacksonville, FL, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Oklahoma City",
+          "region": "OK",
+          "formatted": "Oklahoma City, OK, USA",
+          "tier": 2,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Boulder",
+          "region": "CO",
+          "formatted": "Boulder, CO, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Boise",
+          "region": "ID",
+          "formatted": "Boise, ID, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Madison",
+          "region": "WI",
+          "formatted": "Madison, WI, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Huntsville",
+          "region": "AL",
+          "formatted": "Huntsville, AL, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Durham",
+          "region": "NC",
+          "formatted": "Durham, NC, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Knoxville",
+          "region": "TN",
+          "formatted": "Knoxville, TN, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Omaha",
+          "region": "NE",
+          "formatted": "Omaha, NE, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Des Moines",
+          "region": "IA",
+          "formatted": "Des Moines, IA, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Spokane",
+          "region": "WA",
+          "formatted": "Spokane, WA, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Charleston",
+          "region": "SC",
+          "formatted": "Charleston, SC, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Colorado Springs",
+          "region": "CO",
+          "formatted": "Colorado Springs, CO, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Reno",
+          "region": "NV",
+          "formatted": "Reno, NV, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Tucson",
+          "region": "AZ",
+          "formatted": "Tucson, AZ, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Albuquerque",
+          "region": "NM",
+          "formatted": "Albuquerque, NM, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Fresno",
+          "region": "CA",
+          "formatted": "Fresno, CA, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Grand Rapids",
+          "region": "MI",
+          "formatted": "Grand Rapids, MI, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Buffalo",
+          "region": "NY",
+          "formatted": "Buffalo, NY, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Rochester",
+          "region": "NY",
+          "formatted": "Rochester, NY, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Albany",
+          "region": "NY",
+          "formatted": "Albany, NY, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Providence",
+          "region": "RI",
+          "formatted": "Providence, RI, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Hartford",
+          "region": "CT",
+          "formatted": "Hartford, CT, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "St. Petersburg",
+          "region": "FL",
+          "formatted": "St. Petersburg, FL, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Fort Lauderdale",
+          "region": "FL",
+          "formatted": "Fort Lauderdale, FL, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Louisville",
+          "region": "KY",
+          "formatted": "Louisville, KY, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Lexington",
+          "region": "KY",
+          "formatted": "Lexington, KY, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Greenville",
+          "region": "SC",
+          "formatted": "Greenville, SC, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Chattanooga",
+          "region": "TN",
+          "formatted": "Chattanooga, TN, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Memphis",
+          "region": "TN",
+          "formatted": "Memphis, TN, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Baton Rouge",
+          "region": "LA",
+          "formatted": "Baton Rouge, LA, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "New Orleans",
+          "region": "LA",
+          "formatted": "New Orleans, LA, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Little Rock",
+          "region": "AR",
+          "formatted": "Little Rock, AR, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Fayetteville",
+          "region": "AR",
+          "formatted": "Fayetteville, AR, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Tulsa",
+          "region": "OK",
+          "formatted": "Tulsa, OK, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Wichita",
+          "region": "KS",
+          "formatted": "Wichita, KS, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "El Paso",
+          "region": "TX",
+          "formatted": "El Paso, TX, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Corpus Christi",
+          "region": "TX",
+          "formatted": "Corpus Christi, TX, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Plano",
+          "region": "TX",
+          "formatted": "Plano, TX, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Irving",
+          "region": "TX",
+          "formatted": "Irving, TX, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Arlington",
+          "region": "TX",
+          "formatted": "Arlington, TX, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Newark",
+          "region": "NJ",
+          "formatted": "Newark, NJ, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Jersey City",
+          "region": "NJ",
+          "formatted": "Jersey City, NJ, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "New Haven",
+          "region": "CT",
+          "formatted": "New Haven, CT, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Portland",
+          "region": "ME",
+          "formatted": "Portland, ME, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Burlington",
+          "region": "VT",
+          "formatted": "Burlington, VT, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Manchester",
+          "region": "NH",
+          "formatted": "Manchester, NH, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Sioux Falls",
+          "region": "SD",
+          "formatted": "Sioux Falls, SD, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Fargo",
+          "region": "ND",
+          "formatted": "Fargo, ND, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Billings",
+          "region": "MT",
+          "formatted": "Billings, MT, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Cheyenne",
+          "region": "WY",
+          "formatted": "Cheyenne, WY, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Anchorage",
+          "region": "AK",
+          "formatted": "Anchorage, AK, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        },
+        {
+          "city": "Honolulu",
+          "region": "HI",
+          "formatted": "Honolulu, HI, USA",
+          "tier": 3,
+          "country_code": "US",
+          "country_name": "United States",
+          "flag": "🇺🇸"
+        }
+      ]
+    },
+    "IN": {
+      "code": "IN",
+      "name": "India",
+      "flag": "🇮🇳",
+      "popular_hubs": [
+        "Bengaluru, KA",
+        "Hyderabad, TS",
+        "Pune, MH",
+        "Mumbai, MH",
+        "Delhi NCR",
+        "Chennai, TN",
+        "Remote"
+      ],
+      "counts": {
+        "total": 89,
+        "tier1": 8,
+        "tier2": 31,
+        "tier3": 50
+      },
+      "cities": [
+        {
+          "city": "Bengaluru",
+          "region": "KA",
+          "formatted": "Bengaluru, KA, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Hyderabad",
+          "region": "TS",
+          "formatted": "Hyderabad, TS, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Pune",
+          "region": "MH",
+          "formatted": "Pune, MH, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Mumbai",
+          "region": "MH",
+          "formatted": "Mumbai, MH, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Delhi",
+          "region": "DL",
+          "formatted": "Delhi, DL, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Chennai",
+          "region": "TN",
+          "formatted": "Chennai, TN, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kolkata",
+          "region": "WB",
+          "formatted": "Kolkata, WB, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Ahmedabad",
+          "region": "GJ",
+          "formatted": "Ahmedabad, GJ, India",
+          "tier": 1,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Gurgaon",
+          "region": "HR",
+          "formatted": "Gurgaon, HR, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Noida",
+          "region": "UP",
+          "formatted": "Noida, UP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Navi Mumbai",
+          "region": "MH",
+          "formatted": "Navi Mumbai, MH, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jaipur",
+          "region": "RJ",
+          "formatted": "Jaipur, RJ, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Lucknow",
+          "region": "UP",
+          "formatted": "Lucknow, UP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Chandigarh",
+          "region": "CH",
+          "formatted": "Chandigarh, CH, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Indore",
+          "region": "MP",
+          "formatted": "Indore, MP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Coimbatore",
+          "region": "TN",
+          "formatted": "Coimbatore, TN, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kochi",
+          "region": "KL",
+          "formatted": "Kochi, KL, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Visakhapatnam",
+          "region": "AP",
+          "formatted": "Visakhapatnam, AP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Surat",
+          "region": "GJ",
+          "formatted": "Surat, GJ, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Vadodara",
+          "region": "GJ",
+          "formatted": "Vadodara, GJ, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Nagpur",
+          "region": "MH",
+          "formatted": "Nagpur, MH, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Bhopal",
+          "region": "MP",
+          "formatted": "Bhopal, MP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Patna",
+          "region": "BR",
+          "formatted": "Patna, BR, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Bhubaneswar",
+          "region": "OD",
+          "formatted": "Bhubaneswar, OD, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Thiruvananthapuram",
+          "region": "KL",
+          "formatted": "Thiruvananthapuram, KL, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Vijayawada",
+          "region": "AP",
+          "formatted": "Vijayawada, AP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Ludhiana",
+          "region": "PB",
+          "formatted": "Ludhiana, PB, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Agra",
+          "region": "UP",
+          "formatted": "Agra, UP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Nashik",
+          "region": "MH",
+          "formatted": "Nashik, MH, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Faridabad",
+          "region": "HR",
+          "formatted": "Faridabad, HR, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Ghaziabad",
+          "region": "UP",
+          "formatted": "Ghaziabad, UP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Rajkot",
+          "region": "GJ",
+          "formatted": "Rajkot, GJ, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Varanasi",
+          "region": "UP",
+          "formatted": "Varanasi, UP, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Amritsar",
+          "region": "PB",
+          "formatted": "Amritsar, PB, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Ranchi",
+          "region": "JH",
+          "formatted": "Ranchi, JH, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Guwahati",
+          "region": "AS",
+          "formatted": "Guwahati, AS, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jodhpur",
+          "region": "RJ",
+          "formatted": "Jodhpur, RJ, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Madurai",
+          "region": "TN",
+          "formatted": "Madurai, TN, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Raipur",
+          "region": "CG",
+          "formatted": "Raipur, CG, India",
+          "tier": 2,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Mysore",
+          "region": "KA",
+          "formatted": "Mysore, KA, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Mangalore",
+          "region": "KA",
+          "formatted": "Mangalore, KA, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Hubli",
+          "region": "KA",
+          "formatted": "Hubli, KA, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Belgaum",
+          "region": "KA",
+          "formatted": "Belgaum, KA, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Warangal",
+          "region": "TS",
+          "formatted": "Warangal, TS, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Guntur",
+          "region": "AP",
+          "formatted": "Guntur, AP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Tirupati",
+          "region": "AP",
+          "formatted": "Tirupati, AP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Nellore",
+          "region": "AP",
+          "formatted": "Nellore, AP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Salem",
+          "region": "TN",
+          "formatted": "Salem, TN, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Tiruchirappalli",
+          "region": "TN",
+          "formatted": "Tiruchirappalli, TN, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Tiruppur",
+          "region": "TN",
+          "formatted": "Tiruppur, TN, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Erode",
+          "region": "TN",
+          "formatted": "Erode, TN, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Vellore",
+          "region": "TN",
+          "formatted": "Vellore, TN, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kozhikode",
+          "region": "KL",
+          "formatted": "Kozhikode, KL, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Thrissur",
+          "region": "KL",
+          "formatted": "Thrissur, KL, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kollam",
+          "region": "KL",
+          "formatted": "Kollam, KL, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Aurangabad",
+          "region": "MH",
+          "formatted": "Aurangabad, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kolhapur",
+          "region": "MH",
+          "formatted": "Kolhapur, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Solapur",
+          "region": "MH",
+          "formatted": "Solapur, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Amravati",
+          "region": "MH",
+          "formatted": "Amravati, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Nanded",
+          "region": "MH",
+          "formatted": "Nanded, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Sangli",
+          "region": "MH",
+          "formatted": "Sangli, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jalgaon",
+          "region": "MH",
+          "formatted": "Jalgaon, MH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Dehradun",
+          "region": "UK",
+          "formatted": "Dehradun, UK, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Haridwar",
+          "region": "UK",
+          "formatted": "Haridwar, UK, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Rishikesh",
+          "region": "UK",
+          "formatted": "Rishikesh, UK, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kanpur",
+          "region": "UP",
+          "formatted": "Kanpur, UP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Meerut",
+          "region": "UP",
+          "formatted": "Meerut, UP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Prayagraj",
+          "region": "UP",
+          "formatted": "Prayagraj, UP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Bareilly",
+          "region": "UP",
+          "formatted": "Bareilly, UP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Aligarh",
+          "region": "UP",
+          "formatted": "Aligarh, UP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Moradabad",
+          "region": "UP",
+          "formatted": "Moradabad, UP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jalandhar",
+          "region": "PB",
+          "formatted": "Jalandhar, PB, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Patiala",
+          "region": "PB",
+          "formatted": "Patiala, PB, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Gwalior",
+          "region": "MP",
+          "formatted": "Gwalior, MP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jabalpur",
+          "region": "MP",
+          "formatted": "Jabalpur, MP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Ujjain",
+          "region": "MP",
+          "formatted": "Ujjain, MP, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Kota",
+          "region": "RJ",
+          "formatted": "Kota, RJ, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Udaipur",
+          "region": "RJ",
+          "formatted": "Udaipur, RJ, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Ajmer",
+          "region": "RJ",
+          "formatted": "Ajmer, RJ, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Bikaner",
+          "region": "RJ",
+          "formatted": "Bikaner, RJ, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jamshedpur",
+          "region": "JH",
+          "formatted": "Jamshedpur, JH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Dhanbad",
+          "region": "JH",
+          "formatted": "Dhanbad, JH, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Rourkela",
+          "region": "OD",
+          "formatted": "Rourkela, OD, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Cuttack",
+          "region": "OD",
+          "formatted": "Cuttack, OD, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Siliguri",
+          "region": "WB",
+          "formatted": "Siliguri, WB, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Durgapur",
+          "region": "WB",
+          "formatted": "Durgapur, WB, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Asansol",
+          "region": "WB",
+          "formatted": "Asansol, WB, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Jammu",
+          "region": "JK",
+          "formatted": "Jammu, JK, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        },
+        {
+          "city": "Srinagar",
+          "region": "JK",
+          "formatted": "Srinagar, JK, India",
+          "tier": 3,
+          "country_code": "IN",
+          "country_name": "India",
+          "flag": "🇮🇳"
+        }
+      ]
+    },
+    "CA": {
+      "code": "CA",
+      "name": "Canada",
+      "flag": "🇨🇦",
+      "popular_hubs": [
+        "Toronto, ON",
+        "Vancouver, BC",
+        "Montreal, QC",
+        "Calgary, AB",
+        "Ottawa, ON",
+        "Waterloo, ON",
+        "Remote"
+      ],
+      "counts": {
+        "total": 56,
+        "tier1": 6,
+        "tier2": 20,
+        "tier3": 30
+      },
+      "cities": [
+        {
+          "city": "Toronto",
+          "region": "ON",
+          "formatted": "Toronto, ON, Canada",
+          "tier": 1,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Montreal",
+          "region": "QC",
+          "formatted": "Montreal, QC, Canada",
+          "tier": 1,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Vancouver",
+          "region": "BC",
+          "formatted": "Vancouver, BC, Canada",
+          "tier": 1,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Calgary",
+          "region": "AB",
+          "formatted": "Calgary, AB, Canada",
+          "tier": 1,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Ottawa",
+          "region": "ON",
+          "formatted": "Ottawa, ON, Canada",
+          "tier": 1,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Edmonton",
+          "region": "AB",
+          "formatted": "Edmonton, AB, Canada",
+          "tier": 1,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Mississauga",
+          "region": "ON",
+          "formatted": "Mississauga, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Waterloo",
+          "region": "ON",
+          "formatted": "Waterloo, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Kitchener",
+          "region": "ON",
+          "formatted": "Kitchener, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Winnipeg",
+          "region": "MB",
+          "formatted": "Winnipeg, MB, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Quebec City",
+          "region": "QC",
+          "formatted": "Quebec City, QC, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Hamilton",
+          "region": "ON",
+          "formatted": "Hamilton, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Brampton",
+          "region": "ON",
+          "formatted": "Brampton, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Halifax",
+          "region": "NS",
+          "formatted": "Halifax, NS, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "London",
+          "region": "ON",
+          "formatted": "London, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Victoria",
+          "region": "BC",
+          "formatted": "Victoria, BC, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Markham",
+          "region": "ON",
+          "formatted": "Markham, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Vaughan",
+          "region": "ON",
+          "formatted": "Vaughan, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Burnaby",
+          "region": "BC",
+          "formatted": "Burnaby, BC, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Richmond",
+          "region": "BC",
+          "formatted": "Richmond, BC, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Surrey",
+          "region": "BC",
+          "formatted": "Surrey, BC, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Windsor",
+          "region": "ON",
+          "formatted": "Windsor, ON, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Saskatoon",
+          "region": "SK",
+          "formatted": "Saskatoon, SK, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Regina",
+          "region": "SK",
+          "formatted": "Regina, SK, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "St. John's",
+          "region": "NL",
+          "formatted": "St. John's, NL, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Kelowna",
+          "region": "BC",
+          "formatted": "Kelowna, BC, Canada",
+          "tier": 2,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Oakville",
+          "region": "ON",
+          "formatted": "Oakville, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Richmond Hill",
+          "region": "ON",
+          "formatted": "Richmond Hill, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Burlington",
+          "region": "ON",
+          "formatted": "Burlington, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Oshawa",
+          "region": "ON",
+          "formatted": "Oshawa, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Barrie",
+          "region": "ON",
+          "formatted": "Barrie, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Guelph",
+          "region": "ON",
+          "formatted": "Guelph, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Cambridge",
+          "region": "ON",
+          "formatted": "Cambridge, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Kingston",
+          "region": "ON",
+          "formatted": "Kingston, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Sherbrooke",
+          "region": "QC",
+          "formatted": "Sherbrooke, QC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Trois-Rivières",
+          "region": "QC",
+          "formatted": "Trois-Rivières, QC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Laval",
+          "region": "QC",
+          "formatted": "Laval, QC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Gatineau",
+          "region": "QC",
+          "formatted": "Gatineau, QC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Moncton",
+          "region": "NB",
+          "formatted": "Moncton, NB, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Saint John",
+          "region": "NB",
+          "formatted": "Saint John, NB, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Fredericton",
+          "region": "NB",
+          "formatted": "Fredericton, NB, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Charlottetown",
+          "region": "PE",
+          "formatted": "Charlottetown, PE, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Lethbridge",
+          "region": "AB",
+          "formatted": "Lethbridge, AB, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Red Deer",
+          "region": "AB",
+          "formatted": "Red Deer, AB, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Medicine Hat",
+          "region": "AB",
+          "formatted": "Medicine Hat, AB, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Nanaimo",
+          "region": "BC",
+          "formatted": "Nanaimo, BC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Kamloops",
+          "region": "BC",
+          "formatted": "Kamloops, BC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Prince George",
+          "region": "BC",
+          "formatted": "Prince George, BC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Abbotsford",
+          "region": "BC",
+          "formatted": "Abbotsford, BC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Chilliwack",
+          "region": "BC",
+          "formatted": "Chilliwack, BC, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Peterborough",
+          "region": "ON",
+          "formatted": "Peterborough, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Thunder Bay",
+          "region": "ON",
+          "formatted": "Thunder Bay, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Sudbury",
+          "region": "ON",
+          "formatted": "Sudbury, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Sault Ste. Marie",
+          "region": "ON",
+          "formatted": "Sault Ste. Marie, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Sarnia",
+          "region": "ON",
+          "formatted": "Sarnia, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        },
+        {
+          "city": "Brantford",
+          "region": "ON",
+          "formatted": "Brantford, ON, Canada",
+          "tier": 3,
+          "country_code": "CA",
+          "country_name": "Canada",
+          "flag": "🇨🇦"
+        }
+      ]
+    },
+    "GB": {
+      "code": "GB",
+      "name": "United Kingdom",
+      "flag": "🇬🇧",
+      "popular_hubs": [
+        "London",
+        "Manchester",
+        "Edinburgh",
+        "Birmingham",
+        "Bristol",
+        "Cambridge",
+        "Remote"
+      ],
+      "counts": {
+        "total": 44,
+        "tier1": 5,
+        "tier2": 15,
+        "tier3": 24
+      },
+      "cities": [
+        {
+          "city": "London",
+          "region": "England",
+          "formatted": "London, UK",
+          "tier": 1,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Manchester",
+          "region": "England",
+          "formatted": "Manchester, UK",
+          "tier": 1,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Birmingham",
+          "region": "England",
+          "formatted": "Birmingham, UK",
+          "tier": 1,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Edinburgh",
+          "region": "Scotland",
+          "formatted": "Edinburgh, UK",
+          "tier": 1,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Glasgow",
+          "region": "Scotland",
+          "formatted": "Glasgow, UK",
+          "tier": 1,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Bristol",
+          "region": "England",
+          "formatted": "Bristol, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Cambridge",
+          "region": "England",
+          "formatted": "Cambridge, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Oxford",
+          "region": "England",
+          "formatted": "Oxford, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Leeds",
+          "region": "England",
+          "formatted": "Leeds, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Reading",
+          "region": "England",
+          "formatted": "Reading, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Newcastle",
+          "region": "England",
+          "formatted": "Newcastle, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Belfast",
+          "region": "Northern Ireland",
+          "formatted": "Belfast, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Sheffield",
+          "region": "England",
+          "formatted": "Sheffield, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Liverpool",
+          "region": "England",
+          "formatted": "Liverpool, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Cardiff",
+          "region": "Wales",
+          "formatted": "Cardiff, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Nottingham",
+          "region": "England",
+          "formatted": "Nottingham, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Southampton",
+          "region": "England",
+          "formatted": "Southampton, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Brighton",
+          "region": "England",
+          "formatted": "Brighton, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Leicester",
+          "region": "England",
+          "formatted": "Leicester, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Aberdeen",
+          "region": "Scotland",
+          "formatted": "Aberdeen, UK",
+          "tier": 2,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Milton Keynes",
+          "region": "England",
+          "formatted": "Milton Keynes, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Swindon",
+          "region": "England",
+          "formatted": "Swindon, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Bath",
+          "region": "England",
+          "formatted": "Bath, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "York",
+          "region": "England",
+          "formatted": "York, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Exeter",
+          "region": "England",
+          "formatted": "Exeter, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Plymouth",
+          "region": "England",
+          "formatted": "Plymouth, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Norwich",
+          "region": "England",
+          "formatted": "Norwich, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Derby",
+          "region": "England",
+          "formatted": "Derby, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Wolverhampton",
+          "region": "England",
+          "formatted": "Wolverhampton, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Swansea",
+          "region": "Wales",
+          "formatted": "Swansea, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Dundee",
+          "region": "Scotland",
+          "formatted": "Dundee, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Luton",
+          "region": "England",
+          "formatted": "Luton, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Northampton",
+          "region": "England",
+          "formatted": "Northampton, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Portsmouth",
+          "region": "England",
+          "formatted": "Portsmouth, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Bournemouth",
+          "region": "England",
+          "formatted": "Bournemouth, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Middlesbrough",
+          "region": "England",
+          "formatted": "Middlesbrough, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Sunderland",
+          "region": "England",
+          "formatted": "Sunderland, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Warrington",
+          "region": "England",
+          "formatted": "Warrington, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Peterborough",
+          "region": "England",
+          "formatted": "Peterborough, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Gloucester",
+          "region": "England",
+          "formatted": "Gloucester, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Watford",
+          "region": "England",
+          "formatted": "Watford, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Ipswich",
+          "region": "England",
+          "formatted": "Ipswich, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Cheltenham",
+          "region": "England",
+          "formatted": "Cheltenham, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        },
+        {
+          "city": "Blackpool",
+          "region": "England",
+          "formatted": "Blackpool, UK",
+          "tier": 3,
+          "country_code": "GB",
+          "country_name": "United Kingdom",
+          "flag": "🇬🇧"
+        }
+      ]
+    },
+    "DE": {
+      "code": "DE",
+      "name": "Germany (DACH)",
+      "flag": "🇩🇪",
+      "popular_hubs": [
+        "Berlin",
+        "Munich",
+        "Frankfurt",
+        "Hamburg",
+        "Cologne",
+        "Stuttgart",
+        "Remote"
+      ],
+      "counts": {
+        "total": 39,
+        "tier1": 5,
+        "tier2": 11,
+        "tier3": 23
+      },
+      "cities": [
+        {
+          "city": "Berlin",
+          "region": "Berlin",
+          "formatted": "Berlin, Germany",
+          "tier": 1,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Munich",
+          "region": "Bavaria",
+          "formatted": "Munich, Germany",
+          "tier": 1,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Frankfurt",
+          "region": "Hesse",
+          "formatted": "Frankfurt, Germany",
+          "tier": 1,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Hamburg",
+          "region": "Hamburg",
+          "formatted": "Hamburg, Germany",
+          "tier": 1,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Cologne",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Cologne, Germany",
+          "tier": 1,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Stuttgart",
+          "region": "Baden-Württemberg",
+          "formatted": "Stuttgart, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Düsseldorf",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Düsseldorf, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Leipzig",
+          "region": "Saxony",
+          "formatted": "Leipzig, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Dresden",
+          "region": "Saxony",
+          "formatted": "Dresden, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Nuremberg",
+          "region": "Bavaria",
+          "formatted": "Nuremberg, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Hanover",
+          "region": "Lower Saxony",
+          "formatted": "Hanover, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Bonn",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Bonn, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Dortmund",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Dortmund, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Essen",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Essen, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Bremen",
+          "region": "Bremen",
+          "formatted": "Bremen, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Karlsruhe",
+          "region": "Baden-Württemberg",
+          "formatted": "Karlsruhe, Germany",
+          "tier": 2,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Mannheim",
+          "region": "Baden-Württemberg",
+          "formatted": "Mannheim, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Heidelberg",
+          "region": "Baden-Württemberg",
+          "formatted": "Heidelberg, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Freiburg",
+          "region": "Baden-Württemberg",
+          "formatted": "Freiburg, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Augsburg",
+          "region": "Bavaria",
+          "formatted": "Augsburg, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Wiesbaden",
+          "region": "Hesse",
+          "formatted": "Wiesbaden, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Darmstadt",
+          "region": "Hesse",
+          "formatted": "Darmstadt, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Münster",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Münster, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Aachen",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Aachen, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Bielefeld",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Bielefeld, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Bochum",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Bochum, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Duisburg",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Duisburg, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Wuppertal",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Wuppertal, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Gelsenkirchen",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Gelsenkirchen, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Mönchengladbach",
+          "region": "North Rhine-Westphalia",
+          "formatted": "Mönchengladbach, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Braunschweig",
+          "region": "Lower Saxony",
+          "formatted": "Braunschweig, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Kiel",
+          "region": "Schleswig-Holstein",
+          "formatted": "Kiel, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Lübeck",
+          "region": "Schleswig-Holstein",
+          "formatted": "Lübeck, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Erfurt",
+          "region": "Thuringia",
+          "formatted": "Erfurt, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Rostock",
+          "region": "Mecklenburg-Vorpommern",
+          "formatted": "Rostock, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Mainz",
+          "region": "Rhineland-Palatinate",
+          "formatted": "Mainz, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Saarbrücken",
+          "region": "Saarland",
+          "formatted": "Saarbrücken, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Potsdam",
+          "region": "Brandenburg",
+          "formatted": "Potsdam, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        },
+        {
+          "city": "Kassel",
+          "region": "Hesse",
+          "formatted": "Kassel, Germany",
+          "tier": 3,
+          "country_code": "DE",
+          "country_name": "Germany (DACH)",
+          "flag": "🇩🇪"
+        }
+      ]
+    },
+    "AU": {
+      "code": "AU",
+      "name": "Australia",
+      "flag": "🇦🇺",
+      "popular_hubs": [
+        "Sydney, NSW",
+        "Melbourne, VIC",
+        "Brisbane, QLD",
+        "Perth, WA",
+        "Adelaide, SA",
+        "Remote"
+      ],
+      "counts": {
+        "total": 24,
+        "tier1": 3,
+        "tier2": 6,
+        "tier3": 15
+      },
+      "cities": [
+        {
+          "city": "Sydney",
+          "region": "NSW",
+          "formatted": "Sydney, NSW, Australia",
+          "tier": 1,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Melbourne",
+          "region": "VIC",
+          "formatted": "Melbourne, VIC, Australia",
+          "tier": 1,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Brisbane",
+          "region": "QLD",
+          "formatted": "Brisbane, QLD, Australia",
+          "tier": 1,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Perth",
+          "region": "WA",
+          "formatted": "Perth, WA, Australia",
+          "tier": 2,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Adelaide",
+          "region": "SA",
+          "formatted": "Adelaide, SA, Australia",
+          "tier": 2,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Canberra",
+          "region": "ACT",
+          "formatted": "Canberra, ACT, Australia",
+          "tier": 2,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Gold Coast",
+          "region": "QLD",
+          "formatted": "Gold Coast, QLD, Australia",
+          "tier": 2,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Newcastle",
+          "region": "NSW",
+          "formatted": "Newcastle, NSW, Australia",
+          "tier": 2,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Hobart",
+          "region": "TAS",
+          "formatted": "Hobart, TAS, Australia",
+          "tier": 2,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Wollongong",
+          "region": "NSW",
+          "formatted": "Wollongong, NSW, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Sunshine Coast",
+          "region": "QLD",
+          "formatted": "Sunshine Coast, QLD, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Geelong",
+          "region": "VIC",
+          "formatted": "Geelong, VIC, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Townsville",
+          "region": "QLD",
+          "formatted": "Townsville, QLD, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Cairns",
+          "region": "QLD",
+          "formatted": "Cairns, QLD, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Darwin",
+          "region": "NT",
+          "formatted": "Darwin, NT, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Toowoomba",
+          "region": "QLD",
+          "formatted": "Toowoomba, QLD, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Ballarat",
+          "region": "VIC",
+          "formatted": "Ballarat, VIC, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Bendigo",
+          "region": "VIC",
+          "formatted": "Bendigo, VIC, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Albury",
+          "region": "NSW",
+          "formatted": "Albury, NSW, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Launceston",
+          "region": "TAS",
+          "formatted": "Launceston, TAS, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Mackay",
+          "region": "QLD",
+          "formatted": "Mackay, QLD, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Rockhampton",
+          "region": "QLD",
+          "formatted": "Rockhampton, QLD, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Bunbury",
+          "region": "WA",
+          "formatted": "Bunbury, WA, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        },
+        {
+          "city": "Coffs Harbour",
+          "region": "NSW",
+          "formatted": "Coffs Harbour, NSW, Australia",
+          "tier": 3,
+          "country_code": "AU",
+          "country_name": "Australia",
+          "flag": "🇦🇺"
+        }
+      ]
+    },
+    "FR": {
+      "code": "FR",
+      "name": "France",
+      "flag": "🇫🇷",
+      "popular_hubs": [
+        "Paris",
+        "Lyon",
+        "Toulouse",
+        "Bordeaux",
+        "Nantes",
+        "Lille",
+        "Remote"
+      ],
+      "counts": {
+        "total": 33,
+        "tier1": 3,
+        "tier2": 9,
+        "tier3": 21
+      },
+      "cities": [
+        {
+          "city": "Paris",
+          "region": "Île-de-France",
+          "formatted": "Paris, France",
+          "tier": 1,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Lyon",
+          "region": "Auvergne-Rhône-Alpes",
+          "formatted": "Lyon, France",
+          "tier": 1,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Marseille",
+          "region": "Provence-Alpes-Côte d’Azur",
+          "formatted": "Marseille, France",
+          "tier": 1,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Toulouse",
+          "region": "Occitanie",
+          "formatted": "Toulouse, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Bordeaux",
+          "region": "Nouvelle-Aquitaine",
+          "formatted": "Bordeaux, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Lille",
+          "region": "Hauts-de-France",
+          "formatted": "Lille, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Nantes",
+          "region": "Pays de la Loire",
+          "formatted": "Nantes, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Nice",
+          "region": "Provence-Alpes-Côte d’Azur",
+          "formatted": "Nice, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Strasbourg",
+          "region": "Grand Est",
+          "formatted": "Strasbourg, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Rennes",
+          "region": "Brittany",
+          "formatted": "Rennes, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Montpellier",
+          "region": "Occitanie",
+          "formatted": "Montpellier, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Grenoble",
+          "region": "Auvergne-Rhône-Alpes",
+          "formatted": "Grenoble, France",
+          "tier": 2,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Aix-en-Provence",
+          "region": "Provence-Alpes-Côte d’Azur",
+          "formatted": "Aix-en-Provence, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Toulon",
+          "region": "Provence-Alpes-Côte d’Azur",
+          "formatted": "Toulon, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Angers",
+          "region": "Pays de la Loire",
+          "formatted": "Angers, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Dijon",
+          "region": "Bourgogne-Franche-Comté",
+          "formatted": "Dijon, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Brest",
+          "region": "Brittany",
+          "formatted": "Brest, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Le Mans",
+          "region": "Pays de la Loire",
+          "formatted": "Le Mans, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Reims",
+          "region": "Grand Est",
+          "formatted": "Reims, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Saint-Étienne",
+          "region": "Auvergne-Rhône-Alpes",
+          "formatted": "Saint-Étienne, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Le Havre",
+          "region": "Normandy",
+          "formatted": "Le Havre, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Clermont-Ferrand",
+          "region": "Auvergne-Rhône-Alpes",
+          "formatted": "Clermont-Ferrand, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Tours",
+          "region": "Centre-Val de Loire",
+          "formatted": "Tours, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Limoges",
+          "region": "Nouvelle-Aquitaine",
+          "formatted": "Limoges, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Amiens",
+          "region": "Hauts-de-France",
+          "formatted": "Amiens, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Perpignan",
+          "region": "Occitanie",
+          "formatted": "Perpignan, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Metz",
+          "region": "Grand Est",
+          "formatted": "Metz, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Besançon",
+          "region": "Bourgogne-Franche-Comté",
+          "formatted": "Besançon, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Orléans",
+          "region": "Centre-Val de Loire",
+          "formatted": "Orléans, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Mulhouse",
+          "region": "Grand Est",
+          "formatted": "Mulhouse, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Caen",
+          "region": "Normandy",
+          "formatted": "Caen, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Rouen",
+          "region": "Normandy",
+          "formatted": "Rouen, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        },
+        {
+          "city": "Nancy",
+          "region": "Grand Est",
+          "formatted": "Nancy, France",
+          "tier": 3,
+          "country_code": "FR",
+          "country_name": "France",
+          "flag": "🇫🇷"
+        }
+      ]
+    },
+    "NL": {
+      "code": "NL",
+      "name": "Netherlands",
+      "flag": "🇳🇱",
+      "popular_hubs": [
+        "Amsterdam",
+        "Rotterdam",
+        "The Hague",
+        "Utrecht",
+        "Eindhoven",
+        "Remote"
+      ],
+      "counts": {
+        "total": 25,
+        "tier1": 5,
+        "tier2": 8,
+        "tier3": 12
+      },
+      "cities": [
+        {
+          "city": "Amsterdam",
+          "region": "North Holland",
+          "formatted": "Amsterdam, Netherlands",
+          "tier": 1,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Rotterdam",
+          "region": "South Holland",
+          "formatted": "Rotterdam, Netherlands",
+          "tier": 1,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "The Hague",
+          "region": "South Holland",
+          "formatted": "The Hague, Netherlands",
+          "tier": 1,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Utrecht",
+          "region": "Utrecht",
+          "formatted": "Utrecht, Netherlands",
+          "tier": 1,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Eindhoven",
+          "region": "North Brabant",
+          "formatted": "Eindhoven, Netherlands",
+          "tier": 1,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Tilburg",
+          "region": "North Brabant",
+          "formatted": "Tilburg, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Groningen",
+          "region": "Groningen",
+          "formatted": "Groningen, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Almere",
+          "region": "Flevoland",
+          "formatted": "Almere, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Breda",
+          "region": "North Brabant",
+          "formatted": "Breda, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Nijmegen",
+          "region": "Gelderland",
+          "formatted": "Nijmegen, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Enschede",
+          "region": "Overijssel",
+          "formatted": "Enschede, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Haarlem",
+          "region": "North Holland",
+          "formatted": "Haarlem, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Arnhem",
+          "region": "Gelderland",
+          "formatted": "Arnhem, Netherlands",
+          "tier": 2,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Amersfoort",
+          "region": "Utrecht",
+          "formatted": "Amersfoort, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Apeldoorn",
+          "region": "Gelderland",
+          "formatted": "Apeldoorn, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "'s-Hertogenbosch",
+          "region": "North Brabant",
+          "formatted": "'s-Hertogenbosch, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Maastricht",
+          "region": "Limburg",
+          "formatted": "Maastricht, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Leiden",
+          "region": "South Holland",
+          "formatted": "Leiden, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Dordrecht",
+          "region": "South Holland",
+          "formatted": "Dordrecht, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Zoetermeer",
+          "region": "South Holland",
+          "formatted": "Zoetermeer, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Zwolle",
+          "region": "Overijssel",
+          "formatted": "Zwolle, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Delft",
+          "region": "South Holland",
+          "formatted": "Delft, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Alkmaar",
+          "region": "North Holland",
+          "formatted": "Alkmaar, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Deventer",
+          "region": "Overijssel",
+          "formatted": "Deventer, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        },
+        {
+          "city": "Venlo",
+          "region": "Limburg",
+          "formatted": "Venlo, Netherlands",
+          "tier": 3,
+          "country_code": "NL",
+          "country_name": "Netherlands",
+          "flag": "🇳🇱"
+        }
+      ]
+    },
+    "AE": {
+      "code": "AE",
+      "name": "UAE & Gulf (Middle East)",
+      "flag": "🇦🇪",
+      "popular_hubs": [
+        "Dubai",
+        "Abu Dhabi",
+        "Sharjah",
+        "Ajman",
+        "Ras Al Khaimah",
+        "Remote"
+      ],
+      "counts": {
+        "total": 14,
+        "tier1": 2,
+        "tier2": 4,
+        "tier3": 8
+      },
+      "cities": [
+        {
+          "city": "Dubai",
+          "region": "Dubai",
+          "formatted": "Dubai, UAE",
+          "tier": 1,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Abu Dhabi",
+          "region": "Abu Dhabi",
+          "formatted": "Abu Dhabi, UAE",
+          "tier": 1,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Sharjah",
+          "region": "Sharjah",
+          "formatted": "Sharjah, UAE",
+          "tier": 2,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Ajman",
+          "region": "Ajman",
+          "formatted": "Ajman, UAE",
+          "tier": 2,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Ras Al Khaimah",
+          "region": "Ras Al Khaimah",
+          "formatted": "Ras Al Khaimah, UAE",
+          "tier": 2,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Al Ain",
+          "region": "Abu Dhabi",
+          "formatted": "Al Ain, UAE",
+          "tier": 2,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Fujairah",
+          "region": "Fujairah",
+          "formatted": "Fujairah, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Umm Al Quwain",
+          "region": "Umm Al Quwain",
+          "formatted": "Umm Al Quwain, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Khor Fakkan",
+          "region": "Sharjah",
+          "formatted": "Khor Fakkan, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Dibba Al-Fujairah",
+          "region": "Fujairah",
+          "formatted": "Dibba Al-Fujairah, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Kalba",
+          "region": "Sharjah",
+          "formatted": "Kalba, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Madinat Zayed",
+          "region": "Abu Dhabi",
+          "formatted": "Madinat Zayed, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Ruwais",
+          "region": "Abu Dhabi",
+          "formatted": "Ruwais, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        },
+        {
+          "city": "Hatta",
+          "region": "Dubai",
+          "formatted": "Hatta, UAE",
+          "tier": 3,
+          "country_code": "AE",
+          "country_name": "UAE & Gulf (Middle East)",
+          "flag": "🇦🇪"
+        }
+      ]
+    },
+    "SG": {
+      "code": "SG",
+      "name": "Singapore",
+      "flag": "🇸🇬",
+      "popular_hubs": [
+        "Singapore",
+        "Jurong East",
+        "Tampines",
+        "Woodlands",
+        "Changi",
+        "Remote"
+      ],
+      "counts": {
+        "total": 11,
+        "tier1": 2,
+        "tier2": 4,
+        "tier3": 5
+      },
+      "cities": [
+        {
+          "city": "Singapore",
+          "region": "Central",
+          "formatted": "Singapore",
+          "tier": 1,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Marina Bay",
+          "region": "Central",
+          "formatted": "Marina Bay, Singapore",
+          "tier": 1,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Jurong East",
+          "region": "West",
+          "formatted": "Jurong East, Singapore",
+          "tier": 2,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Tampines",
+          "region": "East",
+          "formatted": "Tampines, Singapore",
+          "tier": 2,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Woodlands",
+          "region": "North",
+          "formatted": "Woodlands, Singapore",
+          "tier": 2,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Bedok",
+          "region": "East",
+          "formatted": "Bedok, Singapore",
+          "tier": 2,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Ang Mo Kio",
+          "region": "North-East",
+          "formatted": "Ang Mo Kio, Singapore",
+          "tier": 3,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Changi",
+          "region": "East",
+          "formatted": "Changi, Singapore",
+          "tier": 3,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Novena",
+          "region": "Central",
+          "formatted": "Novena, Singapore",
+          "tier": 3,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "Queenstown",
+          "region": "Central",
+          "formatted": "Queenstown, Singapore",
+          "tier": 3,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        },
+        {
+          "city": "One-North",
+          "region": "Queenstown",
+          "formatted": "One-North, Singapore",
+          "tier": 3,
+          "country_code": "SG",
+          "country_name": "Singapore",
+          "flag": "🇸🇬"
+        }
+      ]
+    },
+    "JP": {
+      "code": "JP",
+      "name": "Japan",
+      "flag": "🇯🇵",
+      "popular_hubs": [
+        "Tokyo",
+        "Osaka",
+        "Kyoto",
+        "Yokohama",
+        "Nagoya",
+        "Fukuoka",
+        "Remote"
+      ],
+      "counts": {
+        "total": 30,
+        "tier1": 4,
+        "tier2": 10,
+        "tier3": 16
+      },
+      "cities": [
+        {
+          "city": "Tokyo",
+          "region": "Kanto",
+          "formatted": "Tokyo, Japan",
+          "tier": 1,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Osaka",
+          "region": "Kansai",
+          "formatted": "Osaka, Japan",
+          "tier": 1,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Yokohama",
+          "region": "Kanagawa",
+          "formatted": "Yokohama, Japan",
+          "tier": 1,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Kyoto",
+          "region": "Kansai",
+          "formatted": "Kyoto, Japan",
+          "tier": 1,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Nagoya",
+          "region": "Aichi",
+          "formatted": "Nagoya, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Fukuoka",
+          "region": "Kyushu",
+          "formatted": "Fukuoka, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Sapporo",
+          "region": "Hokkaido",
+          "formatted": "Sapporo, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Kobe",
+          "region": "Hyogo",
+          "formatted": "Kobe, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Kawasaki",
+          "region": "Kanagawa",
+          "formatted": "Kawasaki, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Saitama",
+          "region": "Saitama",
+          "formatted": "Saitama, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Hiroshima",
+          "region": "Chugoku",
+          "formatted": "Hiroshima, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Sendai",
+          "region": "Tohoku",
+          "formatted": "Sendai, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Chiba",
+          "region": "Chiba",
+          "formatted": "Chiba, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Kitakyushu",
+          "region": "Fukuoka",
+          "formatted": "Kitakyushu, Japan",
+          "tier": 2,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Sakai",
+          "region": "Osaka",
+          "formatted": "Sakai, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Niigata",
+          "region": "Chubu",
+          "formatted": "Niigata, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Hamamatsu",
+          "region": "Shizuoka",
+          "formatted": "Hamamatsu, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Kumamoto",
+          "region": "Kyushu",
+          "formatted": "Kumamoto, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Sagamihara",
+          "region": "Kanagawa",
+          "formatted": "Sagamihara, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Shizuoka",
+          "region": "Shizuoka",
+          "formatted": "Shizuoka, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Okayama",
+          "region": "Chugoku",
+          "formatted": "Okayama, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Kanazawa",
+          "region": "Ishikawa",
+          "formatted": "Kanazawa, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Utsunomiya",
+          "region": "Tochigi",
+          "formatted": "Utsunomiya, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Matsuyama",
+          "region": "Ehime",
+          "formatted": "Matsuyama, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Oita",
+          "region": "Kyushu",
+          "formatted": "Oita, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Takamatsu",
+          "region": "Kagawa",
+          "formatted": "Takamatsu, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Toyama",
+          "region": "Toyama",
+          "formatted": "Toyama, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Nagano",
+          "region": "Nagano",
+          "formatted": "Nagano, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Nara",
+          "region": "Nara",
+          "formatted": "Nara, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        },
+        {
+          "city": "Gifu",
+          "region": "Gifu",
+          "formatted": "Gifu, Japan",
+          "tier": 3,
+          "country_code": "JP",
+          "country_name": "Japan",
+          "flag": "🇯🇵"
+        }
+      ]
+    },
+    "BR": {
+      "code": "BR",
+      "name": "Brazil",
+      "flag": "🇧🇷",
+      "popular_hubs": [
+        "São Paulo",
+        "Rio de Janeiro",
+        "Belo Horizonte",
+        "Curitiba",
+        "Brasília",
+        "Florianópolis",
+        "Remote"
+      ],
+      "counts": {
+        "total": 35,
+        "tier1": 4,
+        "tier2": 10,
+        "tier3": 21
+      },
+      "cities": [
+        {
+          "city": "São Paulo",
+          "region": "SP",
+          "formatted": "São Paulo, Brazil",
+          "tier": 1,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Rio de Janeiro",
+          "region": "RJ",
+          "formatted": "Rio de Janeiro, Brazil",
+          "tier": 1,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Brasília",
+          "region": "DF",
+          "formatted": "Brasília, Brazil",
+          "tier": 1,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Belo Horizonte",
+          "region": "MG",
+          "formatted": "Belo Horizonte, Brazil",
+          "tier": 1,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Curitiba",
+          "region": "PR",
+          "formatted": "Curitiba, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Porto Alegre",
+          "region": "RS",
+          "formatted": "Porto Alegre, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Florianópolis",
+          "region": "SC",
+          "formatted": "Florianópolis, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Salvador",
+          "region": "BA",
+          "formatted": "Salvador, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Fortaleza",
+          "region": "CE",
+          "formatted": "Fortaleza, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Recife",
+          "region": "PE",
+          "formatted": "Recife, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Campinas",
+          "region": "SP",
+          "formatted": "Campinas, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Goiânia",
+          "region": "GO",
+          "formatted": "Goiânia, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Manaus",
+          "region": "AM",
+          "formatted": "Manaus, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Belém",
+          "region": "PA",
+          "formatted": "Belém, Brazil",
+          "tier": 2,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "São José dos Campos",
+          "region": "SP",
+          "formatted": "São José dos Campos, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Ribeirão Preto",
+          "region": "SP",
+          "formatted": "Ribeirão Preto, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Sorocaba",
+          "region": "SP",
+          "formatted": "Sorocaba, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Santos",
+          "region": "SP",
+          "formatted": "Santos, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Joinville",
+          "region": "SC",
+          "formatted": "Joinville, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Blumenau",
+          "region": "SC",
+          "formatted": "Blumenau, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Londrina",
+          "region": "PR",
+          "formatted": "Londrina, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Maringá",
+          "region": "PR",
+          "formatted": "Maringá, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Caxias do Sul",
+          "region": "RS",
+          "formatted": "Caxias do Sul, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Uberlândia",
+          "region": "MG",
+          "formatted": "Uberlândia, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Juiz de Fora",
+          "region": "MG",
+          "formatted": "Juiz de Fora, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Vitória",
+          "region": "ES",
+          "formatted": "Vitória, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Vila Velha",
+          "region": "ES",
+          "formatted": "Vila Velha, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Natal",
+          "region": "RN",
+          "formatted": "Natal, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "João Pessoa",
+          "region": "PB",
+          "formatted": "João Pessoa, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Maceió",
+          "region": "AL",
+          "formatted": "Maceió, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Aracaju",
+          "region": "SE",
+          "formatted": "Aracaju, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Teresina",
+          "region": "PI",
+          "formatted": "Teresina, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "São Luís",
+          "region": "MA",
+          "formatted": "São Luís, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Campo Grande",
+          "region": "MS",
+          "formatted": "Campo Grande, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        },
+        {
+          "city": "Cuiabá",
+          "region": "MT",
+          "formatted": "Cuiabá, Brazil",
+          "tier": 3,
+          "country_code": "BR",
+          "country_name": "Brazil",
+          "flag": "🇧🇷"
+        }
+      ]
+    },
+    "IT": {
+      "code": "IT",
+      "name": "Italy",
+      "flag": "🇮🇹",
+      "popular_hubs": [
+        "Milan",
+        "Rome",
+        "Turin",
+        "Bologna",
+        "Florence",
+        "Naples",
+        "Remote"
+      ],
+      "counts": {
+        "total": 30,
+        "tier1": 3,
+        "tier2": 11,
+        "tier3": 16
+      },
+      "cities": [
+        {
+          "city": "Milan",
+          "region": "Lombardy",
+          "formatted": "Milan, Italy",
+          "tier": 1,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Rome",
+          "region": "Lazio",
+          "formatted": "Rome, Italy",
+          "tier": 1,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Turin",
+          "region": "Piedmont",
+          "formatted": "Turin, Italy",
+          "tier": 1,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Bologna",
+          "region": "Emilia-Romagna",
+          "formatted": "Bologna, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Florence",
+          "region": "Tuscany",
+          "formatted": "Florence, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Naples",
+          "region": "Campania",
+          "formatted": "Naples, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Genoa",
+          "region": "Liguria",
+          "formatted": "Genoa, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Venice",
+          "region": "Veneto",
+          "formatted": "Venice, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Verona",
+          "region": "Veneto",
+          "formatted": "Verona, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Padua",
+          "region": "Veneto",
+          "formatted": "Padua, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Trieste",
+          "region": "Friuli-Venezia Giulia",
+          "formatted": "Trieste, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Bari",
+          "region": "Apulia",
+          "formatted": "Bari, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Palermo",
+          "region": "Sicily",
+          "formatted": "Palermo, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Catania",
+          "region": "Sicily",
+          "formatted": "Catania, Italy",
+          "tier": 2,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Brescia",
+          "region": "Lombardy",
+          "formatted": "Brescia, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Bergamo",
+          "region": "Lombardy",
+          "formatted": "Bergamo, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Monza",
+          "region": "Lombardy",
+          "formatted": "Monza, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Parma",
+          "region": "Emilia-Romagna",
+          "formatted": "Parma, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Modena",
+          "region": "Emilia-Romagna",
+          "formatted": "Modena, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Reggio Emilia",
+          "region": "Emilia-Romagna",
+          "formatted": "Reggio Emilia, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Ravenna",
+          "region": "Emilia-Romagna",
+          "formatted": "Ravenna, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Perugia",
+          "region": "Umbria",
+          "formatted": "Perugia, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Pisa",
+          "region": "Tuscany",
+          "formatted": "Pisa, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Livorno",
+          "region": "Tuscany",
+          "formatted": "Livorno, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Trento",
+          "region": "Trentino-Alto Adige",
+          "formatted": "Trento, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Bolzano",
+          "region": "Trentino-Alto Adige",
+          "formatted": "Bolzano, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Cagliari",
+          "region": "Sardinia",
+          "formatted": "Cagliari, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Salerno",
+          "region": "Campania",
+          "formatted": "Salerno, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Taranto",
+          "region": "Apulia",
+          "formatted": "Taranto, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        },
+        {
+          "city": "Pescara",
+          "region": "Abruzzo",
+          "formatted": "Pescara, Italy",
+          "tier": 3,
+          "country_code": "IT",
+          "country_name": "Italy",
+          "flag": "🇮🇹"
+        }
+      ]
+    },
+    "PL": {
+      "code": "PL",
+      "name": "Poland",
+      "flag": "🇵🇱",
+      "popular_hubs": [
+        "Warsaw",
+        "Kraków",
+        "Wrocław",
+        "Poznań",
+        "Gdańsk",
+        "Katowice",
+        "Remote"
+      ],
+      "counts": {
+        "total": 26,
+        "tier1": 3,
+        "tier2": 9,
+        "tier3": 14
+      },
+      "cities": [
+        {
+          "city": "Warsaw",
+          "region": "Masovian",
+          "formatted": "Warsaw, Poland",
+          "tier": 1,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Kraków",
+          "region": "Lesser Poland",
+          "formatted": "Kraków, Poland",
+          "tier": 1,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Wrocław",
+          "region": "Lower Silesian",
+          "formatted": "Wrocław, Poland",
+          "tier": 1,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Poznań",
+          "region": "Greater Poland",
+          "formatted": "Poznań, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Gdańsk",
+          "region": "Pomeranian",
+          "formatted": "Gdańsk, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Katowice",
+          "region": "Silesian",
+          "formatted": "Katowice, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Łódź",
+          "region": "Łódź",
+          "formatted": "Łódź, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Szczecin",
+          "region": "West Pomeranian",
+          "formatted": "Szczecin, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Lublin",
+          "region": "Lublin",
+          "formatted": "Lublin, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Bydgoszcz",
+          "region": "Kuyavian-Pomeranian",
+          "formatted": "Bydgoszcz, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Białystok",
+          "region": "Podlaskie",
+          "formatted": "Białystok, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Gdynia",
+          "region": "Pomeranian",
+          "formatted": "Gdynia, Poland",
+          "tier": 2,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Rzeszów",
+          "region": "Subcarpathian",
+          "formatted": "Rzeszów, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Toruń",
+          "region": "Kuyavian-Pomeranian",
+          "formatted": "Toruń, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Kielce",
+          "region": "Holy Cross",
+          "formatted": "Kielce, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Gliwice",
+          "region": "Silesian",
+          "formatted": "Gliwice, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Zabrze",
+          "region": "Silesian",
+          "formatted": "Zabrze, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Bielsko-Biała",
+          "region": "Silesian",
+          "formatted": "Bielsko-Biała, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Olsztyn",
+          "region": "Warmian-Masurian",
+          "formatted": "Olsztyn, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Częstochowa",
+          "region": "Silesian",
+          "formatted": "Częstochowa, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Radom",
+          "region": "Masovian",
+          "formatted": "Radom, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Sosnowiec",
+          "region": "Silesian",
+          "formatted": "Sosnowiec, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Opole",
+          "region": "Opole",
+          "formatted": "Opole, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Zielona Góra",
+          "region": "Lubusz",
+          "formatted": "Zielona Góra, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Tychy",
+          "region": "Silesian",
+          "formatted": "Tychy, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        },
+        {
+          "city": "Sopot",
+          "region": "Pomeranian",
+          "formatted": "Sopot, Poland",
+          "tier": 3,
+          "country_code": "PL",
+          "country_name": "Poland",
+          "flag": "🇵🇱"
+        }
+      ]
+    },
+    "ZA": {
+      "code": "ZA",
+      "name": "South Africa",
+      "flag": "🇿🇦",
+      "popular_hubs": [
+        "Johannesburg",
+        "Cape Town",
+        "Durban",
+        "Pretoria",
+        "Gqeberha",
+        "Remote"
+      ],
+      "counts": {
+        "total": 20,
+        "tier1": 3,
+        "tier2": 7,
+        "tier3": 10
+      },
+      "cities": [
+        {
+          "city": "Johannesburg",
+          "region": "Gauteng",
+          "formatted": "Johannesburg, South Africa",
+          "tier": 1,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Cape Town",
+          "region": "Western Cape",
+          "formatted": "Cape Town, South Africa",
+          "tier": 1,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Durban",
+          "region": "KwaZulu-Natal",
+          "formatted": "Durban, South Africa",
+          "tier": 1,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Pretoria",
+          "region": "Gauteng",
+          "formatted": "Pretoria, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Gqeberha",
+          "region": "Eastern Cape",
+          "formatted": "Gqeberha, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Bloemfontein",
+          "region": "Free State",
+          "formatted": "Bloemfontein, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "East London",
+          "region": "Eastern Cape",
+          "formatted": "East London, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Pietermaritzburg",
+          "region": "KwaZulu-Natal",
+          "formatted": "Pietermaritzburg, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Centurion",
+          "region": "Gauteng",
+          "formatted": "Centurion, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Sandton",
+          "region": "Gauteng",
+          "formatted": "Sandton, South Africa",
+          "tier": 2,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Stellenbosch",
+          "region": "Western Cape",
+          "formatted": "Stellenbosch, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Nelspruit",
+          "region": "Mpumalanga",
+          "formatted": "Nelspruit, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Kimberley",
+          "region": "Northern Cape",
+          "formatted": "Kimberley, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Polokwane",
+          "region": "Limpopo",
+          "formatted": "Polokwane, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "George",
+          "region": "Western Cape",
+          "formatted": "George, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Rustenburg",
+          "region": "North West",
+          "formatted": "Rustenburg, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Paarl",
+          "region": "Western Cape",
+          "formatted": "Paarl, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Richards Bay",
+          "region": "KwaZulu-Natal",
+          "formatted": "Richards Bay, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Witbank",
+          "region": "Mpumalanga",
+          "formatted": "Witbank, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        },
+        {
+          "city": "Klerksdorp",
+          "region": "North West",
+          "formatted": "Klerksdorp, South Africa",
+          "tier": 3,
+          "country_code": "ZA",
+          "country_name": "South Africa",
+          "flag": "🇿🇦"
+        }
+      ]
+    },
+    "AT": {
+      "code": "AT",
+      "name": "Austria",
+      "flag": "🇦🇹",
+      "popular_hubs": [
+        "Vienna",
+        "Graz",
+        "Linz",
+        "Salzburg",
+        "Innsbruck",
+        "Remote"
+      ],
+      "counts": {
+        "total": 15,
+        "tier1": 1,
+        "tier2": 5,
+        "tier3": 9
+      },
+      "cities": [
+        {
+          "city": "Vienna",
+          "region": "Vienna",
+          "formatted": "Vienna, Austria",
+          "tier": 1,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Graz",
+          "region": "Styria",
+          "formatted": "Graz, Austria",
+          "tier": 2,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Linz",
+          "region": "Upper Austria",
+          "formatted": "Linz, Austria",
+          "tier": 2,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Salzburg",
+          "region": "Salzburg",
+          "formatted": "Salzburg, Austria",
+          "tier": 2,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Innsbruck",
+          "region": "Tyrol",
+          "formatted": "Innsbruck, Austria",
+          "tier": 2,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Klagenfurt",
+          "region": "Carinthia",
+          "formatted": "Klagenfurt, Austria",
+          "tier": 2,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Villach",
+          "region": "Carinthia",
+          "formatted": "Villach, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Wels",
+          "region": "Upper Austria",
+          "formatted": "Wels, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Sankt Pölten",
+          "region": "Lower Austria",
+          "formatted": "Sankt Pölten, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Dornbirn",
+          "region": "Vorarlberg",
+          "formatted": "Dornbirn, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Wiener Neustadt",
+          "region": "Lower Austria",
+          "formatted": "Wiener Neustadt, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Steyr",
+          "region": "Upper Austria",
+          "formatted": "Steyr, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Feldkirch",
+          "region": "Vorarlberg",
+          "formatted": "Feldkirch, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Bregenz",
+          "region": "Vorarlberg",
+          "formatted": "Bregenz, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        },
+        {
+          "city": "Baden",
+          "region": "Lower Austria",
+          "formatted": "Baden, Austria",
+          "tier": 3,
+          "country_code": "AT",
+          "country_name": "Austria",
+          "flag": "🇦🇹"
+        }
+      ]
+    },
+    "NZ": {
+      "code": "NZ",
+      "name": "New Zealand",
+      "flag": "🇳🇿",
+      "popular_hubs": [
+        "Auckland",
+        "Wellington",
+        "Christchurch",
+        "Hamilton",
+        "Tauranga",
+        "Remote"
+      ],
+      "counts": {
+        "total": 19,
+        "tier1": 3,
+        "tier2": 4,
+        "tier3": 12
+      },
+      "cities": [
+        {
+          "city": "Auckland",
+          "region": "Auckland",
+          "formatted": "Auckland, New Zealand",
+          "tier": 1,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Wellington",
+          "region": "Wellington",
+          "formatted": "Wellington, New Zealand",
+          "tier": 1,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Christchurch",
+          "region": "Canterbury",
+          "formatted": "Christchurch, New Zealand",
+          "tier": 1,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Hamilton",
+          "region": "Waikato",
+          "formatted": "Hamilton, New Zealand",
+          "tier": 2,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Tauranga",
+          "region": "Bay of Plenty",
+          "formatted": "Tauranga, New Zealand",
+          "tier": 2,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Dunedin",
+          "region": "Otago",
+          "formatted": "Dunedin, New Zealand",
+          "tier": 2,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Palmerston North",
+          "region": "Manawatū-Whanganui",
+          "formatted": "Palmerston North, New Zealand",
+          "tier": 2,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Napier",
+          "region": "Hawke's Bay",
+          "formatted": "Napier, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Hastings",
+          "region": "Hawke's Bay",
+          "formatted": "Hastings, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Nelson",
+          "region": "Nelson",
+          "formatted": "Nelson, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Rotorua",
+          "region": "Bay of Plenty",
+          "formatted": "Rotorua, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "New Plymouth",
+          "region": "Taranaki",
+          "formatted": "New Plymouth, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Whangārei",
+          "region": "Northland",
+          "formatted": "Whangārei, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Invercargill",
+          "region": "Southland",
+          "formatted": "Invercargill, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Whanganui",
+          "region": "Manawatū-Whanganui",
+          "formatted": "Whanganui, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Gisborne",
+          "region": "Gisborne",
+          "formatted": "Gisborne, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Queenstown",
+          "region": "Otago",
+          "formatted": "Queenstown, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Blenheim",
+          "region": "Marlborough",
+          "formatted": "Blenheim, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        },
+        {
+          "city": "Taupō",
+          "region": "Waikato",
+          "formatted": "Taupō, New Zealand",
+          "tier": 3,
+          "country_code": "NZ",
+          "country_name": "New Zealand",
+          "flag": "🇳🇿"
+        }
+      ]
+    },
+    "MX": {
+      "code": "MX",
+      "name": "Mexico",
+      "flag": "🇲🇽",
+      "popular_hubs": [
+        "Mexico City",
+        "Guadalajara",
+        "Monterrey",
+        "Querétaro",
+        "Puebla",
+        "Tijuana",
+        "Remote"
+      ],
+      "counts": {
+        "total": 34,
+        "tier1": 3,
+        "tier2": 13,
+        "tier3": 18
+      },
+      "cities": [
+        {
+          "city": "Mexico City",
+          "region": "CDMX",
+          "formatted": "Mexico City, Mexico",
+          "tier": 1,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Guadalajara",
+          "region": "Jalisco",
+          "formatted": "Guadalajara, Mexico",
+          "tier": 1,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Monterrey",
+          "region": "Nuevo León",
+          "formatted": "Monterrey, Mexico",
+          "tier": 1,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Querétaro",
+          "region": "Querétaro",
+          "formatted": "Querétaro, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Puebla",
+          "region": "Puebla",
+          "formatted": "Puebla, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Tijuana",
+          "region": "Baja California",
+          "formatted": "Tijuana, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Mérida",
+          "region": "Yucatán",
+          "formatted": "Mérida, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "León",
+          "region": "Guanajuato",
+          "formatted": "León, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Juárez",
+          "region": "Chihuahua",
+          "formatted": "Juárez, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Zapopan",
+          "region": "Jalisco",
+          "formatted": "Zapopan, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "San Luis Potosí",
+          "region": "San Luis Potosí",
+          "formatted": "San Luis Potosí, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Aguascalientes",
+          "region": "Aguascalientes",
+          "formatted": "Aguascalientes, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Hermosillo",
+          "region": "Sonora",
+          "formatted": "Hermosillo, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Saltillo",
+          "region": "Coahuila",
+          "formatted": "Saltillo, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Mexicali",
+          "region": "Baja California",
+          "formatted": "Mexicali, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Culiacán",
+          "region": "Sinaloa",
+          "formatted": "Culiacán, Mexico",
+          "tier": 2,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Cancún",
+          "region": "Quintana Roo",
+          "formatted": "Cancún, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Chihuahua",
+          "region": "Chihuahua",
+          "formatted": "Chihuahua, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Morelia",
+          "region": "Michoacán",
+          "formatted": "Morelia, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Veracruz",
+          "region": "Veracruz",
+          "formatted": "Veracruz, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Toluca",
+          "region": "State of Mexico",
+          "formatted": "Toluca, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Torreón",
+          "region": "Coahuila",
+          "formatted": "Torreón, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Cuernavaca",
+          "region": "Morelos",
+          "formatted": "Cuernavaca, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Mazatlán",
+          "region": "Sinaloa",
+          "formatted": "Mazatlán, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Tampico",
+          "region": "Tamaulipas",
+          "formatted": "Tampico, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Reynosa",
+          "region": "Tamaulipas",
+          "formatted": "Reynosa, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Tuxtla Gutiérrez",
+          "region": "Chiapas",
+          "formatted": "Tuxtla Gutiérrez, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Playa del Carmen",
+          "region": "Quintana Roo",
+          "formatted": "Playa del Carmen, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Oaxaca",
+          "region": "Oaxaca",
+          "formatted": "Oaxaca, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Pachuca",
+          "region": "Hidalgo",
+          "formatted": "Pachuca, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Ensenada",
+          "region": "Baja California",
+          "formatted": "Ensenada, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Villahermosa",
+          "region": "Tabasco",
+          "formatted": "Villahermosa, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Irapuato",
+          "region": "Guanajuato",
+          "formatted": "Irapuato, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        },
+        {
+          "city": "Celaya",
+          "region": "Guanajuato",
+          "formatted": "Celaya, Mexico",
+          "tier": 3,
+          "country_code": "MX",
+          "country_name": "Mexico",
+          "flag": "🇲🇽"
+        }
+      ]
+    },
+    "GLOBAL": {
+      "code": "GLOBAL",
+      "name": "Worldwide / Remote",
+      "flag": "🌐",
+      "popular_hubs": [
+        "Remote",
+        "Worldwide",
+        "North America (Remote)",
+        "EMEA (Remote)",
+        "APAC (Remote)",
+        "Latin America (Remote)"
+      ],
+      "counts": {
+        "total": 7,
+        "tier1": 7,
+        "tier2": 0,
+        "tier3": 0
+      },
+      "cities": [
+        {
+          "city": "Remote",
+          "region": "Worldwide",
+          "formatted": "Remote",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        },
+        {
+          "city": "Worldwide",
+          "region": "Worldwide",
+          "formatted": "Worldwide",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        },
+        {
+          "city": "North America",
+          "region": "Remote",
+          "formatted": "North America (Remote)",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        },
+        {
+          "city": "Europe",
+          "region": "Remote",
+          "formatted": "Europe (Remote)",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        },
+        {
+          "city": "EMEA",
+          "region": "Remote",
+          "formatted": "EMEA (Remote)",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        },
+        {
+          "city": "APAC",
+          "region": "Remote",
+          "formatted": "APAC (Remote)",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        },
+        {
+          "city": "Latin America",
+          "region": "Remote",
+          "formatted": "Latin America (Remote)",
+          "tier": 1,
+          "country_code": "GLOBAL",
+          "country_name": "Worldwide / Remote",
+          "flag": "🌐"
+        }
+      ]
+    }
+  },
+  "all": [
+    "New York, NY, USA",
+    "San Francisco, CA, USA",
+    "Los Angeles, CA, USA",
+    "Chicago, IL, USA",
+    "Seattle, WA, USA",
+    "Boston, MA, USA",
+    "Austin, TX, USA",
+    "Dallas, TX, USA",
+    "Houston, TX, USA",
+    "Washington, DC, USA",
+    "Atlanta, GA, USA",
+    "San Jose, CA, USA",
+    "San Diego, CA, USA",
+    "Denver, CO, USA",
+    "Phoenix, AZ, USA",
+    "Philadelphia, PA, USA",
+    "Portland, OR, USA",
+    "Miami, FL, USA",
+    "Raleigh, NC, USA",
+    "Charlotte, NC, USA",
+    "Minneapolis, MN, USA",
+    "Salt Lake City, UT, USA",
+    "Pittsburgh, PA, USA",
+    "Nashville, TN, USA",
+    "Columbus, OH, USA",
+    "Indianapolis, IN, USA",
+    "Baltimore, MD, USA",
+    "Las Vegas, NV, USA",
+    "Detroit, MI, USA",
+    "Tampa, FL, USA",
+    "Orlando, FL, USA",
+    "Kansas City, MO, USA",
+    "Cleveland, OH, USA",
+    "Cincinnati, OH, USA",
+    "Sacramento, CA, USA",
+    "Milwaukee, WI, USA",
+    "St. Louis, MO, USA",
+    "Richmond, VA, USA",
+    "San Antonio, TX, USA",
+    "Fort Worth, TX, USA",
+    "Jacksonville, FL, USA",
+    "Oklahoma City, OK, USA",
+    "Boulder, CO, USA",
+    "Boise, ID, USA",
+    "Madison, WI, USA",
+    "Huntsville, AL, USA",
+    "Durham, NC, USA",
+    "Knoxville, TN, USA",
+    "Omaha, NE, USA",
+    "Des Moines, IA, USA",
+    "Spokane, WA, USA",
+    "Charleston, SC, USA",
+    "Colorado Springs, CO, USA",
+    "Reno, NV, USA",
+    "Tucson, AZ, USA",
+    "Albuquerque, NM, USA",
+    "Fresno, CA, USA",
+    "Grand Rapids, MI, USA",
+    "Buffalo, NY, USA",
+    "Rochester, NY, USA",
+    "Albany, NY, USA",
+    "Providence, RI, USA",
+    "Hartford, CT, USA",
+    "St. Petersburg, FL, USA",
+    "Fort Lauderdale, FL, USA",
+    "Louisville, KY, USA",
+    "Lexington, KY, USA",
+    "Greenville, SC, USA",
+    "Chattanooga, TN, USA",
+    "Memphis, TN, USA",
+    "Baton Rouge, LA, USA",
+    "New Orleans, LA, USA",
+    "Little Rock, AR, USA",
+    "Fayetteville, AR, USA",
+    "Tulsa, OK, USA",
+    "Wichita, KS, USA",
+    "El Paso, TX, USA",
+    "Corpus Christi, TX, USA",
+    "Plano, TX, USA",
+    "Irving, TX, USA",
+    "Arlington, TX, USA",
+    "Newark, NJ, USA",
+    "Jersey City, NJ, USA",
+    "New Haven, CT, USA",
+    "Portland, ME, USA",
+    "Burlington, VT, USA",
+    "Manchester, NH, USA",
+    "Sioux Falls, SD, USA",
+    "Fargo, ND, USA",
+    "Billings, MT, USA",
+    "Cheyenne, WY, USA",
+    "Anchorage, AK, USA",
+    "Honolulu, HI, USA",
+    "Bengaluru, KA, India",
+    "Hyderabad, TS, India",
+    "Pune, MH, India",
+    "Mumbai, MH, India",
+    "Delhi, DL, India",
+    "Chennai, TN, India",
+    "Kolkata, WB, India",
+    "Ahmedabad, GJ, India",
+    "Gurgaon, HR, India",
+    "Noida, UP, India",
+    "Navi Mumbai, MH, India",
+    "Jaipur, RJ, India",
+    "Lucknow, UP, India",
+    "Chandigarh, CH, India",
+    "Indore, MP, India",
+    "Coimbatore, TN, India",
+    "Kochi, KL, India",
+    "Visakhapatnam, AP, India",
+    "Surat, GJ, India",
+    "Vadodara, GJ, India",
+    "Nagpur, MH, India",
+    "Bhopal, MP, India",
+    "Patna, BR, India",
+    "Bhubaneswar, OD, India",
+    "Thiruvananthapuram, KL, India",
+    "Vijayawada, AP, India",
+    "Ludhiana, PB, India",
+    "Agra, UP, India",
+    "Nashik, MH, India",
+    "Faridabad, HR, India",
+    "Ghaziabad, UP, India",
+    "Rajkot, GJ, India",
+    "Varanasi, UP, India",
+    "Amritsar, PB, India",
+    "Ranchi, JH, India",
+    "Guwahati, AS, India",
+    "Jodhpur, RJ, India",
+    "Madurai, TN, India",
+    "Raipur, CG, India",
+    "Mysore, KA, India",
+    "Mangalore, KA, India",
+    "Hubli, KA, India",
+    "Belgaum, KA, India",
+    "Warangal, TS, India",
+    "Guntur, AP, India",
+    "Tirupati, AP, India",
+    "Nellore, AP, India",
+    "Salem, TN, India",
+    "Tiruchirappalli, TN, India",
+    "Tiruppur, TN, India",
+    "Erode, TN, India",
+    "Vellore, TN, India",
+    "Kozhikode, KL, India",
+    "Thrissur, KL, India",
+    "Kollam, KL, India",
+    "Aurangabad, MH, India",
+    "Kolhapur, MH, India",
+    "Solapur, MH, India",
+    "Amravati, MH, India",
+    "Nanded, MH, India",
+    "Sangli, MH, India",
+    "Jalgaon, MH, India",
+    "Dehradun, UK, India",
+    "Haridwar, UK, India",
+    "Rishikesh, UK, India",
+    "Kanpur, UP, India",
+    "Meerut, UP, India",
+    "Prayagraj, UP, India",
+    "Bareilly, UP, India",
+    "Aligarh, UP, India",
+    "Moradabad, UP, India",
+    "Jalandhar, PB, India",
+    "Patiala, PB, India",
+    "Gwalior, MP, India",
+    "Jabalpur, MP, India",
+    "Ujjain, MP, India",
+    "Kota, RJ, India",
+    "Udaipur, RJ, India",
+    "Ajmer, RJ, India",
+    "Bikaner, RJ, India",
+    "Jamshedpur, JH, India",
+    "Dhanbad, JH, India",
+    "Rourkela, OD, India",
+    "Cuttack, OD, India",
+    "Siliguri, WB, India",
+    "Durgapur, WB, India",
+    "Asansol, WB, India",
+    "Jammu, JK, India",
+    "Srinagar, JK, India",
+    "Toronto, ON, Canada",
+    "Montreal, QC, Canada",
+    "Vancouver, BC, Canada",
+    "Calgary, AB, Canada",
+    "Ottawa, ON, Canada",
+    "Edmonton, AB, Canada",
+    "Mississauga, ON, Canada",
+    "Waterloo, ON, Canada",
+    "Kitchener, ON, Canada",
+    "Winnipeg, MB, Canada",
+    "Quebec City, QC, Canada",
+    "Hamilton, ON, Canada",
+    "Brampton, ON, Canada",
+    "Halifax, NS, Canada",
+    "London, ON, Canada",
+    "Victoria, BC, Canada",
+    "Markham, ON, Canada",
+    "Vaughan, ON, Canada",
+    "Burnaby, BC, Canada",
+    "Richmond, BC, Canada",
+    "Surrey, BC, Canada",
+    "Windsor, ON, Canada",
+    "Saskatoon, SK, Canada",
+    "Regina, SK, Canada",
+    "St. John's, NL, Canada",
+    "Kelowna, BC, Canada",
+    "Oakville, ON, Canada",
+    "Richmond Hill, ON, Canada",
+    "Burlington, ON, Canada",
+    "Oshawa, ON, Canada",
+    "Barrie, ON, Canada",
+    "Guelph, ON, Canada",
+    "Cambridge, ON, Canada",
+    "Kingston, ON, Canada",
+    "Sherbrooke, QC, Canada",
+    "Trois-Rivières, QC, Canada",
+    "Laval, QC, Canada",
+    "Gatineau, QC, Canada",
+    "Moncton, NB, Canada",
+    "Saint John, NB, Canada",
+    "Fredericton, NB, Canada",
+    "Charlottetown, PE, Canada",
+    "Lethbridge, AB, Canada",
+    "Red Deer, AB, Canada",
+    "Medicine Hat, AB, Canada",
+    "Nanaimo, BC, Canada",
+    "Kamloops, BC, Canada",
+    "Prince George, BC, Canada",
+    "Abbotsford, BC, Canada",
+    "Chilliwack, BC, Canada",
+    "Peterborough, ON, Canada",
+    "Thunder Bay, ON, Canada",
+    "Sudbury, ON, Canada",
+    "Sault Ste. Marie, ON, Canada",
+    "Sarnia, ON, Canada",
+    "Brantford, ON, Canada",
+    "London, UK",
+    "Manchester, UK",
+    "Birmingham, UK",
+    "Edinburgh, UK",
+    "Glasgow, UK",
+    "Bristol, UK",
+    "Cambridge, UK",
+    "Oxford, UK",
+    "Leeds, UK",
+    "Reading, UK",
+    "Newcastle, UK",
+    "Belfast, UK",
+    "Sheffield, UK",
+    "Liverpool, UK",
+    "Cardiff, UK",
+    "Nottingham, UK",
+    "Southampton, UK",
+    "Brighton, UK",
+    "Leicester, UK",
+    "Aberdeen, UK",
+    "Milton Keynes, UK",
+    "Swindon, UK",
+    "Bath, UK",
+    "York, UK",
+    "Exeter, UK",
+    "Plymouth, UK",
+    "Norwich, UK",
+    "Derby, UK",
+    "Wolverhampton, UK",
+    "Swansea, UK",
+    "Dundee, UK",
+    "Luton, UK",
+    "Northampton, UK",
+    "Portsmouth, UK",
+    "Bournemouth, UK",
+    "Middlesbrough, UK",
+    "Sunderland, UK",
+    "Warrington, UK",
+    "Peterborough, UK",
+    "Gloucester, UK",
+    "Watford, UK",
+    "Ipswich, UK",
+    "Cheltenham, UK",
+    "Blackpool, UK",
+    "Berlin, Germany",
+    "Munich, Germany",
+    "Frankfurt, Germany",
+    "Hamburg, Germany",
+    "Cologne, Germany",
+    "Stuttgart, Germany",
+    "Düsseldorf, Germany",
+    "Leipzig, Germany",
+    "Dresden, Germany",
+    "Nuremberg, Germany",
+    "Hanover, Germany",
+    "Bonn, Germany",
+    "Dortmund, Germany",
+    "Essen, Germany",
+    "Bremen, Germany",
+    "Karlsruhe, Germany",
+    "Mannheim, Germany",
+    "Heidelberg, Germany",
+    "Freiburg, Germany",
+    "Augsburg, Germany",
+    "Wiesbaden, Germany",
+    "Darmstadt, Germany",
+    "Münster, Germany",
+    "Aachen, Germany",
+    "Bielefeld, Germany",
+    "Bochum, Germany",
+    "Duisburg, Germany",
+    "Wuppertal, Germany",
+    "Gelsenkirchen, Germany",
+    "Mönchengladbach, Germany",
+    "Braunschweig, Germany",
+    "Kiel, Germany",
+    "Lübeck, Germany",
+    "Erfurt, Germany",
+    "Rostock, Germany",
+    "Mainz, Germany",
+    "Saarbrücken, Germany",
+    "Potsdam, Germany",
+    "Kassel, Germany",
+    "Sydney, NSW, Australia",
+    "Melbourne, VIC, Australia",
+    "Brisbane, QLD, Australia",
+    "Perth, WA, Australia",
+    "Adelaide, SA, Australia",
+    "Canberra, ACT, Australia",
+    "Gold Coast, QLD, Australia",
+    "Newcastle, NSW, Australia",
+    "Hobart, TAS, Australia",
+    "Wollongong, NSW, Australia",
+    "Sunshine Coast, QLD, Australia",
+    "Geelong, VIC, Australia",
+    "Townsville, QLD, Australia",
+    "Cairns, QLD, Australia",
+    "Darwin, NT, Australia",
+    "Toowoomba, QLD, Australia",
+    "Ballarat, VIC, Australia",
+    "Bendigo, VIC, Australia",
+    "Albury, NSW, Australia",
+    "Launceston, TAS, Australia",
+    "Mackay, QLD, Australia",
+    "Rockhampton, QLD, Australia",
+    "Bunbury, WA, Australia",
+    "Coffs Harbour, NSW, Australia",
+    "Paris, France",
+    "Lyon, France",
+    "Marseille, France",
+    "Toulouse, France",
+    "Bordeaux, France",
+    "Lille, France",
+    "Nantes, France",
+    "Nice, France",
+    "Strasbourg, France",
+    "Rennes, France",
+    "Montpellier, France",
+    "Grenoble, France",
+    "Aix-en-Provence, France",
+    "Toulon, France",
+    "Angers, France",
+    "Dijon, France",
+    "Brest, France",
+    "Le Mans, France",
+    "Reims, France",
+    "Saint-Étienne, France",
+    "Le Havre, France",
+    "Clermont-Ferrand, France",
+    "Tours, France",
+    "Limoges, France",
+    "Amiens, France",
+    "Perpignan, France",
+    "Metz, France",
+    "Besançon, France",
+    "Orléans, France",
+    "Mulhouse, France",
+    "Caen, France",
+    "Rouen, France",
+    "Nancy, France",
+    "Amsterdam, Netherlands",
+    "Rotterdam, Netherlands",
+    "The Hague, Netherlands",
+    "Utrecht, Netherlands",
+    "Eindhoven, Netherlands",
+    "Tilburg, Netherlands",
+    "Groningen, Netherlands",
+    "Almere, Netherlands",
+    "Breda, Netherlands",
+    "Nijmegen, Netherlands",
+    "Enschede, Netherlands",
+    "Haarlem, Netherlands",
+    "Arnhem, Netherlands",
+    "Amersfoort, Netherlands",
+    "Apeldoorn, Netherlands",
+    "'s-Hertogenbosch, Netherlands",
+    "Maastricht, Netherlands",
+    "Leiden, Netherlands",
+    "Dordrecht, Netherlands",
+    "Zoetermeer, Netherlands",
+    "Zwolle, Netherlands",
+    "Delft, Netherlands",
+    "Alkmaar, Netherlands",
+    "Deventer, Netherlands",
+    "Venlo, Netherlands",
+    "Dubai, UAE",
+    "Abu Dhabi, UAE",
+    "Sharjah, UAE",
+    "Ajman, UAE",
+    "Ras Al Khaimah, UAE",
+    "Al Ain, UAE",
+    "Fujairah, UAE",
+    "Umm Al Quwain, UAE",
+    "Khor Fakkan, UAE",
+    "Dibba Al-Fujairah, UAE",
+    "Kalba, UAE",
+    "Madinat Zayed, UAE",
+    "Ruwais, UAE",
+    "Hatta, UAE",
+    "Singapore",
+    "Marina Bay, Singapore",
+    "Jurong East, Singapore",
+    "Tampines, Singapore",
+    "Woodlands, Singapore",
+    "Bedok, Singapore",
+    "Ang Mo Kio, Singapore",
+    "Changi, Singapore",
+    "Novena, Singapore",
+    "Queenstown, Singapore",
+    "One-North, Singapore",
+    "Tokyo, Japan",
+    "Osaka, Japan",
+    "Yokohama, Japan",
+    "Kyoto, Japan",
+    "Nagoya, Japan",
+    "Fukuoka, Japan",
+    "Sapporo, Japan",
+    "Kobe, Japan",
+    "Kawasaki, Japan",
+    "Saitama, Japan",
+    "Hiroshima, Japan",
+    "Sendai, Japan",
+    "Chiba, Japan",
+    "Kitakyushu, Japan",
+    "Sakai, Japan",
+    "Niigata, Japan",
+    "Hamamatsu, Japan",
+    "Kumamoto, Japan",
+    "Sagamihara, Japan",
+    "Shizuoka, Japan",
+    "Okayama, Japan",
+    "Kanazawa, Japan",
+    "Utsunomiya, Japan",
+    "Matsuyama, Japan",
+    "Oita, Japan",
+    "Takamatsu, Japan",
+    "Toyama, Japan",
+    "Nagano, Japan",
+    "Nara, Japan",
+    "Gifu, Japan",
+    "São Paulo, Brazil",
+    "Rio de Janeiro, Brazil",
+    "Brasília, Brazil",
+    "Belo Horizonte, Brazil",
+    "Curitiba, Brazil",
+    "Porto Alegre, Brazil",
+    "Florianópolis, Brazil",
+    "Salvador, Brazil",
+    "Fortaleza, Brazil",
+    "Recife, Brazil",
+    "Campinas, Brazil",
+    "Goiânia, Brazil",
+    "Manaus, Brazil",
+    "Belém, Brazil",
+    "São José dos Campos, Brazil",
+    "Ribeirão Preto, Brazil",
+    "Sorocaba, Brazil",
+    "Santos, Brazil",
+    "Joinville, Brazil",
+    "Blumenau, Brazil",
+    "Londrina, Brazil",
+    "Maringá, Brazil",
+    "Caxias do Sul, Brazil",
+    "Uberlândia, Brazil",
+    "Juiz de Fora, Brazil",
+    "Vitória, Brazil",
+    "Vila Velha, Brazil",
+    "Natal, Brazil",
+    "João Pessoa, Brazil",
+    "Maceió, Brazil",
+    "Aracaju, Brazil",
+    "Teresina, Brazil",
+    "São Luís, Brazil",
+    "Campo Grande, Brazil",
+    "Cuiabá, Brazil",
+    "Milan, Italy",
+    "Rome, Italy",
+    "Turin, Italy",
+    "Bologna, Italy",
+    "Florence, Italy",
+    "Naples, Italy",
+    "Genoa, Italy",
+    "Venice, Italy",
+    "Verona, Italy",
+    "Padua, Italy",
+    "Trieste, Italy",
+    "Bari, Italy",
+    "Palermo, Italy",
+    "Catania, Italy",
+    "Brescia, Italy",
+    "Bergamo, Italy",
+    "Monza, Italy",
+    "Parma, Italy",
+    "Modena, Italy",
+    "Reggio Emilia, Italy",
+    "Ravenna, Italy",
+    "Perugia, Italy",
+    "Pisa, Italy",
+    "Livorno, Italy",
+    "Trento, Italy",
+    "Bolzano, Italy",
+    "Cagliari, Italy",
+    "Salerno, Italy",
+    "Taranto, Italy",
+    "Pescara, Italy",
+    "Warsaw, Poland",
+    "Kraków, Poland",
+    "Wrocław, Poland",
+    "Poznań, Poland",
+    "Gdańsk, Poland",
+    "Katowice, Poland",
+    "Łódź, Poland",
+    "Szczecin, Poland",
+    "Lublin, Poland",
+    "Bydgoszcz, Poland",
+    "Białystok, Poland",
+    "Gdynia, Poland",
+    "Rzeszów, Poland",
+    "Toruń, Poland",
+    "Kielce, Poland",
+    "Gliwice, Poland",
+    "Zabrze, Poland",
+    "Bielsko-Biała, Poland",
+    "Olsztyn, Poland",
+    "Częstochowa, Poland",
+    "Radom, Poland",
+    "Sosnowiec, Poland",
+    "Opole, Poland",
+    "Zielona Góra, Poland",
+    "Tychy, Poland",
+    "Sopot, Poland",
+    "Johannesburg, South Africa",
+    "Cape Town, South Africa",
+    "Durban, South Africa",
+    "Pretoria, South Africa",
+    "Gqeberha, South Africa",
+    "Bloemfontein, South Africa",
+    "East London, South Africa",
+    "Pietermaritzburg, South Africa",
+    "Centurion, South Africa",
+    "Sandton, South Africa",
+    "Stellenbosch, South Africa",
+    "Nelspruit, South Africa",
+    "Kimberley, South Africa",
+    "Polokwane, South Africa",
+    "George, South Africa",
+    "Rustenburg, South Africa",
+    "Paarl, South Africa",
+    "Richards Bay, South Africa",
+    "Witbank, South Africa",
+    "Klerksdorp, South Africa",
+    "Vienna, Austria",
+    "Graz, Austria",
+    "Linz, Austria",
+    "Salzburg, Austria",
+    "Innsbruck, Austria",
+    "Klagenfurt, Austria",
+    "Villach, Austria",
+    "Wels, Austria",
+    "Sankt Pölten, Austria",
+    "Dornbirn, Austria",
+    "Wiener Neustadt, Austria",
+    "Steyr, Austria",
+    "Feldkirch, Austria",
+    "Bregenz, Austria",
+    "Baden, Austria",
+    "Auckland, New Zealand",
+    "Wellington, New Zealand",
+    "Christchurch, New Zealand",
+    "Hamilton, New Zealand",
+    "Tauranga, New Zealand",
+    "Dunedin, New Zealand",
+    "Palmerston North, New Zealand",
+    "Napier, New Zealand",
+    "Hastings, New Zealand",
+    "Nelson, New Zealand",
+    "Rotorua, New Zealand",
+    "New Plymouth, New Zealand",
+    "Whangārei, New Zealand",
+    "Invercargill, New Zealand",
+    "Whanganui, New Zealand",
+    "Gisborne, New Zealand",
+    "Queenstown, New Zealand",
+    "Blenheim, New Zealand",
+    "Taupō, New Zealand",
+    "Mexico City, Mexico",
+    "Guadalajara, Mexico",
+    "Monterrey, Mexico",
+    "Querétaro, Mexico",
+    "Puebla, Mexico",
+    "Tijuana, Mexico",
+    "Mérida, Mexico",
+    "León, Mexico",
+    "Juárez, Mexico",
+    "Zapopan, Mexico",
+    "San Luis Potosí, Mexico",
+    "Aguascalientes, Mexico",
+    "Hermosillo, Mexico",
+    "Saltillo, Mexico",
+    "Mexicali, Mexico",
+    "Culiacán, Mexico",
+    "Cancún, Mexico",
+    "Chihuahua, Mexico",
+    "Morelia, Mexico",
+    "Veracruz, Mexico",
+    "Toluca, Mexico",
+    "Torreón, Mexico",
+    "Cuernavaca, Mexico",
+    "Mazatlán, Mexico",
+    "Tampico, Mexico",
+    "Reynosa, Mexico",
+    "Tuxtla Gutiérrez, Mexico",
+    "Playa del Carmen, Mexico",
+    "Oaxaca, Mexico",
+    "Pachuca, Mexico",
+    "Ensenada, Mexico",
+    "Villahermosa, Mexico",
+    "Irapuato, Mexico",
+    "Celaya, Mexico",
+    "Remote",
+    "Worldwide",
+    "North America (Remote)",
+    "Europe (Remote)",
+    "EMEA (Remote)",
+    "APAC (Remote)",
+    "Latin America (Remote)"
+  ]
+}

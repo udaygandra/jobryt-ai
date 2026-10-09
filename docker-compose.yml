@@ -1,99 +1,32 @@
-# docker-compose.yml
+# docker-compose.yml — Lightweight Standalone Orchestration for Jobryt AI Agent
+# Runs Web Dashboard, Autonomous Engine & Background Cron Scheduler (port 3000)
 services:
-  n8n:
-    image: n8nio/n8n:2.38.7
-    command: start
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "${N8N_HOST_BINDING:-127.0.0.1}:${N8N_PORT:-5678}:5678"
+      - "${WEB_PORT:-3000}:3000"
     dns:
       - 8.8.8.8
       - 1.1.1.1
     environment:
-      - GENERIC_TIMEZONE=${TIMEZONE:-UTC}
-      - TZ=${TIMEZONE:-UTC}
-      - DATA_DIR=/data
-      - SCRIPTS_DIR=/scripts
-      - PROMPTS_DIR=/prompts
-      - WORKFLOWS_DIR=/workflows
-      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
-      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
-      - N8N_RESTRICT_FILE_ACCESS_TO=/data;/workflows;/scripts;/home/node/data;/prompts
-      - NODES_EXCLUDE=["n8n-nodes-base.executeCommand"]
-      - EXECUTIONS_DATA_PRUNE=true
-      - EXECUTIONS_DATA_MAX_AGE=168
-      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
-      - N8N_PAYLOAD_SIZE_MAX=${MAX_UPLOAD_SIZE_MB:-5}
-      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-5}
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      - N8N_ENV_VARS_ALLOWED_EXPRESSIONS=*
-      - NODE_FUNCTION_ALLOW_BUILTIN=*
-      - NODE_FUNCTION_ALLOW_EXTERNAL=*
-      - CODE_ENABLE_STDOUT=true
-      - N8N_PERSONALIZATION_ENABLED=false
-      - N8N_DIAGNOSTICS_ENABLED=false
-      - NODE_PATH=/usr/local/lib/node_modules:/home/node/.n8n/node_modules
-      - NODE_OPTIONS=--max-old-space-size=2048
-      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
-      - N8N_EDITOR_BASE_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - NODE_ENV=production
+      - PORT=3000
+      - DATA_DIR=/app/data
+      - SCRIPTS_DIR=/app/scripts
+      - PROMPTS_DIR=/app/prompts
     env_file:
       - ${ENV_FILE:-.env}
     deploy:
       resources:
         limits:
-          memory: 3500M
+          memory: 1024M
     volumes:
-      - n8n_data:/home/node/.n8n
-      - ${DATA_DIR:-./data}:/data
-      - ${DATA_DIR:-./data}:/home/node/data
-      - ${DATA_DIR:-./data}:/home/node/.n8n/data
-      - ${WORKFLOWS_DIR:-./workflows}:/workflows
-      - ${SCRIPTS_DIR:-./scripts}:/scripts
-      - ${PROMPTS_DIR:-./prompts}:/prompts
-      - ${ENV_FILE:-.env}:/data/.env:ro
-
-  telegram-bridge:
-    image: n8nio/n8n:2.38.7
-    restart: unless-stopped
-    entrypoint: [ "node", "/scripts/bot/telegram-bridge.js" ]
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    environment:
-      - TZ=${TIMEZONE:-UTC}
-      - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-5}
-      - N8N_URL=http://n8n:5678
-      - TELEGRAM_WEBHOOK_PATH=${TELEGRAM_WEBHOOK_PATH:-telegram-callback}
-      - DATA_DIR=/data
-      - SCRIPTS_DIR=/scripts
-      - PROMPTS_DIR=/prompts
-      - WORKFLOWS_DIR=/workflows
-      - NODE_PATH=/usr/local/lib/node_modules:/home/node/.n8n/node_modules
-      - NODE_OPTIONS=--max-old-space-size=1024
-    env_file:
-      - ${ENV_FILE:-.env}
-    deploy:
-      resources:
-        limits:
-          memory: 1500M
-    volumes:
-      - n8n_data:/home/node/.n8n:ro
-      - ${SCRIPTS_DIR:-./scripts}:/scripts
-      - ${DATA_DIR:-./data}:/data
-      - ${PROMPTS_DIR:-./prompts}:/prompts
-      - ${ENV_FILE:-.env}:/data/.env:ro
-    depends_on:
-      - n8n
-
-  # Optional dedicated tunnel (only when CLOUDFLARE_TUNNEL_TOKEN is provided)
-  tunnel:
-    image: cloudflare/cloudflared:2024.6.1
-    profiles: [ "tunnel" ]
-    restart: unless-stopped
-    command: [ "tunnel", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN:-none}" ]
-    depends_on:
-      - n8n
-
-volumes:
-  n8n_data:
+      - ${DATA_DIR:-./data}:/app/data
+      - ./public:/app/public
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./server.js:/app/server.js
+      - ${ENV_FILE:-.env}:/app/.env:ro

@@ -143,7 +143,9 @@ function runGeoFilter(items, profileObj = null) {
 
   const profile = profileObj || getMasterProfile();
   const locations = profile.locations || [];
-  const countryScope = detectTargetCountryScope ? detectTargetCountryScope(locations) : 'CA';
+  const countryScope = (profileObj && profileObj.country_scope && profileObj.country_scope !== 'AUTO')
+    ? profileObj.country_scope
+    : (detectTargetCountryScope ? detectTargetCountryScope(locations) : 'GLOBAL');
 
   return items.filter(item => {
     const loc = (item.json || item).location || '';

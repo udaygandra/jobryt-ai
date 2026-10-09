@@ -109,6 +109,56 @@ function formatLocationName(loc) {
   }).join(', ');
 }
 
+const COUNTRY_PATTERNS = Object.freeze({
+  US: /\b(usa|united states|u\.s\.|u\.s\.a\.)\b/i,
+  CA: /\b(canada|canadian)\b/i,
+  GB: /\b(uk|united kingdom|great britain|england|scotland|wales|london|manchester|birmingham|leeds|edinburgh|glasgow)\b/i,
+  UK: /\b(uk|united kingdom|great britain|england|scotland|wales|london|manchester|birmingham|leeds|edinburgh|glasgow)\b/i,
+  DE: /\b(germany|deutschland|berlin|munich|münchen|frankfurt|hamburg|cologne|köln|stuttgart|düsseldorf)\b/i,
+  AU: /\b(australia|sydney|melbourne|brisbane|perth|adelaide|canberra)\b/i,
+  FR: /\b(france|paris|lyon|marseille|toulouse|bordeaux|nantes|lille)\b/i,
+  IN: /\b(india|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai|kolkata|noida|gurgaon|gurugram|ahmedabad)\b/i,
+  NL: /\b(netherlands|holland|amsterdam|rotterdam|the hague|den haag|utrecht|eindhoven)\b/i,
+  SG: /\b(singapore)\b/i,
+  BR: /\b(brazil|brasil|são paulo|sao paulo|rio de janeiro|curitiba|belo horizonte)\b/i,
+  IT: /\b(italy|italia|milan|milano|rome|roma|turin|torino|florence|firenze)\b/i,
+  PL: /\b(poland|polska|warsaw|warszawa|krakow|kraków|wrocław|wroclaw|gdańsk|gdansk)\b/i,
+  ZA: /\b(south africa|johannesburg|cape town|durban|pretoria)\b/i,
+  AT: /\b(austria|österreich|vienna|wien|salzburg|graz|linz)\b/i,
+  NZ: /\b(new zealand|auckland|wellington|christchurch)\b/i,
+  MX: /\b(mexico|méxico|mexico city|cdmx|guadalajara|monterrey)\b/i,
+  AE: /\b(uae|united arab emirates|dubai|abu dhabi|sharjah|gulf|gcc)\b/i,
+  JP: /\b(japan|tokyo|osaka|kyoto|yokohama|fukuoka|nagoya)\b/i,
+  ES: /\b(spain|españa|madrid|barcelona|valencia|seville|sevilla|malaga|málaga)\b/i,
+  CH: /\b(switzerland|schweiz|suisse|zurich|zürich|geneva|genève|basel|lausanne|bern)\b/i,
+  IE: /\b(ireland|dublin|cork|galway|limerick)\b/i,
+  SE: /\b(sweden|sverige|stockholm|gothenburg|göteborg|malmö)\b/i
+});
+
+const SUPPORTED_COUNTRIES = Object.freeze([
+  { id: 'AUTO', code: 'AUTO', name: 'Auto-Detect from Master Profile', flag: '🤖', scope: 'AUTO', adzuna: 'auto' },
+  { id: 'US', code: 'US', name: 'United States', flag: '🇺🇸', scope: 'US', adzuna: 'us' },
+  { id: 'GB', code: 'GB', name: 'United Kingdom', flag: '🇬🇧', scope: 'GB', adzuna: 'gb' },
+  { id: 'CA', code: 'CA', name: 'Canada', flag: '🇨🇦', scope: 'CA', adzuna: 'ca' },
+  { id: 'DE', code: 'DE', name: 'Germany (DACH)', flag: '🇩🇪', scope: 'DE', adzuna: 'de' },
+  { id: 'AU', code: 'AU', name: 'Australia', flag: '🇦🇺', scope: 'AU', adzuna: 'au' },
+  { id: 'FR', code: 'FR', name: 'France', flag: '🇫🇷', scope: 'FR', adzuna: 'fr' },
+  { id: 'IN', code: 'IN', name: 'India', flag: '🇮🇳', scope: 'IN', adzuna: 'in' },
+  { id: 'NL', code: 'NL', name: 'Netherlands', flag: '🇳🇱', scope: 'NL', adzuna: 'nl' },
+  { id: 'AE', code: 'AE', name: 'UAE & Gulf (Middle East)', flag: '🇦🇪', scope: 'AE', adzuna: 'us' },
+  { id: 'SG', code: 'SG', name: 'Singapore', flag: '🇸🇬', scope: 'SG', adzuna: 'sg' },
+  { id: 'JP', code: 'JP', name: 'Japan', flag: '🇯🇵', scope: 'JP', adzuna: 'us' },
+  { id: 'BR', code: 'BR', name: 'Brazil', flag: '🇧🇷', scope: 'BR', adzuna: 'br' },
+  { id: 'IT', code: 'IT', name: 'Italy', flag: '🇮🇹', scope: 'IT', adzuna: 'it' },
+  { id: 'PL', code: 'PL', name: 'Poland', flag: '🇵🇱', scope: 'PL', adzuna: 'pl' },
+  { id: 'ZA', code: 'ZA', name: 'South Africa', flag: '🇿🇦', scope: 'ZA', adzuna: 'za' },
+  { id: 'AT', code: 'AT', name: 'Austria', flag: '🇦🇹', scope: 'AT', adzuna: 'at' },
+  { id: 'NZ', code: 'NZ', name: 'New Zealand', flag: '🇳🇿', scope: 'NZ', adzuna: 'nz' },
+  { id: 'MX', code: 'MX', name: 'Mexico', flag: '🇲🇽', scope: 'MX', adzuna: 'mx' },
+  { id: 'US_CA', code: 'US_CA', name: 'North America (USA & Canada)', flag: '🌎', scope: 'US_CA', adzuna: 'us' },
+  { id: 'GLOBAL', code: 'GLOBAL', name: 'Worldwide / Global Remote', flag: '🌐', scope: 'GLOBAL', adzuna: 'us' }
+]);
+
 function detectTargetCountryScope(locations) {
   if (!locations) return 'GLOBAL';
   const geo = loadGeoHierarchy();
@@ -116,6 +166,27 @@ function detectTargetCountryScope(locations) {
 
   const isCrossBorder = /us\s*(&|\band\b|\/)\s*canada|cross[- ]border|north america/i.test(text);
   if (isCrossBorder) return 'US_CA';
+
+  // Check specific international markets first
+  if (/\b(uk|united kingdom|great britain|england|scotland|wales|london)\b/i.test(text)) return 'GB';
+  if (/\b(germany|deutschland|berlin|munich|münchen|frankfurt|hamburg)\b/i.test(text)) return 'DE';
+  if (/\b(australia|sydney|melbourne|brisbane|perth)\b/i.test(text)) return 'AU';
+  if (/\b(india|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai)\b/i.test(text)) return 'IN';
+  if (/\b(france|paris|lyon|marseille)\b/i.test(text)) return 'FR';
+  if (/\b(netherlands|holland|amsterdam|rotterdam|utrecht)\b/i.test(text)) return 'NL';
+  if (/\b(uae|united arab emirates|dubai|abu dhabi|sharjah|gulf)\b/i.test(text)) return 'AE';
+  if (/\b(singapore)\b/i.test(text)) return 'SG';
+  if (/\b(japan|tokyo|osaka|kyoto|yokohama)\b/i.test(text)) return 'JP';
+  if (/\b(brazil|brasil|são paulo|sao paulo|rio de janeiro)\b/i.test(text)) return 'BR';
+  if (/\b(italy|italia|milan|milano|rome|roma)\b/i.test(text)) return 'IT';
+  if (/\b(poland|polska|warsaw|warszawa|krakow)\b/i.test(text)) return 'PL';
+  if (/\b(south africa|johannesburg|cape town)\b/i.test(text)) return 'ZA';
+  if (/\b(austria|österreich|vienna|wien)\b/i.test(text)) return 'AT';
+  if (/\b(new zealand|auckland|wellington)\b/i.test(text)) return 'NZ';
+  if (/\b(mexico|méxico|mexico city|guadalajara)\b/i.test(text)) return 'MX';
+  if (/\b(ireland|dublin|cork)\b/i.test(text)) return 'IE';
+  if (/\b(switzerland|schweiz|suisse|zurich|zürich|geneva)\b/i.test(text)) return 'CH';
+  if (/\b(spain|españa|madrid|barcelona)\b/i.test(text)) return 'ES';
 
   let hasCaMatch = false;
   for (const token of geo.caTokens) {
@@ -257,9 +328,17 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
 
   // 3. Country Scope Gate (Strict Destination Routing)
   let countryMatch = true;
-  if (countryScope === 'CA') countryMatch = isCanada || isGlobal || (candidateAllowsWorldwide && isGlobal);
-  else if (countryScope === 'US') countryMatch = isUS || isGlobal || (candidateAllowsWorldwide && isGlobal);
-  else if (countryScope === 'US_CA') countryMatch = isCanada || isUS || isGlobal || (candidateAllowsWorldwide && isGlobal);
+  if (countryScope === 'CA') {
+    countryMatch = isCanada || isGlobal || (candidateAllowsWorldwide && isGlobal);
+  } else if (countryScope === 'US') {
+    countryMatch = isUS || isGlobal || (candidateAllowsWorldwide && isGlobal);
+  } else if (countryScope === 'US_CA') {
+    countryMatch = isCanada || isUS || isGlobal || (candidateAllowsWorldwide && isGlobal);
+  } else if (COUNTRY_PATTERNS[countryScope]) {
+    countryMatch = COUNTRY_PATTERNS[countryScope].test(lower) || isGlobal || (candidateAllowsWorldwide && isGlobal);
+  } else if (countryScope === 'GLOBAL' || countryScope === 'AUTO' || !countryScope) {
+    countryMatch = true;
+  }
 
   if (!countryMatch) return false;
 
@@ -764,5 +843,7 @@ module.exports = {
   parseSmartLocations,
   expandCustomLocationsWithGeo,
   harmonizeLocationAndWorkType,
-  detectCandidateTimezone
+  detectCandidateTimezone,
+  SUPPORTED_COUNTRIES,
+  COUNTRY_PATTERNS
 };

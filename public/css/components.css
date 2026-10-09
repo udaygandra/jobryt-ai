@@ -1,0 +1,272 @@
+/* Surface and card styles */
+.app-card,
+.glass-card {
+  background-color: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.app-card-hover {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-card-hover:hover {
+  border-color: var(--border-strong);
+}
+
+/* Navigation Tab States */
+.nav-tab.tab-active {
+  color: var(--text-primary) !important;
+  border-color: var(--primary) !important;
+  font-weight: 600;
+}
+
+.nav-tab:not(.tab-active) {
+  color: var(--text-muted) !important;
+  border-color: transparent !important;
+}
+
+.mob-tab.tab-active {
+  color: var(--text-primary) !important;
+  border-color: var(--primary) !important;
+  font-weight: 600;
+}
+
+.mob-tab:not(.tab-active) {
+  color: var(--text-muted) !important;
+  border-color: transparent !important;
+}
+
+/* Dropdown Menus & Hierarchical Nav States */
+.nav-dropdown-group {
+  position: relative;
+}
+
+.nav-dropdown-menu {
+  display: none;
+  animation: navMenuAppear 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Invisible hover bridge to eliminate premature menu close during diagonal mouse travel */
+.nav-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: transparent;
+}
+
+.nav-dropdown-group:hover .nav-dropdown-menu,
+.nav-dropdown-group.is-open .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-group:hover .dropdown-chevron,
+.nav-dropdown-group.is-open .dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+@keyframes navMenuAppear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-group-btn {
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-group-btn.group-active {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--primary) !important;
+  font-weight: 600;
+}
+
+.nav-group-btn[data-group="opportunities"].group-active {
+  border-bottom-color: var(--primary) !important;
+}
+
+.nav-group-btn[data-group="applications"].group-active {
+  border-bottom-color: var(--accent) !important;
+}
+
+.nav-group-btn[data-group="dossier"].group-active,
+.nav-tab.tab-active {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--primary) !important;
+  font-weight: 600;
+}
+
+.nav-group-btn[data-group="settings"].group-active {
+  border-bottom-color: #F59E0B !important;
+}
+
+.nav-dropdown-item {
+  border-left: 2px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-dropdown-item.item-active {
+  background-color: var(--surface-elevated) !important;
+  border-left-color: var(--primary) !important;
+}
+
+.nav-dropdown-item.item-active[data-accent="teal"] {
+  border-left-color: var(--accent) !important;
+}
+
+.nav-dropdown-item.item-active[data-accent="amber"] {
+  border-left-color: #F59E0B !important;
+}
+
+.nav-dropdown-item.item-active[data-accent="blue"] {
+  border-left-color: #60A5FA !important;
+}
+
+[data-theme="light"] .nav-dropdown-menu {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.12), 0 6px 14px -2px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .nav-dropdown-item:hover {
+  background-color: #F8FAFC !important;
+}
+
+[data-theme="light"] .nav-dropdown-item.item-active {
+  background-color: #F1F5F9 !important;
+}
+
+[data-theme="light"] .nav-group-btn.group-active,
+[data-theme="light"] .nav-tab.tab-active {
+  color: #0F172A !important;
+}
+
+/* Mobile Side Navigation Drawer Styles */
+#mobile-drawer-backdrop {
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#mobile-drawer-panel {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+@media (min-width: 768px) {
+  #mobile-drawer-backdrop,
+  #mobile-drawer-panel {
+    display: none !important;
+  }
+}
+
+.side-nav-item {
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.side-nav-item.side-active {
+  background-color: var(--surface-elevated) !important;
+  border-left-color: var(--primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.side-nav-item.side-active[data-accent="teal"] {
+  border-left-color: var(--accent) !important;
+}
+
+.side-nav-item.side-active[data-accent="amber"] {
+  border-left-color: #F59E0B !important;
+}
+
+.side-nav-item.side-active[data-accent="blue"] {
+  border-left-color: #60A5FA !important;
+}
+
+[data-theme="light"] #mobile-drawer-panel {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 4px 0 28px rgba(15, 23, 42, 0.12) !important;
+}
+
+[data-theme="light"] #mobile-drawer-panel .drawer-sticky-header {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] #mobile-drawer-panel .drawer-status-strip,
+[data-theme="light"] #mobile-drawer-panel .drawer-footer {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .side-nav-item:hover {
+  background-color: #F8FAFC !important;
+}
+
+[data-theme="light"] .side-nav-item.side-active {
+  background-color: #F1F5F9 !important;
+}
+
+/* Tactile button feedback */
+button,
+a {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+button:active,
+a:active {
+  transform: scale(0.98);
+}
+
+/* Job Source Badges */
+.job-source-badge {
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+[data-theme="light"] .job-source-badge {
+  background-color: #F1F5F9 !important;
+  color: #334155 !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* Bespoke Logo Badge Styling */
+.jobryt-logo-badge {
+  background: #181B20;
+  border: 1px solid rgba(217, 164, 65, 0.3);
+  color: #D9A441;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jobryt-logo-badge:hover,
+.group:hover .jobryt-logo-badge {
+  background: #1E222A;
+  border-color: #D9A441;
+  color: #F59E0B;
+  box-shadow: 0 0 16px rgba(217, 164, 65, 0.3);
+  transform: scale(1.05);
+}
+
+[data-theme="light"] .jobryt-logo-badge {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #D97706 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .group:hover .jobryt-logo-badge {
+  border-color: #D97706 !important;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.2) !important;
+}

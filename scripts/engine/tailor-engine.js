@@ -2,7 +2,14 @@
  * tailor-engine.js — Unified ATS Resume & Cover Letter Tailoring Engine
  *
  * Grounded in candidate's verified profile data (ZERO FABRICATION).
- * Uses Gemini API / configured LLM with automatic fallback.
+ * Persists tailored artifacts on disk in data/tailored/<job_id>/:
+ *   - resume.json      (structured JSON state for instant, 0-cost PDF re-generation)
+ *   - cover_letter.txt (plain text for clipboard & job portal forms)
+ *   - resume.pdf       (crisp ATS-compliant PDF)
+ *
+ * CACHING: When user clicks "Apply & Tailor PDF" on a previously tailored job,
+ * it re-uses the saved resume.json and cover_letter.txt, eliminating redundant
+ * Gemini LLM API calls and saving quota.
  */
 
 const path = require('path');
@@ -14,14 +21,96 @@ const { buildFullDepthResumePdf } = require('./generate-resume-pdf');
 
 const dataDir = getDataDir();
 
-async function tailorJobApplication(job, profile, customTone = 'Professional & Direct') {
+/**
+ * Resolves tailored artifact paths on disk.
+ */
+function getTailoredArtifactPaths(cleanId) {
+  const folder = path.join(dataDir, 'tailored', cleanId);
+  return {
+    folder,
+    jsonPath: path.join(folder, 'resume.json'),
+    txtPath: path.join(folder, 'cover_letter.txt'),
+    pdfPath: path.join(folder, 'resume.pdf')
+  };
+}
+
+/**
+ * Tailors a job application, caching artifacts to save Gemini LLM calls on repeat clicks.
+ */
+async function tailorJobApplication(job, profile, customTone = 'Professional & Direct', options = {}) {
   const targetRole = job.tailored_title || job.title || (profile.target_titles && profile.target_titles[0]) || 'Target Role';
   const company = job.company || job.company_name || 'Target Company';
   const candidateProfession = (profile.target_titles && profile.target_titles[0]) || profile.profession || 'Professional';
   const candidateName = profile.name || 'Candidate';
   const jd = job.description || '';
 
-  // 1. Build tailored summary and cover letter via LLM or intelligent heuristic
+  const rawJobId = String(job.id || job.jobId || job.job_id || `${company}_${targetRole}`).trim();
+  const safeJobId = rawJobId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const artifacts = getTailoredArtifactPaths(safeJobId);
+
+  // ── Step 1: Check Local Cache First (0 LLM Token Cost) ───────────────────
+  if (!options.forceRegenerate && fs.existsSync(artifacts.jsonPath) && fs.existsSync(artifacts.txtPath)) {
+    try {
+      const cached = JSON.parse(fs.readFileSync(artifacts.jsonPath, 'utf8'));
+      const cachedCoverTxt = fs.readFileSync(artifacts.txtPath, 'utf8');
+
+      // Check if PDF exists in dataDir or tailoredDir; regenerate from cached JSON if missing
+      let pdfFilename = cached.pdf_filename;
+      let pdfPath = path.join(dataDir, pdfFilename || `${safeJobId}.pdf`);
+
+      if (!fs.existsSync(pdfPath)) {
+        const safeCandidate = candidateName.replace(/[^a-zA-Z0-9]/g, '_');
+        const safeCompany = company.replace(/[^a-zA-Z0-9]/g, '_');
+        pdfFilename = `${safeCandidate}_Resume_${safeCompany}_${Date.now()}.pdf`;
+        pdfPath = path.join(dataDir, pdfFilename);
+
+        await buildFullDepthResumePdf({
+          profile,
+          targetRole: cached.targetRole || targetRole,
+          companyName: cached.company || company,
+          tailoredSummary: cached.tailored_summary,
+          categorizedSkills: cached.categorized_skills,
+          tailoredExperience: cached.tailored_experience || profile.experience || [],
+          outputPath: pdfPath
+        });
+
+        cached.pdf_filename = pdfFilename;
+        cached.pdf_path = pdfPath;
+        fs.writeFileSync(artifacts.jsonPath, JSON.stringify(cached, null, 2), 'utf8');
+      }
+
+      console.log(`[Tailor] ⚡ Cache HIT for job "${safeJobId}" — re-using saved resume.json & cover_letter.txt (0 Gemini calls)`);
+
+      const appliedRecord = {
+        id: String(job.id || safeJobId),
+        jobId: String(job.id || safeJobId),
+        title: cached.targetRole || targetRole,
+        company: cached.company || company,
+        location: job.location || (profile.locations && profile.locations[0]) || 'Remote',
+        job_url: job.job_url || job.redirect_url || job.apply_url || job.url || '',
+        source: job.source || 'Manual',
+        match_score: parseInt(job.score || job.match_score || 85, 10),
+        ats_keyword_fit: cached.ats_keyword_fit || 88,
+        tailored_summary: cached.tailored_summary,
+        tailored_experience: cached.tailored_experience || profile.experience || [],
+        cover_letter: cachedCoverTxt,
+        pdf_path: pdfPath,
+        pdf_filename: pdfFilename,
+        resume_json_path: artifacts.jsonPath,
+        cover_letter_txt_path: artifacts.txtPath,
+        status: job.status || 'Tailored',
+        applied_at: cached.created_at || new Date().toISOString(),
+        is_cached: true
+      };
+
+      jobsDb.saveAppliedJob(appliedRecord);
+      return appliedRecord;
+    } catch (cacheErr) {
+      console.warn('[Tailor] Error loading cached tailored files, re-generating:', cacheErr.message);
+    }
+  }
+
+  // ── Step 2: Fresh Generation via LLM ─────────────────────────────────────
   let tailoredSummary = '';
   let coverLetter = '';
   let atsFit = 88;
@@ -91,17 +180,17 @@ Sincerely,
 ${candidateName}`;
   }
 
-  // 2. Generate the PDF Resume
-  const safeCandidate = candidateName.replace(/[^a-zA-Z0-9]/g, '_');
-  const safeCompany = company.replace(/[^a-zA-Z0-9]/g, '_');
-  const pdfFilename = `${safeCandidate}_Resume_${safeCompany}_${Date.now()}.pdf`;
-  const pdfPath = path.join(dataDir, pdfFilename);
-
   // Group skills into categorized structure for the PDF template
   const categorizedSkills = {
     'Core Competencies': (profile.skills || []).slice(0, 10),
     'Tools & Technologies': (profile.skills || []).slice(10, 20)
   };
+
+  // ── Step 3: Generate the PDF Resume ───────────────────────────────────────
+  const safeCandidate = candidateName.replace(/[^a-zA-Z0-9]/g, '_');
+  const safeCompany = company.replace(/[^a-zA-Z0-9]/g, '_');
+  const pdfFilename = `${safeCandidate}_Resume_${safeCompany}_${Date.now()}.pdf`;
+  const pdfPath = path.join(dataDir, pdfFilename);
 
   await buildFullDepthResumePdf({
     profile,
@@ -113,9 +202,35 @@ ${candidateName}`;
     outputPath: pdfPath
   });
 
+  // ── Step 4: Persist Artifacts (JSON, TXT, PDF) ───────────────────────────
+  fs.mkdirSync(artifacts.folder, { recursive: true });
+
+  const resumeJsonData = {
+    id: safeJobId,
+    targetRole,
+    company,
+    candidateName,
+    tailored_summary: tailoredSummary,
+    ats_keyword_fit: atsFit,
+    categorized_skills: categorizedSkills,
+    tailored_experience: profile.experience || [],
+    pdf_filename: pdfFilename,
+    pdf_path: pdfPath,
+    created_at: new Date().toISOString()
+  };
+
+  fs.writeFileSync(artifacts.jsonPath, JSON.stringify(resumeJsonData, null, 2), 'utf8');
+  fs.writeFileSync(artifacts.txtPath, coverLetter, 'utf8');
+
+  try {
+    fs.copyFileSync(pdfPath, artifacts.pdfPath);
+  } catch (_) {}
+
+  console.log(`[Tailor] 💾 Persisted tailored artifacts to: data/tailored/${safeJobId}/ (resume.json, cover_letter.txt, resume.pdf)`);
+
   const appliedRecord = {
-    id: String(job.id || `job_${Date.now()}`),
-    jobId: String(job.id || `job_${Date.now()}`),
+    id: String(job.id || safeJobId),
+    jobId: String(job.id || safeJobId),
     title: targetRole,
     company: company,
     location: job.location || (profile.locations && profile.locations[0]) || 'Remote',
@@ -128,8 +243,11 @@ ${candidateName}`;
     cover_letter: coverLetter,
     pdf_path: pdfPath,
     pdf_filename: pdfFilename,
-    status: 'Applied',
-    applied_at: new Date().toISOString()
+    resume_json_path: artifacts.jsonPath,
+    cover_letter_txt_path: artifacts.txtPath,
+    status: job.status || 'Tailored',
+    applied_at: new Date().toISOString(),
+    is_cached: false
   };
 
   jobsDb.saveAppliedJob(appliedRecord);
@@ -137,5 +255,6 @@ ${candidateName}`;
 }
 
 module.exports = {
-  tailorJobApplication
+  tailorJobApplication,
+  getTailoredArtifactPaths
 };

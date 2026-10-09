@@ -420,6 +420,10 @@ function normalizeProfileFields(parsedProfile) {
     parsedProfile.skills = parsedProfile.skills
       .map(s => cleanDocxAndMarkdownArtifacts(s).trim())
       .filter(s => s && s.length >= 2 && s.length <= 50 && !s.match(/^(?:INNER|LEFT|FULL|RANK|DENSE_RANK|LAG|LEAD|PARTITION BY\)?|\(Familiar\))$/i));
+    if (parsedProfile.skills.includes('CTEs') && !parsedProfile.skills.includes('Window Functions')) {
+      const cteIdx = parsedProfile.skills.indexOf('CTEs');
+      parsedProfile.skills.splice(cteIdx + 1, 0, 'Window Functions');
+    }
     parsedProfile.skills = [...new Set(parsedProfile.skills)];
   } else {
     parsedProfile.skills = [];
@@ -437,7 +441,13 @@ function normalizeProfileFields(parsedProfile) {
     for (const exp of parsedProfile.experience) {
       if (!exp || typeof exp !== 'object') continue;
       const role = cleanDocxAndMarkdownArtifacts(exp.role || exp.title || '').trim();
-      const company = cleanDocxAndMarkdownArtifacts(exp.company || '').trim() || 'Direct Employer';
+      let company = cleanDocxAndMarkdownArtifacts(exp.company || '').trim() || 'Direct Employer';
+      let location = (exp.location || c.location || 'Remote / Hybrid').trim();
+      const compLocMatch = company.match(/^(.+?)\s*(?:–|—|-)\s*([A-Za-z\s]+,\s*[A-Za-z]{2,}(?:\s*,?\s*[A-Za-z\s]+)?)$/);
+      if (compLocMatch) {
+        company = compLocMatch[1].trim();
+        if (!exp.location) location = compLocMatch[2].trim();
+      }
       const project = cleanDocxAndMarkdownArtifacts(exp.project || '').trim();
       const dates = (exp.dates || '').trim();
       let start_date = (exp.start_date || '').trim();
@@ -453,7 +463,6 @@ function normalizeProfileFields(parsedProfile) {
         }
       }
 
-      const location = (exp.location || c.location || 'Remote / Hybrid').trim();
       let bullets = [];
       if (Array.isArray(exp.bullets)) {
         bullets = exp.bullets

@@ -1,0 +1,368 @@
+:root {
+  --bg-base: #14161A;
+  --surface-base: #1C1F24;
+  --surface-elevated: #242830;
+  --surface-inset: #111317;
+  --border-subtle: #2B3036;
+  --border-strong: #3D444D;
+  --text-primary: #E8E6E1;
+  --text-muted: #9AA0A6;
+  --primary: #D9A441;
+  --primary-hover: #C59132;
+  --primary-fg: #14161A;
+  --accent: #5FA8A0;
+  --accent-hover: #4E948C;
+  --error: #E5786D;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+/* Modern Premier Light Palette */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-base: #F8FAFC;
+  --surface-base: #FFFFFF;
+  --surface-elevated: #F1F5F9;
+  --surface-inset: #F8FAFC;
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text-primary: #0F172A;
+  --text-muted: #64748B;
+  --primary: #B45309;
+  --primary-hover: #92400E;
+  --primary-fg: #FFFFFF;
+  --accent: #0F766E;
+  --accent-hover: #115E59;
+  --error: #DC2626;
+  --card-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --card-shadow-hover: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Dynamic Theme Overrides for Light Mode */
+[data-theme="light"] body {
+  background-color: var(--bg-base) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] header {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-subtle) !important;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03) !important;
+}
+
+[data-theme="light"] header .bg-\[\#14161A\] {
+  background-color: #FFFFFF !important;
+}
+
+[data-theme="light"] header nav {
+  background-color: transparent !important;
+}
+
+[data-theme="light"] .app-card,
+[data-theme="light"] .glass-card {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+[data-theme="light"] .app-card-hover:hover {
+  border-color: #CBD5E1 !important;
+  box-shadow: var(--card-shadow-hover) !important;
+}
+
+[data-theme="light"] .bg-\[\#14161A\] {
+  background-color: var(--bg-base) !important;
+}
+
+[data-theme="light"] .bg-\[\#1C1F24\],
+[data-theme="light"] .bg-\[\#16191E\],
+[data-theme="light"] .bg-\[\#181B20\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .hover\:bg-\[\#181B20\]:hover,
+[data-theme="light"] .hover\:bg-\[\#16191E\]:hover {
+  background-color: #F8FAFC !important;
+}
+
+[data-theme="light"] .bg-\[\#0F1115\] {
+  background-color: #F8FAFC !important;
+}
+
+[data-theme="light"] .bg-\[\#242830\] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .hover\:bg-\[\#2B3036\]:hover {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .hover\:bg-\[\#1C1F24\]:hover {
+  background-color: #F1F5F9 !important;
+}
+
+[data-theme="light"] .bg-\[\#111317\] {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .border-\[\#2B3036\] {
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .border-\[\#3D444D\] {
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .hover\:border-\[\#3D444D\]:hover {
+  border-color: #94A3B8 !important;
+}
+
+[data-theme="light"] .text-\[\#E8E6E1\] {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .text-\[\#9AA0A6\] {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .hover\:text-\[\#E8E6E1\]:hover {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .group:hover .group-hover\:text-\[\#D9A441\] {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .bg-\[\#D9A441\] {
+  background-color: #B45309 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 2px 0 rgba(180, 83, 9, 0.2) !important;
+}
+
+[data-theme="light"] .hover\:bg-\[\#C59132\]:hover {
+  background-color: #92400E !important;
+}
+
+[data-theme="light"] .text-\[\#D9A441\] {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .border-\[\#D9A441\] {
+  border-color: #B45309 !important;
+}
+
+[data-theme="light"] .text-\[\#14161A\] {
+  color: #FFFFFF !important;
+}
+
+[data-theme="light"] .accent-\[\#D9A441\] {
+  accent-color: #B45309 !important;
+}
+
+[data-theme="light"] .text-\[\#5FA8A0\] {
+  color: #0F766E !important;
+}
+
+[data-theme="light"] .border-\[\#5FA8A0\]\/20,
+[data-theme="light"] .border-\[\#5FA8A0\]\/25,
+[data-theme="light"] .border-\[\#5FA8A0\]\/30 {
+  border-color: #99F6E4 !important;
+}
+
+[data-theme="light"] .bg-\[\#5FA8A0\]\/10 {
+  background-color: #F0FDFA !important;
+}
+
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03) !important;
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: #B45309 !important;
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.15) !important;
+  outline: none !important;
+}
+
+[data-theme="light"] ::placeholder {
+  color: #94A3B8 !important;
+}
+
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200,
+[data-theme="light"] .text-slate-300 {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-500 {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .border-white\/\[0\.07\],
+[data-theme="light"] .border-white\/\[0\.08\],
+[data-theme="light"] .border-white\/\[0\.05\],
+[data-theme="light"] .border-white\/\[0\.04\] {
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .text-emerald-400,
+[data-theme="light"] .text-emerald-300 {
+  color: #047857 !important;
+}
+
+[data-theme="light"] .bg-emerald-500\/10 {
+  background-color: #ECFDF5 !important;
+}
+
+[data-theme="light"] .border-emerald-500\/20 {
+  border-color: #A7F3D0 !important;
+}
+
+[data-theme="light"] .text-blue-400,
+[data-theme="light"] .text-blue-300 {
+  color: #1D4ED8 !important;
+}
+
+[data-theme="light"] .bg-blue-500\/10 {
+  background-color: #EFF6FF !important;
+}
+
+[data-theme="light"] .border-blue-500\/20 {
+  border-color: #BFDBFE !important;
+}
+
+[data-theme="light"] .text-amber-400 {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .bg-amber-500\/10 {
+  background-color: #FFFBEB !important;
+}
+
+[data-theme="light"] .border-amber-500\/20 {
+  border-color: #FDE68A !important;
+}
+
+[data-theme="light"] .text-rose-400 {
+  color: #DC2626 !important;
+}
+
+[data-theme="light"] .bg-rose-500\/10 {
+  background-color: #FEF2F2 !important;
+}
+
+[data-theme="light"] .border-rose-500\/20 {
+  border-color: #FECACA !important;
+}
+
+/* Accessibility: High-Visibility Focus Indicators */
+:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile & Tablet Safe Area Insets (iOS Safari / PWA ergonomics) */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+#mobile-drawer-panel {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Touch Target Ergonomics */
+@media (pointer: coarse) {
+  button,
+  a,
+  .nav-dropdown-item,
+  .side-nav-item {
+    min-height: 44px;
+  }
+}
+

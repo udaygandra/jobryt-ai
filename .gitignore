@@ -43,16 +43,11 @@ Thumbs.db
 # IDE, agent, and scratch worktrees
 .kilo/
 scratch/
-.agent/
-.agents/
 .claude/
 .cursor/
 .windsurf/
-.gemini/
 .interface-design/
 CLAUDE.md
-AGENTS.md
-GEMINI.md
 .cursorrules
 .windsurfrules
 public-release-cleanup.md

@@ -156,6 +156,7 @@ function getDb() {
   try { dbInstance.exec('ALTER TABLE applied_jobs ADD COLUMN categorized_skills TEXT;'); } catch (_) { }
   try { dbInstance.exec('ALTER TABLE applied_jobs ADD COLUMN tailored_resume_json TEXT;'); } catch (_) { }
   try { dbInstance.exec('ALTER TABLE applied_jobs ADD COLUMN pdf_base64 TEXT;'); } catch (_) { }
+  try { dbInstance.exec('ALTER TABLE applied_jobs ADD COLUMN notes TEXT;'); } catch (_) { }
 
   // Migrate existing seen_jobs.json if seen_jobs table is empty
   try {
@@ -378,6 +379,46 @@ function getAppliedJobs(limit = 1000) {
   } catch (err) {
     console.error('Error querying applied_jobs from SQLite:', err.message);
     return [];
+  }
+}
+
+function updateJobStatus(id, status, notes = null) {
+  if (!id) return false;
+  try {
+    const db = getDb();
+    if (notes !== null && notes !== undefined) {
+      db.prepare(`UPDATE applied_jobs SET status = ?, notes = ? WHERE id = ? OR job_id = ?`).run(status, String(notes), String(id), String(id));
+    } else {
+      db.prepare(`UPDATE applied_jobs SET status = ? WHERE id = ? OR job_id = ?`).run(status, String(id), String(id));
+    }
+    return true;
+  } catch (err) {
+    console.error('updateJobStatus error:', err.message);
+    return false;
+  }
+}
+
+function updateJobNotes(id, notes) {
+  if (!id) return false;
+  try {
+    const db = getDb();
+    db.prepare(`UPDATE applied_jobs SET notes = ? WHERE id = ? OR job_id = ?`).run(String(notes || ''), String(id), String(id));
+    return true;
+  } catch (err) {
+    console.error('updateJobNotes error:', err.message);
+    return false;
+  }
+}
+
+function deleteAppliedJob(id) {
+  if (!id) return false;
+  try {
+    const db = getDb();
+    db.prepare(`DELETE FROM applied_jobs WHERE id = ? OR job_id = ?`).run(String(id), String(id));
+    return true;
+  } catch (err) {
+    console.error('deleteAppliedJob error:', err.message);
+    return false;
   }
 }
 
@@ -655,6 +696,9 @@ module.exports = {
   getDbPath,
   saveAppliedJob,
   getAppliedJobs,
+  updateJobStatus,
+  updateJobNotes,
+  deleteAppliedJob,
   markJobSeen,
   markJobsSeen,
   isJobSeen,

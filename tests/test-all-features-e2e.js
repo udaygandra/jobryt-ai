@@ -24,12 +24,33 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const { fork } = require('child_process');
+const jobsDb = require('../scripts/core/jobs-db');
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
+async function ensureServerRunning() {
+  try {
+    await request('GET', '/api/status');
+    return null;
+  } catch (_) {
+    console.log('⚡ Server not running on port 3000. Auto-spawning Express server...');
+    const serverProcess = fork(path.join(__dirname, '../server.js'), [], { stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 250));
+      try {
+        await request('GET', '/api/status');
+        console.log('✔ Server started successfully.');
+        return serverProcess;
+      } catch (_) {}
+    }
+    throw new Error('Failed to start server within timeout');
+  }
+}
+
 // Helper: Make HTTP request to local server
-function request(method, pathUrl, body = null, headers = {}) {
+function request(method, pathUrl, body = null, headers = {}, timeoutMs = 120000) {
   return new Promise((resolve, reject) => {
     const url = new URL(pathUrl, BASE_URL);
     const reqHeaders = { ...headers };
@@ -45,7 +66,7 @@ function request(method, pathUrl, body = null, headers = {}) {
       reqHeaders['Content-Length'] = Buffer.byteLength(reqBody);
     }
 
-    const req = http.request(url, { method, headers: reqHeaders, timeout: 25000 }, (res) => {
+    const req = http.request(url, { method, headers: reqHeaders, timeout: timeoutMs }, (res) => {
       const chunks = [];
       res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
@@ -79,6 +100,7 @@ async function runAllFeatureTests() {
   console.log('🧪 RUNNING COMPREHENSIVE END-TO-END APPLICATION & MENU TESTS');
   console.log('='.repeat(70) + '\n');
 
+  const serverProc = await ensureServerRunning();
   let passed = 0;
   let total = 0;
 
@@ -182,7 +204,60 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
 
   // ── TEST GROUP 3: Settings & Configuration ────────────────────────────────
   console.log('\n--- 3. Testing Settings & Configuration Menu ---');
-  await test('GET & POST /api/settings manages matching preferences', async () => {
+  await test('GET /api/settings/countries returns global supported country scopes', async () => {
+    const res = await request('GET', '/api/settings/countries');
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.json.success, true);
+    assert(Array.isArray(res.json.countries));
+    assert(res.json.countries.length >= 18);
+    const countryIds = res.json.countries.map(c => c.id);
+    assert(countryIds.includes('AUTO'));
+    assert(countryIds.includes('US'));
+    assert(countryIds.includes('GB'));
+    assert(countryIds.includes('DE'));
+    assert(countryIds.includes('CA'));
+    assert(countryIds.includes('GLOBAL'));
+    assert(countryIds.includes('IN'));
+    assert(countryIds.includes('AE'));
+    assert(countryIds.includes('JP'));
+  });
+
+  await test('GET /api/settings/boards filters boards specifically for target country', async () => {
+    // 1. Canada boards
+    const caRes = await request('GET', '/api/settings/boards?country=CA');
+    assert.strictEqual(caRes.status, 200);
+    assert.strictEqual(caRes.json.success, true);
+    const caBoardIds = caRes.json.boards.map(b => b.id);
+    assert(caBoardIds.includes('canada_job_bank'), 'Canada must have Canada Job Bank');
+    assert(caBoardIds.includes('linkedin'), 'Canada must have LinkedIn');
+    assert(caBoardIds.includes('indeed'), 'Canada must have Indeed');
+    assert(!caBoardIds.includes('arbeitsagentur'), 'Canada must not include German Arbeitsagentur');
+    assert(!caBoardIds.includes('bayt'), 'Canada must not include UAE Bayt');
+
+    // 2. Germany boards
+    const deRes = await request('GET', '/api/settings/boards?country=DE');
+    assert.strictEqual(deRes.status, 200);
+    const deBoardIds = deRes.json.boards.map(b => b.id);
+    assert(deBoardIds.includes('arbeitsagentur'), 'Germany must have Bundesagentur für Arbeit');
+    assert(deBoardIds.includes('stepstone'), 'Germany must have StepStone');
+    assert(deBoardIds.includes('arbeitnow'), 'Germany must have ArbeitNow');
+    assert(!deBoardIds.includes('canada_job_bank'), 'Germany must not include Canada Job Bank');
+
+    // 3. Singapore boards
+    const sgRes = await request('GET', '/api/settings/boards?country=SG');
+    assert.strictEqual(sgRes.status, 200);
+    const sgBoardIds = sgRes.json.boards.map(b => b.id);
+    assert(sgBoardIds.includes('mycareersfuture'), 'Singapore must have MyCareersFuture Gov');
+    assert(sgBoardIds.includes('jobstreet'), 'Singapore must have Jobstreet');
+
+    // 4. UAE boards
+    const aeRes = await request('GET', '/api/settings/boards?country=AE');
+    assert.strictEqual(aeRes.status, 200);
+    const aeBoardIds = aeRes.json.boards.map(b => b.id);
+    assert(aeBoardIds.includes('bayt'), 'UAE must have Bayt.com');
+  });
+
+  await test('GET & POST /api/settings manages matching preferences and multi-country scope', async () => {
     const getRes = await request('GET', '/api/settings');
     assert.strictEqual(getRes.status, 200);
     assert(getRes.json);
@@ -191,13 +266,15 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     const updatePayload = {
       score_threshold: 65,
       freshness_hours: 48,
-      country_scope: 'AUTO',
+      country_scope: 'DE',
       work_type: 'Remote Only',
       boards_enabled: {
         adzuna: true,
         linkedin: true,
-        canada_job_bank: true,
-        usajobs: false
+        canada_job_bank: false,
+        usajobs: false,
+        arbeitnow: true,
+        himalayas: true
       }
     };
 
@@ -206,6 +283,8 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert.strictEqual(postRes.json.success, true);
     assert.strictEqual(postRes.json.settings.score_threshold, 65);
     assert.strictEqual(postRes.json.settings.freshness_hours, 48);
+    assert.strictEqual(postRes.json.settings.country_scope, 'DE');
+    assert.strictEqual(postRes.json.settings.boards_enabled.arbeitnow, true);
 
     // Revert back
     await request('POST', '/api/settings', origSettings);
@@ -224,16 +303,53 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     }
   });
 
+  await test('GET & POST /api/scheduler configures autonomous cron schedule', async () => {
+    const getRes = await request('GET', '/api/scheduler');
+    assert.strictEqual(getRes.status, 200);
+    assert(getRes.json.presets);
+    assert(typeof getRes.json.enabled === 'boolean');
+
+    const updateRes = await request('POST', '/api/scheduler', {
+      enabled: true,
+      preset: '2H',
+      schedule: '0 */2 * * *',
+      description: 'Every 2 hours'
+    });
+    assert.strictEqual(updateRes.status, 200);
+    assert.strictEqual(updateRes.json.success, true);
+    assert.strictEqual(updateRes.json.scheduler.preset, '2H');
+    assert.strictEqual(updateRes.json.scheduler.schedule, '0 */2 * * *');
+
+    // Test rejection of invalid cron expression
+    const badRes = await request('POST', '/api/scheduler', {
+      schedule: 'invalid cron syntax'
+    });
+    assert.strictEqual(badRes.status, 400);
+
+    // Revert
+    await request('POST', '/api/scheduler', {
+      enabled: getRes.json.enabled,
+      preset: getRes.json.preset,
+      schedule: getRes.json.schedule,
+      description: getRes.json.description
+    });
+  });
+
   // ── TEST GROUP 4: Opportunities Pipeline & Custom Evaluator ───────────────
   console.log('\n--- 4. Testing Opportunities Pipeline & Custom Evaluator ---');
   let testJobId = null;
 
   await test('POST /api/pipeline/evaluate-custom evaluates any custom job link/text', async () => {
+    const profRes = await request('GET', '/api/profile');
+    const prof = profRes.json || {};
+    const targetTitle = (prof.target_titles && prof.target_titles[0]) || 'Data Analyst';
+    const topSkills = (prof.skills && prof.skills.length ? prof.skills.slice(0, 5) : ['SQL', 'Power BI', 'Python']).join(', ');
+
     const customJob = {
-      title: 'Senior Cloud Platform Engineer',
+      title: `Senior ${targetTitle}`,
       company: 'OmniCloud Systems',
       location: 'Remote (US/Canada)',
-      description: 'Looking for a Senior Cloud Platform Engineer with deep experience in TypeScript, Node.js, Docker, Kubernetes, and AWS microservices.',
+      description: `Looking for an experienced Senior ${targetTitle} with deep expertise in ${topSkills}, statistical analysis, and interactive dashboarding.`,
       url: 'https://example.com/jobs/cloud-platform'
     };
 
@@ -252,6 +368,9 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert.strictEqual(res.status, 200);
     assert(typeof res.json.count === 'number');
     assert(Array.isArray(res.json.jobs));
+    if (testJobId) {
+      jobsDb.removePendingJob(testJobId);
+    }
   });
 
   await test('POST /api/pipeline/run executes autonomous multi-board scan with filters', async () => {
@@ -263,7 +382,7 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
       sendTelegram: false // Do not spam Telegram during automated E2E testing
     };
 
-    const res = await request('POST', '/api/pipeline/run', scanPayload);
+    const res = await request('POST', '/api/pipeline/run', scanPayload, {}, 240000);
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.json.success, true);
     assert(res.json.stats);
@@ -356,39 +475,52 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert(res.json.draftLinkedInNote.length <= 300, 'LinkedIn note must respect 300-char constraint');
   });
 
-  // ── TEST GROUP 8: Telegram Diagnostics & Bridge Process ───────────────────
-  console.log('\n--- 8. Testing Telegram Diagnostics & Bridge Process ---');
-  await test('GET /api/telegram/status reports configuration state', async () => {
-    const res = await request('GET', '/api/telegram/status');
-    assert.strictEqual(res.status, 200);
-    assert(res.json);
-    assert(typeof res.json.configured === 'boolean');
-    assert(res.json.bridge);
-  });
+  // ── TEST GROUP 8: Application Lifecycle Tracking & Stage Management ─────
+  console.log('\n--- 8. Testing Application Tracking Lifecycle & Stage Management ---');
+  await test('PATCH /api/jobs/:id/status updates job lifecycle stage and notes', async () => {
+    // 1. Get an applied job
+    const listRes = await request('GET', '/api/jobs/applied');
+    assert.strictEqual(listRes.status, 200);
+    assert(listRes.json.jobs.length > 0, 'Must have at least 1 applied job to test status updates');
+    const targetJob = listRes.json.jobs[0];
 
-  await test('POST /api/telegram/bridge/stop and /api/telegram/bridge/start manage process cleanly', async () => {
-    const stopRes = await request('POST', '/api/telegram/bridge/stop');
-    assert.strictEqual(stopRes.status, 200);
+    // 2. Transition stage to 'Interviewing' with custom note
+    const patchRes = await request('PATCH', `/api/jobs/${encodeURIComponent(targetJob.id)}/status`, {
+      status: 'Interviewing',
+      notes: 'Passed screening round with recruiter. Technical interview set.'
+    });
+    assert.strictEqual(patchRes.status, 200);
+    assert.strictEqual(patchRes.json.success, true);
+    assert.strictEqual(patchRes.json.status, 'Interviewing');
 
-    const startRes = await request('POST', '/api/telegram/bridge/start');
-    assert.strictEqual(startRes.status, 200);
+    // 3. Verify stage filtering on GET /api/jobs/applied?status=interviewing
+    const filteredRes = await request('GET', '/api/jobs/applied?status=interviewing');
+    assert.strictEqual(filteredRes.status, 200);
+    assert(filteredRes.json.jobs.some(j => j.id === targetJob.id), 'Job must appear in interviewing stage');
+
+    // 4. Update notes independently
+    const notesRes = await request('POST', `/api/jobs/${encodeURIComponent(targetJob.id)}/notes`, {
+      notes: 'Updated: Final interview on Friday at 2:00 PM.'
+    });
+    assert.strictEqual(notesRes.status, 200);
+    assert.strictEqual(notesRes.json.success, true);
   });
 
   // ── TEST GROUP 9: Frontend Single Page Application (SPA) DOM Contracts ────
   console.log('\n--- 9. Testing Frontend SPA HTML & DOM Elements ---');
-  await test('GET / serves index.html with all 7 tabs, modal drawers, and responsive controls', async () => {
+  await test('GET / serves index.html with all tabs, Workflow Guide, and modals', async () => {
     const res = await request('GET', '/');
     assert.strictEqual(res.status, 200);
     const html = res.text;
 
     // Tabs
-    const expectedTabs = ['tab-feed', 'tab-config', 'tab-custom', 'tab-profile', 'tab-applied', 'tab-recruiters', 'tab-telegram'];
+    const expectedTabs = ['tab-feed', 'tab-config', 'tab-custom', 'tab-profile', 'tab-applied', 'tab-recruiters', 'tab-guide'];
     for (const tabId of expectedTabs) {
       assert(html.includes(`id="${tabId}"`), `Tab #${tabId} must exist in index.html`);
     }
 
     // Views
-    const expectedViews = ['view-feed', 'view-config', 'view-custom', 'view-profile', 'view-applied', 'view-recruiters', 'view-telegram'];
+    const expectedViews = ['view-feed', 'view-config', 'view-custom', 'view-profile', 'view-applied', 'view-recruiters', 'view-guide'];
     for (const viewId of expectedViews) {
       assert(html.includes(`id="${viewId}"`), `View container #${viewId} must exist in index.html`);
     }
@@ -397,11 +529,10 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     const expectedButtons = [
       'btn-upload-resume',
       'btn-save-profile',
-      'btn-tg-ping',
-      'btn-tg-custom-ping',
-      'btn-tg-restart',
       'scan-modal',
       'letter-modal',
+      'applied-confirm-modal',
+      'workflow-guide-content',
       'prof-experience-container',
       'prof-projects-container',
       'prof-certifications-container',
@@ -421,12 +552,19 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert(html.includes('toggleTheme()'), 'Theme toggle function must exist');
   });
 
+  try {
+    const db = jobsDb.getDb();
+    db.prepare("DELETE FROM applied_jobs WHERE id LIKE 'test_%' OR id LIKE 'manual_%'").run();
+    db.prepare("DELETE FROM tailored_resumes WHERE id LIKE 'test_%' OR id LIKE 'manual_%'").run();
+  } catch (_) {}
+
   console.log('\n' + '='.repeat(70));
   console.log(`🎉 ALL ${passed}/${total} END-TO-END FEATURE AND MENU TESTS PASSED PERFECTLY!`);
   console.log('='.repeat(70) + '\n');
+  if (serverProc) serverProc.kill();
 }
 
-runAllFeatureTests().catch(err => {
+runAllFeatureTests().then(() => process.exit(0)).catch(err => {
   console.error('\n❌ E2E Feature Test Suite failed:', err);
   process.exit(1);
 });

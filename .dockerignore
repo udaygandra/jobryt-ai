@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.agent
+.agents
+.gemini
+.gsd
+cache/
+data/cache/
+data/tracking/*.db-journal
+data/tracking/*.db-wal
+data/tracking/*.db-shm
+.tempmediaStorage
+tests/
+Dockerfile
+docker-compose*.yml
