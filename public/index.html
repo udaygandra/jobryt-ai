@@ -70,6 +70,7 @@
   <!-- Modular Design Tokens & Components Stylesheets -->
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body
@@ -141,7 +142,7 @@
     <!-- Drawer Navigation Content -->
     <div class="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
 
-      <!-- Pillar 1: Opportunities -->
+      <!-- Pillar 1: Find Jobs -->
       <div class="space-y-1.5">
         <div
           class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
@@ -149,13 +150,13 @@
             <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Opportunities</span>
+            <span>Find Jobs</span>
           </span>
-          <span class="text-[10px] font-mono lowercase text-[#D9A441]/80">sourcing & match</span>
+          <span class="text-[10px] font-mono lowercase text-[#D9A441]/80">live search</span>
         </div>
 
         <div class="space-y-1">
-          <!-- Feed / Discovery Queue -->
+          <!-- Feed / Browse Matched Jobs -->
           <button onclick="selectSideTab('feed')" id="side-tab-feed"
             class="side-nav-item side-active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
             <div
@@ -167,11 +168,11 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-[#E8E6E1]">Discovery Queue</span>
+                <span class="text-xs font-semibold text-[#E8E6E1]">Browse Matched Jobs</span>
                 <span id="side-count-pending"
                   class="text-[11px] font-mono tabular-nums text-[#D9A441] font-bold px-1.5 py-0.5 rounded bg-[#D9A441]/10 border border-[#D9A441]/20">0</span>
               </div>
-              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Pre-screened roles matched to profile</p>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Roles matched to your profile & criteria</p>
             </div>
           </button>
 
@@ -186,8 +187,8 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-xs font-semibold text-[#E8E6E1] block">Instant Job Tailor</span>
-              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Paste any link or job description to evaluate</p>
+              <span class="text-xs font-semibold text-[#E8E6E1] block">Tailor Any Job Link</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Paste any link or job description</p>
             </div>
           </button>
 
@@ -202,14 +203,14 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-xs font-semibold text-[#E8E6E1] block">Recruiter Intelligence</span>
-              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Hiring managers & connection notes</p>
+              <span class="text-xs font-semibold text-[#E8E6E1] block">Find Recruiters</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Hiring managers & connection leads</p>
             </div>
           </button>
         </div>
       </div>
 
-      <!-- Pillar 2: Applications -->
+      <!-- Pillar 2: My Applications -->
       <div class="space-y-1.5">
         <div
           class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
@@ -218,9 +219,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span>Applications</span>
+            <span>My Applications</span>
           </span>
-          <span class="text-[10px] font-mono lowercase text-[#5FA8A0]/80">tracker & export</span>
+          <span class="text-[10px] font-mono lowercase text-[#5FA8A0]/80">tracker & files</span>
         </div>
 
         <div class="space-y-1">
@@ -236,7 +237,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-[#E8E6E1]">Application Pipeline</span>
+                <span class="text-xs font-semibold text-[#E8E6E1]">Tracked Applications</span>
                 <span id="side-count-applied"
                   class="text-[11px] font-mono tabular-nums text-[#5FA8A0] font-bold px-1.5 py-0.5 rounded bg-[#5FA8A0]/10 border border-[#5FA8A0]/20">0</span>
               </div>
@@ -255,8 +256,8 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-xs font-medium block">Export to Excel (.xlsx)</span>
-              <p class="text-[10px] text-[#9AA0A6] truncate">Formatted pipeline spreadsheet</p>
+              <span class="text-xs font-medium block">Download Excel (.xlsx)</span>
+              <p class="text-[10px] text-[#9AA0A6] truncate">Complete tracking spreadsheet</p>
             </div>
           </a>
 
@@ -271,14 +272,14 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-xs font-medium block">Export to CSV</span>
-              <p class="text-[10px] text-[#9AA0A6] truncate">Flat tabular records</p>
+              <span class="text-xs font-medium block">Download CSV (.csv)</span>
+              <p class="text-[10px] text-[#9AA0A6] truncate">Simple spreadsheet file</p>
             </div>
           </a>
         </div>
       </div>
 
-      <!-- Pillar 3: Candidate Dossier -->
+      <!-- Pillar 3: My Resume & Profile -->
       <div class="space-y-1.5">
         <div
           class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
@@ -287,9 +288,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            <span>Candidate Dossier</span>
+            <span>My Resume & Profile</span>
           </span>
-          <span class="text-[10px] font-mono text-emerald-400">verified</span>
+          <span class="text-[10px] font-mono text-emerald-400">profile</span>
         </div>
         <button onclick="selectSideTab('profile')" id="side-tab-profile"
           class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
@@ -301,13 +302,13 @@
             </svg>
           </div>
           <div class="flex-1 min-w-0">
-            <span class="text-xs font-semibold text-[#E8E6E1] block">Master Profile & Credentials</span>
+            <span class="text-xs font-semibold text-[#E8E6E1] block">My Resume & Profile</span>
             <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Resume baseline, skills & experience</p>
           </div>
         </button>
       </div>
 
-      <!-- Pillar 4: Engine & Settings -->
+      <!-- Pillar 4: Settings -->
       <div class="space-y-1.5">
         <div
           class="px-2 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] flex items-center justify-between">
@@ -318,9 +319,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span>Engine & Settings</span>
+            <span>Settings</span>
           </span>
-          <span class="text-[10px] font-mono text-emerald-400">daemon active</span>
+          <span class="text-[10px] font-mono text-emerald-400">ready</span>
         </div>
 
         <div class="space-y-1">
@@ -335,12 +336,12 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-xs font-semibold text-[#E8E6E1] block">Search & Ingestion Rules</span>
+              <span class="text-xs font-semibold text-[#E8E6E1] block">Job Search Settings</span>
               <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Target roles, locations & board filters</p>
             </div>
           </button>
 
-          <!-- Workflow Guide -->
+          <!-- Getting Started Guide -->
           <button onclick="selectSideTab('guide')" id="side-tab-guide" data-accent="amber"
             class="side-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[#E8E6E1] hover:bg-[#242830]">
             <div
@@ -351,8 +352,8 @@
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-xs font-semibold text-[#E8E6E1]">Workflow Guide & Steps</span>
-              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Resume, profile, scan & tracking guide</p>
+              <span class="text-xs font-semibold text-[#E8E6E1]">Getting Started Guide</span>
+              <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Step-by-step setup and tips</p>
             </div>
           </button>
         </div>
@@ -431,7 +432,7 @@
       <nav class="hidden md:flex items-center gap-5 lg:gap-7 text-xs lg:text-sm font-medium shrink-0 relative"
         aria-label="Main Navigation">
 
-        <!-- Category 1: Opportunities Dropdown -->
+        <!-- Category 1: Find Jobs Dropdown -->
         <div class="relative nav-dropdown-group" data-group="opportunities">
           <button id="group-btn-opportunities" onclick="toggleDropdown('opportunities')" aria-haspopup="true"
             aria-expanded="false"
@@ -440,7 +441,7 @@
               <svg class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>Opportunities</span>
+              <span>Find Jobs</span>
             </span>
             <span id="tab-count-pending-badge"
               class="px-1.5 py-0.5 rounded-full text-[10px] font-mono tabular-nums bg-[#D9A441]/15 text-[#D9A441] border border-[#D9A441]/30 font-bold">0</span>
@@ -455,11 +456,11 @@
             class="nav-dropdown-menu absolute left-0 top-full mt-0 w-84 py-2 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50">
             <div
               class="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] border-b border-[#2B3036]/60 mb-1 flex items-center justify-between">
-              <span>Sourcing & Match</span>
-              <span class="text-[#D9A441] font-mono lowercase">live board scans</span>
+              <span>Job Discovery</span>
+              <span class="text-[#D9A441] font-mono lowercase">live search</span>
             </div>
 
-            <!-- Subcategory 1: Discovery Queue -->
+            <!-- Subcategory 1: Browse Matched Jobs -->
             <button onclick="selectNavTab('feed')" id="tab-feed"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group item-active">
               <div
@@ -471,15 +472,15 @@
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#D9A441]">Discovery Queue</span>
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#D9A441]">Browse Matched Jobs</span>
                   <span id="tab-count-pending"
                     class="text-[11px] font-mono tabular-nums text-[#D9A441] font-bold px-1.5 py-0.2 rounded bg-[#D9A441]/10">0</span>
                 </div>
-                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Pre-screened roles matched to profile</p>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Roles matched to your profile & criteria</p>
               </div>
             </button>
 
-            <!-- Subcategory 2: Instant Custom Tailor -->
+            <!-- Subcategory 2: Tailor Any Job Link -->
             <button onclick="selectNavTab('custom')" id="tab-custom"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
               <div
@@ -490,13 +491,12 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#5FA8A0] block">Instant Job
-                  Tailor</span>
-                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Paste any link or job description to evaluate</p>
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#5FA8A0] block">Tailor Any Job Link</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Paste any job link or description</p>
               </div>
             </button>
 
-            <!-- Subcategory 3: Recruiter Leads -->
+            <!-- Subcategory 3: Find Recruiters -->
             <button onclick="selectNavTab('recruiters')" id="tab-recruiters"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group"
               data-accent="blue">
@@ -508,15 +508,14 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-blue-400 block">Recruiter
-                  Intelligence</span>
-                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Hiring managers & calibrated outreach</p>
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-blue-400 block">Find Recruiters</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Hiring managers & connection leads</p>
               </div>
             </button>
           </div>
         </div>
 
-        <!-- Category 2: Applications Dropdown -->
+        <!-- Category 2: My Applications Dropdown -->
         <div class="relative nav-dropdown-group" data-group="applications">
           <button id="group-btn-applications" onclick="toggleDropdown('applications')" aria-haspopup="true"
             aria-expanded="false"
@@ -526,7 +525,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span>Applications</span>
+              <span>My Applications</span>
             </span>
             <span id="tab-count-applied-badge"
               class="px-1.5 py-0.5 rounded-full text-[10px] font-mono tabular-nums bg-[#5FA8A0]/15 text-[#5FA8A0] border border-[#5FA8A0]/30 font-bold">0</span>
@@ -541,11 +540,11 @@
             class="nav-dropdown-menu absolute left-0 top-full mt-0 w-84 py-2 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50">
             <div
               class="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] border-b border-[#2B3036]/60 mb-1 flex items-center justify-between">
-              <span>Pipeline & Documents</span>
-              <span class="text-[#5FA8A0] font-mono lowercase">sqlite archive</span>
+              <span>Applications & Files</span>
+              <span class="text-[#5FA8A0] font-mono lowercase">job tracker</span>
             </div>
 
-            <!-- Subcategory 1: Pipeline & History -->
+            <!-- Subcategory 1: Tracked Applications -->
             <button onclick="selectNavTab('applied')" id="tab-applied"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group"
               data-accent="teal">
@@ -558,8 +557,7 @@
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#5FA8A0]">Application
-                    Pipeline</span>
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-[#5FA8A0]">Tracked Applications</span>
                   <span id="tab-count-applied"
                     class="text-[11px] font-mono tabular-nums text-[#5FA8A0] font-bold px-1.5 py-0.2 rounded bg-[#5FA8A0]/10">0</span>
                 </div>
@@ -568,8 +566,7 @@
             </button>
 
             <div class="my-1.5 border-t border-[#2B3036]/60"></div>
-            <div class="px-3.5 py-1 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6]">Export Application
-              Data</div>
+            <div class="px-3.5 py-1 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6]">Export Your Applications</div>
 
             <!-- Export to Excel -->
             <a href="/api/export/xlsx" download
@@ -582,9 +579,8 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-emerald-400 block">Export to Excel
-                  (.xlsx)</span>
-                <p class="text-[11px] text-[#9AA0A6] truncate">Download formatted pipeline spreadsheet</p>
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-emerald-400 block">Download Excel (.xlsx)</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate">Complete tracking spreadsheet</p>
               </div>
             </a>
 
@@ -599,34 +595,34 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-slate-300 block">Export to CSV</span>
-                <p class="text-[11px] text-[#9AA0A6] truncate">Comma-separated tabular log</p>
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-slate-300 block">Download CSV (.csv)</span>
+                <p class="text-[11px] text-[#9AA0A6] truncate">Simple spreadsheet file</p>
               </div>
             </a>
           </div>
         </div>
 
-        <!-- Category 3: Candidate Dossier (Direct Nav Link with active underline) -->
+        <!-- Category 3: My Resume & Profile -->
         <button onclick="selectNavTab('profile')" id="tab-profile" data-group="dossier"
           class="nav-tab nav-group-btn py-5 border-b-2 whitespace-nowrap active:scale-[0.98] flex items-center gap-1.5 text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
           <svg class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          <span>Candidate Dossier</span>
+          <span>My Resume & Profile</span>
         </button>
 
-        <!-- Category: Workflow Guide (Direct Nav Link) -->
+        <!-- Category: Getting Started Guide -->
         <button onclick="selectNavTab('guide')" id="tab-guide" data-group="guide"
           class="nav-tab nav-group-btn py-5 border-b-2 whitespace-nowrap active:scale-[0.98] flex items-center gap-1.5 text-[#9AA0A6] hover:text-[#E8E6E1] transition-colors cursor-pointer">
           <svg class="w-4 h-4 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
-          <span>Workflow Guide</span>
+          <span>Getting Started Guide</span>
         </button>
 
-        <!-- Category 4: Engine & Settings Dropdown -->
+        <!-- Category 4: Settings Dropdown -->
         <div class="relative nav-dropdown-group" data-group="settings">
           <button id="group-btn-settings" onclick="toggleDropdown('settings')" aria-haspopup="true"
             aria-expanded="false"
@@ -638,7 +634,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span>Engine & Settings</span>
+              <span>Settings</span>
             </span>
             <span id="tab-tg-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
             <svg class="dropdown-chevron w-3.5 h-3.5 text-[#9AA0A6] transition-transform duration-200" fill="none"
@@ -652,11 +648,11 @@
             class="nav-dropdown-menu absolute right-0 top-full mt-0 w-84 py-2 rounded-lg bg-[#1C1F24] border border-[#2B3036] shadow-2xl z-50">
             <div
               class="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-[#9AA0A6] border-b border-[#2B3036]/60 mb-1 flex items-center justify-between">
-              <span>Automation & Runtime</span>
-              <span class="text-amber-400 font-mono lowercase">daemon controls</span>
+              <span>App Preferences</span>
+              <span class="text-amber-400 font-mono lowercase">preferences</span>
             </div>
 
-            <!-- Subcategory 1: Config Settings -->
+            <!-- Subcategory 1: Job Search Preferences -->
             <button onclick="selectNavTab('config')" id="tab-config" data-accent="amber"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
               <div
@@ -667,13 +663,12 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-amber-400 block">Search & Ingestion
-                  Rules</span>
+                <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-amber-400 block">Job Search Settings</span>
                 <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Target roles, locations & board filters</p>
               </div>
             </button>
 
-            <!-- Subcategory 2: Autonomous Scheduler -->
+            <!-- Subcategory 2: Schedule & Automation -->
             <button onclick="selectNavTab('config'); setTimeout(() => { const el = document.getElementById('scheduler-card'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 150);" id="tab-scheduler" data-accent="emerald"
               class="nav-dropdown-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-md hover:bg-[#242830] text-left transition-colors text-[#E8E6E1] group">
               <div
@@ -685,10 +680,10 @@
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-emerald-400">Autonomous Scheduler</span>
+                  <span class="text-xs font-semibold text-[#E8E6E1] group-hover:text-emerald-400">Automatic Schedule</span>
                   <span class="text-[10px] font-mono text-emerald-400 font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10">Active</span>
                 </div>
-                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Background cron daemon & intervals</p>
+                <p class="text-[11px] text-[#9AA0A6] truncate mt-0.5">Background scan schedule & timing</p>
               </div>
             </button>
           </div>
@@ -702,8 +697,7 @@
         <button onclick="toggleMobileDrawer()"
           class="md:hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] border border-[#2B3036] hover:text-[#E8E6E1] transition-colors active:scale-95 cursor-pointer"
           aria-label="Open navigation menu">
-          <span id="mobile-active-section-name" class="font-semibold text-[#E8E6E1]">Opportunities · Discovery
-            Queue</span>
+          <span id="mobile-active-section-name" class="font-semibold text-[#E8E6E1]">Find Jobs · Matched Jobs</span>
           <span id="mobile-active-section-count" class="font-mono text-[10px] text-[#D9A441] font-bold">0</span>
           <svg class="w-3 h-3 text-[#9AA0A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -760,17 +754,13 @@
 
         <!-- Clean Unboxed Telemetry Line (Zero-Pill Discipline) -->
         <div class="flex items-center gap-3 text-xs text-[#9AA0A6] flex-wrap font-mono tabular-nums shrink-0">
-          <div><span>Tracked:</span> <span id="metric-seen" class="text-[#E8E6E1] font-semibold">0</span></div>
+          <div><span>Tracked:</span> <span id="metric-seen" class="text-[#E8E6E1] font-semibold">-</span></div>
           <span class="text-[#3D444D]" aria-hidden="true">·</span>
-          <div><span>Queue:</span> <span id="metric-pending" class="text-[#D9A441] font-semibold">0</span></div>
+          <div><span>Queue:</span> <span id="metric-pending" class="text-[#D9A441] font-semibold">-</span></div>
           <span class="text-[#3D444D]" aria-hidden="true">·</span>
-          <div><span>Applied:</span> <span id="metric-applied" class="text-[#5FA8A0] font-semibold">0</span></div>
+          <div><span>Applied:</span> <span id="metric-applied" class="text-[#5FA8A0] font-semibold">-</span></div>
           <span class="text-[#3D444D]" aria-hidden="true">·</span>
           <div><span>Model:</span> <span id="metric-model" class="text-[#E8E6E1]">gemini-3.8-flash</span></div>
-          <span class="text-[#3D444D]" aria-hidden="true">·</span>
-          <button onclick="switchTab('telegram')" class="text-[#5FA8A0] hover:underline">
-            @sahana_job_tracker_bot
-          </button>
         </div>
       </div>
     </section>
@@ -781,12 +771,12 @@
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
-            <span>Opportunities</span>
+            <span>Find Jobs</span>
             <span class="text-[#3D444D]" aria-hidden="true">/</span>
-            <span class="text-[#D9A441] font-semibold">Discovery Queue</span>
+            <span class="text-[#D9A441] font-semibold">Job Matches</span>
           </div>
           <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2.5">
-            <span>Qualified Opportunities Queue</span>
+            <span>Matching Job Opportunities</span>
             <span id="feed-pending-chip"
               class="px-2 py-0.5 text-xs rounded-full bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/25 font-mono tabular-nums font-semibold">0
               pending</span>
@@ -842,9 +832,9 @@
           class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036] pb-5">
           <div>
             <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
-              <span>Engine & Settings</span>
+              <span>Settings</span>
               <span class="text-[#3D444D]" aria-hidden="true">/</span>
-              <span class="text-amber-400 font-semibold">Search & Ingestion Rules</span>
+              <span class="text-amber-400 font-semibold">Job Search Settings</span>
             </div>
             <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">
               Job Search & Board Ingestion Settings
@@ -866,8 +856,8 @@
           </div>
         </div>
 
-        <!-- Autonomous Background Scanner (Cron Scheduler) Banner Card -->
-        <div class="mt-6 p-5 rounded-lg bg-[#181B20] border border-[#2B3036] shadow-sm">
+        <!-- Simplified Background Scanner (Scheduler) Banner Card -->
+        <div id="scheduler-card" class="mt-6 p-5 rounded-xl bg-[#181B20] border border-[#2B3036] shadow-sm space-y-4">
           <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036]/70 pb-4">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-lg bg-[#D9A441]/10 border border-[#D9A441]/25 flex items-center justify-center text-[#D9A441] shrink-0">
@@ -877,13 +867,13 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">Autonomous Background Scanner (Cron Scheduler)</h3>
+                  <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">Automatic Job Finder Schedule</h3>
                   <span id="sched-badge-status" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
                     ● Active
                   </span>
                 </div>
                 <p class="text-[12px] text-[#9AA0A6] mt-0.5">
-                  Automatically sweeps job boards on a recurring cron interval, scores new listings with Gemini, and populates your queue.
+                  Choose how often Jobryt should automatically sweep job boards in the background for new openings.
                 </p>
               </div>
             </div>
@@ -893,56 +883,98 @@
               <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" id="sched-enabled" onchange="onSchedulerToggleChange()" class="sr-only peer" checked>
                 <div class="w-11 h-6 bg-[#2B3036] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#E8E6E1] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D9A441] relative"></div>
-                <span id="sched-enabled-label" class="text-xs font-semibold text-[#E8E6E1]">Auto-Scan Enabled</span>
+                <span id="sched-enabled-label" class="text-xs font-semibold text-[#E8E6E1]">Automatic Scanning</span>
               </label>
             </div>
           </div>
 
-          <!-- Scheduler Controls & Schedule Picker -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-1">
-            <!-- Preset Selector -->
-            <div>
-              <label class="block text-[11px] font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Scan Frequency Preset</label>
-              <select id="sched-preset-select" onchange="onSchedulePresetChange()" class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] outline-none">
-                <option value="DAILY">Daily at 9:00 AM (0 9 * * *)</option>
-                <option value="TWICE">Twice Daily: 9 AM & 5 PM (0 9,17 * * *)</option>
-                <option value="3X">3 Times Daily: 8 AM, 1 PM, 6 PM</option>
-                <option value="5X">5 Times Daily: Peak Hours (30 8,11,14,17,20 * * *)</option>
-                <option value="2H">Every 2 Hours (0 */2 * * *)</option>
-                <option value="4H">Every 4 Hours (0 */4 * * *)</option>
-                <option value="HOURLY">Every Hour (0 * * * *)</option>
-                <option value="WEEKDAYS">Weekdays at 9:00 AM (Mon-Fri)</option>
-                <option value="CUSTOM">Custom Cron Expression...</option>
-              </select>
-            </div>
+          <!-- Plain-English Schedule Frequency Selector (4 Visual Cards) -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-2">How often should we look for new jobs?</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="scheduler-preset-grid">
+              
+              <!-- Card 1: Daily -->
+              <div onclick="selectSchedulerPreset('DAILY')" id="sched-card-DAILY" class="sched-preset-card p-3 rounded-lg border border-[#D9A441] bg-[#111317] hover:border-[#D9A441] cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-sm ring-1 ring-[#D9A441]/30">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🌅</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Once a Day</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">Every morning at 9:00 AM. Great for daily reviews without clutter.</p>
+                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">9:00 AM daily</div>
+              </div>
 
-            <!-- Cron Expression Input -->
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="block text-[11px] font-semibold uppercase tracking-wider text-[#9AA0A6]">Cron Expression</label>
-                <span id="sched-cron-helper" class="text-[10px] text-[#5FA8A0] font-mono">min hr dom mon dow</span>
+              <!-- Card 2: Twice Daily -->
+              <div onclick="selectSchedulerPreset('TWICE')" id="sched-card-TWICE" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🌤️</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Twice a Day</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">At 9:00 AM & 5:00 PM. Catches both morning and afternoon postings.</p>
+                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">Morning & Evening</div>
               </div>
-              <input type="text" id="sched-cron-input" class="w-full px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs font-mono text-[#E8E6E1] outline-none" placeholder="0 9 * * *" value="0 9 * * *">
-            </div>
 
-            <!-- Actions & Status Info -->
-            <div class="flex flex-col justify-end gap-2">
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="saveSchedulerSettings()" id="btn-save-scheduler" class="flex-1 py-2 px-3 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-[0.98]">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                  <span>Save Schedule</span>
-                </button>
-                <button type="button" onclick="triggerBackgroundScanNow()" id="btn-trigger-scheduler" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98]" title="Run one scan in background right now">
-                  <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <span>Trigger Now</span>
-                </button>
+              <!-- Card 3: Every 4 Hours -->
+              <div onclick="selectSchedulerPreset('4H')" id="sched-card-4H" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">⚡</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Every 4 Hours</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">Active search mode. Be among the first to apply to freshly listed jobs.</p>
+                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">Frequent sweeps</div>
               </div>
-              <div class="flex items-center justify-between text-[11px] text-[#9AA0A6] font-mono px-1">
-                <span id="sched-last-run-label">Last scan: Idle</span>
-                <span id="sched-found-label" class="text-[#5FA8A0]">0 qualified found</span>
+
+              <!-- Card 4: Manual Only -->
+              <div onclick="selectSchedulerPreset('MANUAL')" id="sched-card-MANUAL" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">⏸️</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Manual Only</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">Don't scan automatically. Search only when you click "Trigger Now".</p>
+                <div class="text-[10px] font-mono text-[#9AA0A6] mt-1 font-semibold">On-demand only</div>
               </div>
+
             </div>
           </div>
+
+          <!-- Bottom Action Bar & Status Info -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-[#2B3036]/50">
+            <div class="flex items-center gap-3 text-[11px] font-mono text-[#9AA0A6]">
+              <span id="sched-human-summary" class="text-[#E8E6E1] font-sans font-medium">⏰ Scanning: Once daily at 9:00 AM</span>
+              <span class="text-[#3D444D]" aria-hidden="true">•</span>
+              <span id="sched-last-run-label">Last scan: Idle</span>
+              <span class="text-[#3D444D]" aria-hidden="true">•</span>
+              <span id="sched-found-label" class="text-[#5FA8A0]">0 qualified found</span>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button type="button" onclick="saveSchedulerSettings()" id="btn-save-scheduler" class="flex-1 sm:flex-initial py-2 px-4 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <span>Save Schedule</span>
+              </button>
+              <button type="button" onclick="triggerBackgroundScanNow()" id="btn-trigger-scheduler" class="flex-1 sm:flex-initial py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98]" title="Run one scan in background right now">
+                <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Trigger Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Collapsible Drawer for Technical Users (Custom Cron) -->
+          <details class="pt-1 text-xs text-[#9AA0A6] group">
+            <summary class="cursor-pointer hover:text-[#E8E6E1] font-medium flex items-center gap-1.5 select-none text-[11px]">
+              <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              <span>⚙️ Advanced: Custom Cron Expression</span>
+            </summary>
+            <div class="mt-3 p-3 rounded-md bg-[#111317] border border-[#2B3036] flex flex-col sm:flex-row items-center gap-3">
+              <div class="flex-1 w-full">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10px] uppercase font-semibold text-[#9AA0A6]">Cron Syntax (UTC/Local)</span>
+                  <span id="sched-cron-helper" class="text-[10px] text-[#5FA8A0] font-mono">min hr dom mon dow</span>
+                </div>
+                <input type="text" id="sched-cron-input" class="w-full px-3 py-1.5 rounded bg-[#16191E] border border-[#2B3036] text-xs font-mono text-[#E8E6E1] outline-none focus:border-[#D9A441]" placeholder="0 9 * * *" value="0 9 * * *">
+              </div>
+              <input type="hidden" id="sched-preset-select" value="DAILY">
+            </div>
+          </details>
         </div>
 
         <!-- Form Grid -->
@@ -951,24 +983,45 @@
           <!-- Column 1: Search Parameters -->
           <div class="space-y-5">
             <h3 class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1] border-b border-[#2B3036] pb-2">
-              Search & Targeting Scope</h3>
+              Search & Targeting Preferences</h3>
 
+            <!-- Target Job Titles (Multi-tag with Enter) -->
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Target Job
-                Roles</label>
-              <input type="text" id="cfg-roles"
-                class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none"
-                placeholder="Data Analyst, Business Intelligence, Python Engineer">
-              <p class="text-[11px] text-[#9AA0A6] mt-1">Multi-board queries will search for these titles in priority
-                order.</p>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">Target Job Roles</label>
+                <span class="text-[10px] text-[#5FA8A0] font-mono">Type and press Enter</span>
+              </div>
+              
+              <div id="roles-tags-container" class="flex flex-wrap items-center gap-1.5 p-2 rounded-md bg-[#111317] border border-[#2B3036] focus-within:border-[#D9A441] min-h-[44px]">
+                <div id="roles-badges-list" class="flex flex-wrap items-center gap-1.5"></div>
+                <input type="text" id="input-add-role"
+                  class="flex-1 min-w-[170px] bg-transparent text-xs sm:text-sm text-[#E8E6E1] outline-none placeholder:text-[#5F6B76] px-1 py-0.5"
+                  placeholder="e.g. Data Analyst, Python Developer...">
+              </div>
+              <input type="hidden" id="cfg-roles" value="">
+              <p class="text-[11px] text-[#9AA0A6] mt-1">Multi-board searches will look for these titles in priority order. Press <b>Enter</b> to add each role.</p>
             </div>
 
+            <!-- Target Locations (Multi-tag with Enter + Global/Multi-Country Cities datalist) -->
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1.5">Target
-                Locations</label>
-              <input type="text" id="cfg-locations"
-                class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none"
-                placeholder="Remote, Toronto, ON, New York, NY">
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">Target Locations</label>
+                <span id="settings-cities-badge" class="text-[10px] text-[#5FA8A0] font-mono">Global & Country Cities Autocomplete</span>
+              </div>
+              
+              <div id="locations-tags-container" class="flex flex-wrap items-center gap-1.5 p-2 rounded-md bg-[#111317] border border-[#2B3036] focus-within:border-[#D9A441] min-h-[44px]">
+                <div id="locations-badges-list" class="flex flex-wrap items-center gap-1.5"></div>
+                <input type="text" id="input-add-location" list="global-cities-datalist"
+                  class="flex-1 min-w-[170px] bg-transparent text-xs sm:text-sm text-[#E8E6E1] outline-none placeholder:text-[#5F6B76] px-1 py-0.5"
+                  placeholder="e.g. New York, Toronto, London, Bengaluru, Remote...">
+              </div>
+              <datalist id="global-cities-datalist"></datalist>
+              <datalist id="canada-cities-datalist"></datalist>
+              <div id="settings-location-suggestions" class="flex items-center gap-1.5 flex-wrap mt-2">
+                <!-- Dynamically populated based on chosen country scope -->
+              </div>
+              <input type="hidden" id="cfg-locations" value="">
+              <p class="text-[11px] text-[#9AA0A6] mt-1">Select from popular hub chips, autocomplete, or type any custom location (e.g. "Remote", "London, UK", "Austin, TX") and press <b>Enter</b>.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -1224,7 +1277,7 @@
           class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#2B3036] pb-4">
           <div>
             <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
-              <span>Candidate Dossier</span>
+              <span>My Resume & Profile</span>
               <span class="text-[#3D444D]" aria-hidden="true">/</span>
               <span class="text-[#D9A441] font-semibold">Master Profile</span>
             </div>
@@ -1544,12 +1597,12 @@
       <div class="app-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1.5">
-            <span>Applications</span>
+            <span>My Applications</span>
             <span class="text-[#3D444D]" aria-hidden="true">/</span>
-            <span class="text-[#5FA8A0] font-semibold">Application Pipeline</span>
+            <span class="text-[#5FA8A0] font-semibold">Tracked Applications</span>
           </div>
           <h2 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight flex items-center gap-2.5">
-            <span>Application Pipeline & Tailored Resumes</span>
+            <span>Tracked Applications & Tailored Resumes</span>
             <span
               class="text-xs bg-[#5FA8A0]/10 text-[#5FA8A0] border border-[#5FA8A0]/25 px-2.5 py-0.5 rounded-full font-mono tabular-nums font-semibold"
               id="applied-count-badge">0 applications</span>
@@ -1559,18 +1612,18 @@
             cover letters persisted in SQLite database.
           </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto shrink-0">
           <a href="/api/export/xlsx" download
-            class="px-4 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all">
+            <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>Export to Excel (.xlsx)</span>
           </a>
           <a href="/api/export/csv" download
-            class="px-4 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -1580,23 +1633,23 @@
       </div>
 
       <!-- Stage Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
-        <button onclick="filterAppliedJobs('all')" data-filter="all" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] text-[#14161A] shadow-xs cursor-pointer">
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
+        <button onclick="filterAppliedJobs('all')" data-filter="all" class="btn-applied-filter shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] text-[#14161A] shadow-xs cursor-pointer">
           All Stages
         </button>
-        <button onclick="filterAppliedJobs('applied')" data-filter="applied" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+        <button onclick="filterAppliedJobs('applied')" data-filter="applied" class="btn-applied-filter shrink-0 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
           🚀 Applied (Submitted)
         </button>
-        <button onclick="filterAppliedJobs('tailored')" data-filter="tailored" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+        <button onclick="filterAppliedJobs('tailored')" data-filter="tailored" class="btn-applied-filter shrink-0 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
           📝 Tailored (Ready to Submit)
         </button>
-        <button onclick="filterAppliedJobs('interviewing')" data-filter="interviewing" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+        <button onclick="filterAppliedJobs('interviewing')" data-filter="interviewing" class="btn-applied-filter shrink-0 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
           💬 Interviewing
         </button>
-        <button onclick="filterAppliedJobs('offer')" data-filter="offer" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+        <button onclick="filterAppliedJobs('offer')" data-filter="offer" class="btn-applied-filter shrink-0 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
           🏆 Offer Received
         </button>
-        <button onclick="filterAppliedJobs('rejected')" data-filter="rejected" class="btn-applied-filter px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
+        <button onclick="filterAppliedJobs('rejected')" data-filter="rejected" class="btn-applied-filter shrink-0 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1C1F24] text-[#9AA0A6] hover:text-[#E8E6E1] border border-[#2B3036] cursor-pointer">
           🚫 Archived
         </button>
       </div>
@@ -1680,8 +1733,11 @@
               </p>
             </div>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button onclick="refreshWorkflowGuide()" class="px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98]">
+          <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <button onclick="openWelcomeWizard()" class="px-3.5 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-[0.98] cursor-pointer shadow-xs">
+              <span>✨ Launch Setup Wizard</span>
+            </button>
+            <button onclick="refreshWorkflowGuide()" class="px-3.5 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98] cursor-pointer">
               <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span>Refresh Status</span>
             </button>
@@ -1936,11 +1992,11 @@
       <div
         class="flex-1 overflow-y-auto bg-[#111317] p-4 rounded-md border border-[#2B3036] font-sans text-xs text-[#E8E6E1] leading-relaxed whitespace-pre-wrap select-all"
         id="letter-modal-body"></div>
-      <div class="flex justify-between items-center pt-2">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2">
         <span class="text-[11px] text-[#9AA0A6]">Zero-fabrication document tailored from candidate verified
           experience</span>
         <button onclick="copyCoverLetter()"
-          class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-[0.98]">
+          class="w-full sm:w-auto justify-center px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-[0.98] cursor-pointer shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -2121,6 +2177,202 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- First-Time Welcome & Quick Setup Wizard Modal -->
+  <div id="welcome-wizard-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+    <div class="bg-[#1C1F24] border border-[#2B3036] rounded-2xl p-6 sm:p-8 max-w-2xl w-full mx-auto shadow-2xl space-y-6 animate-in fade-in zoom-in duration-150">
+      <!-- Header with step indicator & close button -->
+      <div class="flex items-start justify-between border-b border-[#2B3036] pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#D9A441]/10 border border-[#D9A441]/25 flex items-center justify-center text-[#D9A441] text-xl font-bold shrink-0">
+            👋
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-[#E8E6E1] tracking-tight">Welcome to Jobryt AI</h2>
+            <p class="text-xs text-[#9AA0A6]">Get up and running with personalized job discovery in 4 simple steps</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeWelcomeWizard()" class="text-[#9AA0A6] hover:text-[#E8E6E1] p-1.5 rounded-lg hover:bg-[#242830] transition-colors cursor-pointer" title="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Step Progress Bar & Indicators -->
+      <div>
+        <div class="flex items-center justify-between text-xs font-medium text-[#9AA0A6] mb-2">
+          <span id="wizard-step-indicator-text">Step 1 of 4: Upload Resume</span>
+          <span id="wizard-progress-percentage" class="font-mono text-[#D9A441]">25%</span>
+        </div>
+        <div class="w-full bg-[#111317] h-2 rounded-full overflow-hidden border border-[#2B3036]">
+          <div id="wizard-progress-bar" class="bg-[#D9A441] h-full transition-all duration-300" style="width: 25%"></div>
+        </div>
+      </div>
+
+      <!-- Wizard Step 1: Upload Resume -->
+      <div id="wizard-step-1" class="wizard-step-content space-y-4">
+        <div class="p-4 rounded-xl bg-[#111317] border border-[#2B3036] space-y-3">
+          <h3 class="text-sm font-bold text-[#E8E6E1] flex items-center gap-2">
+            <span>📄</span>
+            <span>Step 1: Provide Your Resume Baseline</span>
+          </h3>
+          <p class="text-xs text-[#9AA0A6] leading-relaxed">
+            Jobryt never fabricates or invents experience. We extract your verified career history, work achievements, and tools to match against real job postings.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <button type="button" onclick="triggerResumeUploadFromWizard()" class="w-full sm:w-auto px-4 py-2.5 rounded-lg text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-2 shadow-xs cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Upload Resume (PDF, DOCX, TXT)</span>
+            </button>
+            <span id="wizard-resume-status" class="text-xs text-[#9AA0A6] font-mono">No file chosen yet</span>
+          </div>
+        </div>
+        <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
+          💡 Already have your profile entered? You can click <strong>Next</strong> to proceed directly.
+        </div>
+      </div>
+
+      <!-- Wizard Step 2: Target Roles & Locations -->
+      <div id="wizard-step-2" class="wizard-step-content hidden space-y-4">
+        <div class="p-4 rounded-xl bg-[#111317] border border-[#2B3036] space-y-4">
+          <h3 class="text-sm font-bold text-[#E8E6E1] flex items-center gap-2">
+            <span>🎯</span>
+            <span>Step 2: What roles and locations are you looking for?</span>
+          </h3>
+          <div>
+            <label class="block text-xs font-medium text-[#E8E6E1] mb-1.5">Target Job Roles (Add multiple)</label>
+            <div id="wizard-roles-container" class="flex flex-wrap items-center gap-1.5 p-2 min-h-[42px] rounded-lg bg-[#181B20] border border-[#2B3036] focus-within:border-[#D9A441]">
+              <input type="text" id="wizard-role-input" placeholder="Type a job title and press Enter..." class="flex-1 min-w-[160px] bg-transparent border-0 text-xs text-[#E8E6E1] focus:ring-0 focus:outline-none p-1">
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap mt-2">
+              <span class="text-[11px] text-[#9AA0A6]">Quick suggestions:</span>
+              <button type="button" onclick="addWizardRole('Full Stack Developer')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] cursor-pointer">+ Full Stack Developer</button>
+              <button type="button" onclick="addWizardRole('Software Engineer')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] cursor-pointer">+ Software Engineer</button>
+              <button type="button" onclick="addWizardRole('Frontend Developer')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] cursor-pointer">+ Frontend Developer</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-[#E8E6E1] mb-1.5">Target Country & Global Market</label>
+            <select id="wizard-country-select" onchange="onWizardCountryChange()"
+              class="w-full px-3 py-2 rounded-lg bg-[#181B20] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] outline-none cursor-pointer">
+              <option value="AUTO">🤖 AUTO (Detect from profile)</option>
+              <option value="US">🇺🇸 United States</option>
+              <option value="GB">🇬🇧 United Kingdom</option>
+              <option value="CA">🇨🇦 Canada</option>
+              <option value="DE">🇩🇪 Germany (DACH)</option>
+              <option value="AU">🇦🇺 Australia</option>
+              <option value="FR">🇫🇷 France</option>
+              <option value="IN">🇮🇳 India</option>
+              <option value="NL">🇳🇱 Netherlands</option>
+              <option value="AE">🇦🇪 UAE & Gulf (Middle East)</option>
+              <option value="SG">🇸🇬 Singapore</option>
+              <option value="JP">🇯🇵 Japan</option>
+              <option value="BR">🇧🇷 Brazil</option>
+              <option value="IT">🇮🇹 Italy</option>
+              <option value="PL">🇵🇱 Poland</option>
+              <option value="ZA">🇿🇦 South Africa</option>
+              <option value="AT">🇦🇹 Austria</option>
+              <option value="NZ">🇳🇿 New Zealand</option>
+              <option value="MX">🇲🇽 Mexico</option>
+              <option value="US_CA">🌎 North America (USA & Canada)</option>
+              <option value="GLOBAL">🌐 Worldwide / Global Remote</option>
+            </select>
+            <p class="text-[10px] text-[#9AA0A6] mt-1">Directly calibrates job boards, scrapers, and city suggestions to this market.</p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-medium text-[#E8E6E1]">Target Locations (Add multiple)</label>
+              <span id="wizard-country-badge" class="text-[10px] text-[#5FA8A0] font-mono">Global Autocomplete</span>
+            </div>
+            <div id="wizard-locations-container" class="flex flex-wrap items-center gap-1.5 p-2 min-h-[42px] rounded-lg bg-[#181B20] border border-[#2B3036] focus-within:border-[#D9A441]">
+              <input type="text" id="wizard-location-input" list="global-cities-datalist" placeholder="Select or type city, press Enter..." class="flex-1 min-w-[160px] bg-transparent border-0 text-xs text-[#E8E6E1] focus:ring-0 focus:outline-none p-1">
+            </div>
+            <div id="wizard-location-suggestions" class="flex items-center gap-1.5 flex-wrap mt-2">
+              <!-- Dynamically populated via onWizardCountryChange -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wizard Step 3: Scan Frequency -->
+      <div id="wizard-step-3" class="wizard-step-content hidden space-y-4">
+        <div class="p-4 rounded-xl bg-[#111317] border border-[#2B3036] space-y-3">
+          <h3 class="text-sm font-bold text-[#E8E6E1] flex items-center gap-2">
+            <span>⏰</span>
+            <span>Step 3: Choose How Often to Search for Jobs</span>
+          </h3>
+          <p class="text-xs text-[#9AA0A6] leading-relaxed">
+            Pick an automated schedule that fits your routine. You can change this at any time in Settings.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button type="button" onclick="selectWizardSchedulePreset('daily9am')" id="wizard-preset-daily9am" class="p-3 rounded-lg border text-left transition-all border-[#D9A441] bg-[#D9A441]/10 cursor-pointer">
+              <div class="text-xs font-bold text-[#E8E6E1]">Daily at 9:00 AM ⭐</div>
+              <div class="text-[11px] text-[#9AA0A6] mt-0.5">Scans every morning (Recommended)</div>
+            </button>
+            <button type="button" onclick="selectWizardSchedulePreset('twice_daily')" id="wizard-preset-twice_daily" class="p-3 rounded-lg border text-left transition-all border-[#2B3036] bg-[#181B20] hover:border-[#3D444D] cursor-pointer">
+              <div class="text-xs font-bold text-[#E8E6E1]">Twice a Day (9 AM & 5 PM)</div>
+              <div class="text-[11px] text-[#9AA0A6] mt-0.5">Morning & evening fresh batches</div>
+            </button>
+            <button type="button" onclick="selectWizardSchedulePreset('every_4h')" id="wizard-preset-every_4h" class="p-3 rounded-lg border text-left transition-all border-[#2B3036] bg-[#181B20] hover:border-[#3D444D] cursor-pointer">
+              <div class="text-xs font-bold text-[#E8E6E1]">Every 4 Hours</div>
+              <div class="text-[11px] text-[#9AA0A6] mt-0.5">For urgent active job hunts</div>
+            </button>
+            <button type="button" onclick="selectWizardSchedulePreset('manual')" id="wizard-preset-manual" class="p-3 rounded-lg border text-left transition-all border-[#2B3036] bg-[#181B20] hover:border-[#3D444D] cursor-pointer">
+              <div class="text-xs font-bold text-[#E8E6E1]">Manual Only</div>
+              <div class="text-[11px] text-[#9AA0A6] mt-0.5">Scan only when you click "Run Scan"</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wizard Step 4: Summary & Ready -->
+      <div id="wizard-step-4" class="wizard-step-content hidden space-y-4">
+        <div class="p-4 rounded-xl bg-[#111317] border border-[#2B3036] space-y-3">
+          <h3 class="text-sm font-bold text-[#E8E6E1] flex items-center gap-2">
+            <span>🎉</span>
+            <span>Step 4: You're All Set!</span>
+          </h3>
+          <p class="text-xs text-[#9AA0A6] leading-relaxed">
+            Your preferences have been configured. Jobryt AI is ready to search major job boards, score opportunities according to your profile, and tailor ATS resumes with one click.
+          </p>
+          <div class="p-3 rounded-lg bg-[#181B20] border border-[#2B3036] space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-[#9AA0A6]">Target Roles:</span>
+              <span id="wizard-summary-roles" class="font-semibold text-[#E8E6E1] text-right truncate max-w-[280px]">Configured</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[#9AA0A6]">Target Locations:</span>
+              <span id="wizard-summary-locations" class="font-semibold text-[#E8E6E1] text-right truncate max-w-[280px]">Configured</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[#9AA0A6]">Scan Schedule:</span>
+              <span id="wizard-summary-schedule" class="font-semibold text-[#D9A441]">Daily at 9:00 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wizard Bottom Navigation -->
+      <div class="flex items-center justify-between pt-4 border-t border-[#2B3036]">
+        <button type="button" onclick="closeWelcomeWizard()" class="text-xs text-[#9AA0A6] hover:text-[#E8E6E1] px-2 py-1 cursor-pointer">
+          Skip for now
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" id="wizard-btn-prev" onclick="prevWizardStep()" class="hidden px-4 py-2 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95 cursor-pointer">
+            Previous
+          </button>
+          <button type="button" id="wizard-btn-next" onclick="nextWizardStep()" class="px-5 py-2 rounded-lg text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-95 shadow-xs cursor-pointer flex items-center gap-1.5">
+            <span>Next</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <button type="button" id="wizard-btn-finish" onclick="finishWelcomeWizard()" class="hidden px-5 py-2 rounded-lg text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-95 shadow-xs cursor-pointer flex items-center gap-1.5">
+            <span>🚀 Start Finding Jobs</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

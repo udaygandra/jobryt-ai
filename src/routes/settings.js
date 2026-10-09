@@ -42,11 +42,118 @@ router.get('/boards', (req, res) => {
   }
 });
 
+// GET /api/settings/cities?country=CA&tier=1&q=toronto
+router.get('/cities', (req, res) => {
+  try {
+    const rawCountry = (req.query.country || 'ALL').toUpperCase().trim();
+    const queryTier = req.query.tier ? String(req.query.tier).toLowerCase().trim() : null;
+    const querySearch = req.query.q ? String(req.query.q).toLowerCase().trim() : null;
+    const globalCitiesPath = path.join(rootDir, 'public', 'data', 'global-cities.json');
+
+    if (!fs.existsSync(globalCitiesPath)) {
+      return res.status(404).json({ success: false, error: 'Cities dataset not found' });
+    }
+
+    const data = JSON.parse(fs.readFileSync(globalCitiesPath, 'utf8'));
+
+    // Determine target cities pool
+    let cityObjects = [];
+    let countryName = 'Worldwide / All Supported Countries';
+    let countryFlag = '🌐';
+    let popularHubs = [
+      'Toronto, ON, Canada',
+      'New York, NY, USA',
+      'London, UK',
+      'San Francisco, CA, USA',
+      'Bengaluru, KA, India',
+      'Berlin, Germany',
+      'Sydney, NSW, Australia',
+      'Dubai, UAE',
+      'Singapore',
+      'Remote'
+    ];
+
+    if (rawCountry === 'ALL' || rawCountry === 'GLOBAL' || rawCountry === 'AUTO') {
+      // Gather all city objects across all countries
+      for (const countryMeta of Object.values(data.by_country || {})) {
+        if (Array.isArray(countryMeta.cities)) {
+          cityObjects.push(...countryMeta.cities);
+        }
+      }
+    } else {
+      const countryMeta = (data.by_country || {})[rawCountry];
+      if (countryMeta) {
+        countryName = countryMeta.name;
+        countryFlag = countryMeta.flag;
+        popularHubs = countryMeta.popular_hubs || [];
+        cityObjects = [...(countryMeta.cities || [])];
+      } else {
+        cityObjects = [];
+      }
+    }
+
+    // Apply tier filter if specified
+    if (queryTier && queryTier !== 'all') {
+      const allowedTiers = queryTier.split(',').map(t => parseInt(t.trim(), 10)).filter(Boolean);
+      if (allowedTiers.length > 0) {
+        cityObjects = cityObjects.filter(c => allowedTiers.includes(c.tier));
+      }
+    }
+
+    // Apply text search query if specified
+    if (querySearch) {
+      cityObjects = cityObjects.filter(c =>
+        c.city.toLowerCase().includes(querySearch) ||
+        (c.formatted && c.formatted.toLowerCase().includes(querySearch)) ||
+        (c.region && c.region.toLowerCase().includes(querySearch))
+      );
+    }
+
+    const tier1 = cityObjects.filter(c => c.tier === 1).map(c => c.formatted);
+    const tier2 = cityObjects.filter(c => c.tier === 2).map(c => c.formatted);
+    const tier3 = cityObjects.filter(c => c.tier === 3).map(c => c.formatted);
+    const formattedList = Array.from(new Set(cityObjects.map(c => c.formatted)));
+
+    res.json({
+      success: true,
+      country: rawCountry,
+      name: countryName,
+      flag: countryFlag,
+      total: formattedList.length,
+      popular_hubs: popularHubs,
+      by_tier: {
+        tier1,
+        tier2,
+        tier3
+      },
+      cities: formattedList
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/settings
 router.post('/', (req, res) => {
   try {
     const newSettings = req.body;
     const updated = settingsHelper.updateSettings(newSettings);
+
+    // Sync target_titles and locations with master profile if provided
+    if (Array.isArray(newSettings.target_titles) || Array.isArray(newSettings.locations)) {
+      try {
+        const { getMasterProfile } = require('./profile');
+        const { writeJsonFile, getDataDir } = require('../../scripts/core/common-utils');
+        const prof = getMasterProfile();
+        if (Array.isArray(newSettings.target_titles)) prof.target_titles = newSettings.target_titles;
+        if (Array.isArray(newSettings.locations)) prof.locations = newSettings.locations;
+        const profilePath = path.join(getDataDir(), 'profiles', 'master-profile.json');
+        writeJsonFile(profilePath, prof);
+      } catch (profSyncErr) {
+        console.warn('Could not sync profile titles/locations:', profSyncErr.message);
+      }
+    }
+
     res.json({ success: true, settings: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });

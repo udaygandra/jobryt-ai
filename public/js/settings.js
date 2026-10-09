@@ -13,6 +13,11 @@ function toggleShowAllBoards() {
 
 function onCountryScopeChange() {
   renderSettingsBoards();
+  const scopeEl = document.getElementById('cfg-scope');
+  const scope = scopeEl ? scopeEl.value : 'AUTO';
+  if (typeof initGlobalCities === 'function') {
+    initGlobalCities(scope);
+  }
 }
 
 function isBoardKeyConfigured(boardId) {
@@ -348,6 +353,187 @@ async function renderSettingsBoards() {
   }
 }
 
+window.targetRolesList = [];
+window.targetLocationsList = [];
+window.canadaCitiesList = [];
+window.globalCitiesList = [];
+
+function updateLocationSuggestionsForCountry(scope, hubs) {
+  const container = document.getElementById('settings-location-suggestions');
+  if (!container) return;
+
+  const defaultHubs = ['Remote', 'New York, NY', 'Toronto, ON', 'London, UK', 'Bengaluru, KA', 'Berlin, Germany'];
+  const activeHubs = Array.isArray(hubs) && hubs.length ? hubs : defaultHubs;
+  const labelScope = (scope && scope !== 'ALL' && scope !== 'AUTO') ? scope : 'Global';
+
+  const badge = document.getElementById('settings-cities-badge');
+  if (badge) {
+    badge.innerText = `${labelScope} Cities Autocomplete`;
+  }
+
+  container.innerHTML = `
+    <span class="text-[11px] text-[#9AA0A6]">Top Hubs (${escapeHtml(labelScope)}):</span>
+    ${activeHubs.slice(0, 6).map(hub => {
+      const shortName = hub.split(',')[0].trim();
+      return `<button type="button" onclick="addLocationTag('${escapeHtml(hub)}')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#5FA8A0] transition-colors cursor-pointer">+ ${escapeHtml(shortName)}</button>`;
+    }).join('')}
+  `;
+}
+
+async function initGlobalCities(countryCode) {
+  try {
+    const scope = countryCode || (document.getElementById('cfg-scope') ? document.getElementById('cfg-scope').value : 'ALL');
+    let url = `/api/settings/cities?country=${encodeURIComponent(scope)}`;
+    let res = await fetch(url);
+    let data;
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      // Fallback to static global-cities.json if API is unavailable
+      const staticRes = await fetch('/data/global-cities.json');
+      const staticData = await staticRes.json();
+      const countryEntry = staticData.by_country && staticData.by_country[scope];
+      data = {
+        success: true,
+        cities: countryEntry ? countryEntry.cities : (staticData.all || []),
+        popular_hubs: countryEntry ? countryEntry.popular_hubs : ["Remote", "New York, NY", "London, UK", "Toronto, ON", "Bengaluru, KA", "Berlin, Germany"]
+      };
+    }
+
+    if (data && data.success) {
+      window.globalCitiesList = data.cities || [];
+      window.canadaCitiesList = window.globalCitiesList;
+
+      const globalDatalist = document.getElementById('global-cities-datalist');
+      if (globalDatalist && Array.isArray(data.cities)) {
+        globalDatalist.innerHTML = data.cities.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
+      }
+
+      const canadaDatalist = document.getElementById('canada-cities-datalist');
+      if (canadaDatalist && Array.isArray(data.cities)) {
+        canadaDatalist.innerHTML = data.cities.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
+      }
+
+      updateLocationSuggestionsForCountry(scope, data.popular_hubs);
+    }
+  } catch (e) {
+    console.warn('Could not load global cities:', e);
+  }
+}
+
+async function initCanadaCities() {
+  return initGlobalCities('CA');
+}
+
+function renderRoleTags() {
+  const container = document.getElementById('roles-badges-list');
+  const hiddenInput = document.getElementById('cfg-roles');
+  if (hiddenInput) hiddenInput.value = (window.targetRolesList || []).join(', ');
+  if (!container) return;
+  container.innerHTML = (window.targetRolesList || []).map((role, idx) => `
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#242830] text-[#D9A441] border border-[#2B3036] shadow-xs">
+      <span>${escapeHtml(role)}</span>
+      <button type="button" onclick="removeRoleTag(${idx})" class="text-[#9AA0A6] hover:text-rose-400 focus:outline-none cursor-pointer" title="Remove role">✕</button>
+    </span>
+  `).join('');
+}
+
+function addRoleTag(rawRole) {
+  const role = (rawRole || '').trim().replace(/^,+|,+$/g, '');
+  if (!role) return;
+  if (!window.targetRolesList) window.targetRolesList = [];
+  if (!window.targetRolesList.some(r => r.toLowerCase() === role.toLowerCase())) {
+    window.targetRolesList.push(role);
+    renderRoleTags();
+  }
+}
+
+function removeRoleTag(idx) {
+  if (window.targetRolesList) {
+    window.targetRolesList.splice(idx, 1);
+    renderRoleTags();
+  }
+}
+
+function renderLocationTags() {
+  const container = document.getElementById('locations-badges-list');
+  const hiddenInput = document.getElementById('cfg-locations');
+  if (hiddenInput) hiddenInput.value = (window.targetLocationsList || []).join(', ');
+  if (!container) return;
+  container.innerHTML = (window.targetLocationsList || []).map((loc, idx) => `
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#242830] text-[#5FA8A0] border border-[#2B3036] shadow-xs">
+      <span>${escapeHtml(loc)}</span>
+      <button type="button" onclick="removeLocationTag(${idx})" class="text-[#9AA0A6] hover:text-rose-400 focus:outline-none cursor-pointer" title="Remove location">✕</button>
+    </span>
+  `).join('');
+}
+
+function addLocationTag(rawLoc) {
+  const loc = (rawLoc || '').trim().replace(/^,+|,+$/g, '');
+  if (!loc) return;
+  if (!window.targetLocationsList) window.targetLocationsList = [];
+  if (!window.targetLocationsList.some(l => l.toLowerCase() === loc.toLowerCase())) {
+    window.targetLocationsList.push(loc);
+    renderLocationTags();
+  }
+}
+
+function removeLocationTag(idx) {
+  if (window.targetLocationsList) {
+    window.targetLocationsList.splice(idx, 1);
+    renderLocationTags();
+  }
+}
+
+function setupTagInputListeners() {
+  const roleInput = document.getElementById('input-add-role');
+  if (roleInput && !roleInput.dataset.listenerAttached) {
+    roleInput.dataset.listenerAttached = 'true';
+    roleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addRoleTag(roleInput.value);
+        roleInput.value = '';
+      }
+    });
+    roleInput.addEventListener('blur', () => {
+      if (roleInput.value.trim()) {
+        addRoleTag(roleInput.value);
+        roleInput.value = '';
+      }
+    });
+  }
+
+  const locInput = document.getElementById('input-add-location');
+  if (locInput && !locInput.dataset.listenerAttached) {
+    locInput.dataset.listenerAttached = 'true';
+    locInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addLocationTag(locInput.value);
+        locInput.value = '';
+      }
+    });
+    locInput.addEventListener('blur', () => {
+      if (locInput.value.trim()) {
+        addLocationTag(locInput.value);
+        locInput.value = '';
+      }
+    });
+  }
+}
+
+window.addRoleTag = addRoleTag;
+window.removeRoleTag = removeRoleTag;
+window.addLocationTag = addLocationTag;
+window.removeLocationTag = removeLocationTag;
+window.renderRoleTags = renderRoleTags;
+window.renderLocationTags = renderLocationTags;
+window.initGlobalCities = initGlobalCities;
+window.initCanadaCities = initCanadaCities;
+window.updateLocationSuggestionsForCountry = updateLocationSuggestionsForCountry;
+window.onCountryScopeChange = onCountryScopeChange;
+
 async function loadSettings() {
   try {
     const res = await fetch('/api/settings');
@@ -371,6 +557,23 @@ async function loadSettings() {
       }
     } catch (_) {}
 
+    await initGlobalCities(cfgScope ? cfgScope.value : 'AUTO');
+    setupTagInputListeners();
+
+    // Initialize tags from current master profile
+    try {
+      const profRes = await fetch('/api/profile');
+      const profData = await profRes.json();
+      window.targetRolesList = Array.isArray(profData.target_titles) && profData.target_titles.length
+        ? [...profData.target_titles]
+        : (Array.isArray(profData.target_roles) && profData.target_roles.length ? [...profData.target_roles] : ['Data Analyst']);
+      window.targetLocationsList = Array.isArray(profData.locations) && profData.locations.length
+        ? [...profData.locations]
+        : ['Remote', 'Toronto, ON'];
+      renderRoleTags();
+      renderLocationTags();
+    } catch (_) {}
+
     await renderSettingsBoards();
     await loadSchedulerSettings();
   } catch (e) {
@@ -379,14 +582,15 @@ async function loadSettings() {
 }
 
 async function runManualScanWithOverrides() {
-  const rolesStr = document.getElementById('cfg-roles')?.value || '';
-  const locsStr = document.getElementById('cfg-locations')?.value || '';
+  const targetTitles = (window.targetRolesList && window.targetRolesList.length)
+    ? [...window.targetRolesList]
+    : (document.getElementById('cfg-roles')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  const targetLocations = (window.targetLocationsList && window.targetLocationsList.length)
+    ? [...window.targetLocationsList]
+    : (document.getElementById('cfg-locations')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
   const minScore = parseInt(document.getElementById('cfg-score')?.value || '60', 10);
   const freshness = parseInt(document.getElementById('cfg-freshness')?.value || '24', 10);
   const scope = document.getElementById('cfg-scope')?.value || 'AUTO';
-
-  const targetTitles = rolesStr.split(',').map(s => s.trim()).filter(Boolean);
-  const targetLocations = locsStr.split(',').map(s => s.trim()).filter(Boolean);
 
   const modal = document.getElementById('scan-modal');
   const logs = document.getElementById('scan-logs');
@@ -448,10 +652,12 @@ async function saveAllSettings() {
         freshness_hours: freshness,
         country_scope: scope,
         work_type: worktype,
-        boards_enabled: boards
+        boards_enabled: boards,
+        target_titles: window.targetRolesList || [],
+        locations: window.targetLocationsList || []
       })
     });
-    showToast('✅ Settings saved successfully!');
+    showToast('✅ Preferences & settings saved successfully!');
     await loadStatus();
   } catch (e) {
     showToast('Could not save settings: ' + e.message, 'error');
@@ -652,18 +858,48 @@ async function restartTelegramBridge() {
 }
 
 // ── Autonomous Background Cron Scheduler UI Handlers ───────────────────────
-const PRESET_CRON_MAP = {
-  DAILY: '0 9 * * *',
-  TWICE: '0 9,17 * * *',
-  '3X': '0 8,13,18 * * *',
-  '5X': '30 8,11,14,17,20 * * *',
-  '2H': '0 */2 * * *',
-  '4H': '0 */4 * * *',
-  HOURLY: '0 * * * *',
-  WEEKDAYS: '0 9 * * 1-5'
+const SCHEDULER_PRESETS = {
+  DAILY: { cron: '0 9 * * *', label: 'Once a Day (9:00 AM)', desc: '⏰ Scanning: Once daily every morning at 9:00 AM' },
+  TWICE: { cron: '0 9,17 * * *', label: 'Twice a Day (9 AM & 5 PM)', desc: '⏰ Scanning: Twice daily at 9:00 AM & 5:00 PM' },
+  '4H': { cron: '0 */4 * * *', label: 'Every 4 Hours', desc: '⏰ Scanning: Active search mode, every 4 hours' },
+  MANUAL: { cron: '0 9 * * *', label: 'Manual Only', desc: '⏸️ Automatic scanning paused (on-demand only)' }
 };
 
 let currentSchedulerData = null;
+
+function selectSchedulerPreset(preset) {
+  const cfg = SCHEDULER_PRESETS[preset] || SCHEDULER_PRESETS.DAILY;
+  const cronInput = document.getElementById('sched-cron-input');
+  const hiddenPreset = document.getElementById('sched-preset-select');
+  const humanSummary = document.getElementById('sched-human-summary');
+  const toggle = document.getElementById('sched-enabled');
+
+  if (hiddenPreset) hiddenPreset.value = preset;
+  if (cronInput) cronInput.value = cfg.cron;
+  if (humanSummary) humanSummary.innerText = cfg.desc;
+
+  if (preset === 'MANUAL') {
+    if (toggle) toggle.checked = false;
+    onSchedulerToggleChange();
+  } else {
+    if (toggle && !toggle.checked) {
+      toggle.checked = true;
+      onSchedulerToggleChange();
+    }
+  }
+
+  // Highlight active preset card
+  document.querySelectorAll('.sched-preset-card').forEach(card => {
+    card.classList.remove('border-[#D9A441]', 'ring-1', 'ring-[#D9A441]/30');
+    card.classList.add('border-[#2B3036]');
+  });
+  const activeCard = document.getElementById(`sched-card-${preset}`);
+  if (activeCard) {
+    activeCard.classList.remove('border-[#2B3036]');
+    activeCard.classList.add('border-[#D9A441]', 'ring-1', 'ring-[#D9A441]/30');
+  }
+}
+window.selectSchedulerPreset = selectSchedulerPreset;
 
 async function loadSchedulerSettings() {
   try {
@@ -674,13 +910,12 @@ async function loadSchedulerSettings() {
     const toggle = document.getElementById('sched-enabled');
     const badge = document.getElementById('sched-badge-status');
     const label = document.getElementById('sched-enabled-label');
-    const presetSelect = document.getElementById('sched-preset-select');
     const cronInput = document.getElementById('sched-cron-input');
     const lastRunLabel = document.getElementById('sched-last-run-label');
     const foundLabel = document.getElementById('sched-found-label');
 
     if (toggle) toggle.checked = Boolean(data.enabled);
-    if (label) label.innerText = data.enabled ? 'Auto-Scan Enabled' : 'Auto-Scan Disabled';
+    if (label) label.innerText = data.enabled ? 'Automatic Scanning' : 'Scanning Paused';
 
     if (badge) {
       if (data.isRunning) {
@@ -691,16 +926,25 @@ async function loadSchedulerSettings() {
         badge.innerHTML = '● Active';
       } else {
         badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-slate-500/10 text-slate-400 border border-slate-500/25';
-        badge.innerHTML = '○ Standby';
+        badge.innerHTML = '○ Paused';
       }
     }
 
-    if (presetSelect && data.preset) {
-      presetSelect.value = data.preset;
-    }
     if (cronInput && data.schedule) {
       cronInput.value = data.schedule;
     }
+
+    let activePreset = data.preset || 'DAILY';
+    if (!data.enabled) {
+      activePreset = 'MANUAL';
+    } else if (data.schedule === '0 9,17 * * *') {
+      activePreset = 'TWICE';
+    } else if (data.schedule === '0 */4 * * *') {
+      activePreset = '4H';
+    } else if (data.schedule === '0 9 * * *') {
+      activePreset = 'DAILY';
+    }
+    selectSchedulerPreset(activePreset);
 
     if (lastRunLabel) {
       if (data.lastRun) {
@@ -721,16 +965,8 @@ async function loadSchedulerSettings() {
 
 function onSchedulePresetChange() {
   const presetSelect = document.getElementById('sched-preset-select');
-  const cronInput = document.getElementById('sched-cron-input');
-  if (!presetSelect || !cronInput) return;
-
-  const val = presetSelect.value;
-  if (PRESET_CRON_MAP[val]) {
-    cronInput.value = PRESET_CRON_MAP[val];
-    cronInput.disabled = false;
-  } else if (val === 'CUSTOM') {
-    cronInput.focus();
-    cronInput.select();
+  if (presetSelect) {
+    selectSchedulerPreset(presetSelect.value);
   }
 }
 
@@ -741,14 +977,14 @@ function onSchedulerToggleChange() {
   if (!toggle) return;
 
   const isEnabled = toggle.checked;
-  if (label) label.innerText = isEnabled ? 'Auto-Scan Enabled' : 'Auto-Scan Disabled';
+  if (label) label.innerText = isEnabled ? 'Automatic Scanning' : 'Scanning Paused';
   if (badge) {
     if (isEnabled) {
       badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25';
       badge.innerHTML = '● Active';
     } else {
       badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-slate-500/10 text-slate-400 border border-slate-500/25';
-      badge.innerHTML = '○ Standby';
+      badge.innerHTML = '○ Paused';
     }
   }
 }
@@ -758,12 +994,14 @@ async function saveSchedulerSettings() {
   const toggle = document.getElementById('sched-enabled');
   const presetSelect = document.getElementById('sched-preset-select');
   const cronInput = document.getElementById('sched-cron-input');
+  const presetKey = presetSelect ? presetSelect.value : 'DAILY';
+  const presetInfo = SCHEDULER_PRESETS[presetKey] || SCHEDULER_PRESETS.DAILY;
 
   const payload = {
     enabled: toggle ? toggle.checked : true,
-    preset: presetSelect ? presetSelect.value : 'DAILY',
-    schedule: cronInput ? cronInput.value.trim() : '0 9 * * *',
-    description: presetSelect ? presetSelect.options[presetSelect.selectedIndex].text : 'Daily at 9:00 AM'
+    preset: presetKey,
+    schedule: cronInput ? cronInput.value.trim() : presetInfo.cron,
+    description: presetInfo.label
   };
 
   if (btn) {
