@@ -84,6 +84,17 @@ updated: 2026-10-08T17:36:00Z
 
 ---
 
+### Phase 12: Country-First Location Architecture, Instant-Load Hydration & Reactive State Engine
+**Status:** 📋 Ready for Execution (Milestone v1.2)
+**Objective:** Move Target Country selector to Step 1 in Settings with dependent city combobox (disabled until country selected, strictly restricted to selected country's cities); implement instant zero-flicker cold start with static HTML skeleton placeholders, SWR job caching, and active tab persistence; and deliver ADR-004 frontend architecture evaluation with centralized observable state store.
+
+**Plans:**
+- [ ] [Plan 12.1: Country-First Hierarchical Location Selector & Scoped City Combobox](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/12/12.1-PLAN.md)
+- [ ] [Plan 12.2: Instant Zero-Flicker Cold Start, Tab State Persistence & SWR Job Cache Hydration](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/12/12.2-PLAN.md)
+- [ ] [Plan 12.3: Architectural Decision Record (ADR) & Micro-Reactive State Management](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/12/12.3-PLAN.md)
+
+---
+
 ## Progress Summary
 
 | Phase | Status | Plans | Complete |
@@ -96,5 +107,7 @@ updated: 2026-10-08T17:36:00Z
 | 9 | ✅ | 2/2 | 100% (v1.1) |
 | 10 | ✅ | 3/3 | 100% (v1.1) |
 | 11 | ✅ | 3/3 | 100% (v1.2) |
+| 12 | ⏳ | 0/3 | 0% (v1.2) |
+
 
 
