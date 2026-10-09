@@ -8,6 +8,9 @@ function applyTheme(theme) {
   try {
     localStorage.setItem('jobryt_theme', theme);
   } catch (_) { }
+  if (typeof JobrytStore !== 'undefined') {
+    JobrytStore.setState({ theme });
+  }
   const sun = document.getElementById('theme-icon-sun');
   const moon = document.getElementById('theme-icon-moon');
   const toggleBtn = document.getElementById('theme-toggle');
@@ -102,4 +105,80 @@ function formatJsonEditor() {
   } catch (err) {
     showToast('Invalid JSON: ' + err.message, 'error');
   }
+}
+
+/**
+ * Jobryt AI - Lightweight Micro-Reactive Observable State Store
+ * Provides predictable state management, event-driven subscriptions,
+ * zero-overhead unidirectional data flow, and instant DevTools inspection.
+ */
+class ObservableStore {
+  constructor(initialState = {}) {
+    this._state = {
+      activeTab: 'feed',
+      countryScope: 'AUTO',
+      theme: 'dark',
+      pendingJobs: [],
+      appliedJobs: [],
+      candidate: null,
+      settings: null,
+      ...initialState
+    };
+    this._listeners = new Set();
+  }
+
+  getState() {
+    return { ...this._state };
+  }
+
+  setState(patch) {
+    if (!patch || typeof patch !== 'object') return;
+    const prevState = { ...this._state };
+    this._state = { ...this._state, ...patch };
+
+    // Automatic persistence for key state fields
+    try {
+      if ('theme' in patch && patch.theme) {
+        localStorage.setItem('jobryt_theme', patch.theme);
+      }
+      if ('activeTab' in patch && patch.activeTab) {
+        localStorage.setItem('jobryt_active_tab', patch.activeTab);
+      }
+      if ('pendingJobs' in patch && Array.isArray(patch.pendingJobs)) {
+        if (patch.pendingJobs.length > 0) {
+          localStorage.setItem('jobryt_cached_pending_jobs', JSON.stringify(patch.pendingJobs));
+        } else {
+          localStorage.removeItem('jobryt_cached_pending_jobs');
+        }
+      }
+    } catch (_) {}
+
+    // Notify subscribers
+    for (const listener of this._listeners) {
+      try {
+        listener(this._state, prevState);
+      } catch (err) {
+        console.error('Store listener error:', err);
+      }
+    }
+  }
+
+  subscribe(listener) {
+    if (typeof listener !== 'function') return () => {};
+    this._listeners.add(listener);
+    return () => this._listeners.delete(listener);
+  }
+}
+
+// Global Singleton Instance & DevTools Inspector
+const JobrytStore = new ObservableStore();
+if (typeof window !== 'undefined') {
+  window.JobrytStore = JobrytStore;
+  window.__JOBRYT_STORE__ = JobrytStore;
+  try {
+    Object.defineProperty(window, '__JOBRYT_STATE__', {
+      get() { return JobrytStore.getState(); },
+      configurable: true
+    });
+  } catch (_) {}
 }

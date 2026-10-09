@@ -178,6 +178,9 @@ function renderPendingJobs(jobs) {
   try {
     const jobList = Array.isArray(jobs) ? jobs : [];
     updatePendingBadges(jobList.length);
+    if (typeof JobrytStore !== 'undefined') {
+      JobrytStore.setState({ pendingJobs: jobList });
+    }
 
     if (jobList.length === 0) {
       const activeTitles = (window.targetRolesList && window.targetRolesList.length)

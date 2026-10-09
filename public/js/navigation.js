@@ -82,6 +82,9 @@ function switchTab(tab) {
   try {
     localStorage.setItem('jobryt_active_tab', tab);
   } catch (_) {}
+  if (typeof JobrytStore !== 'undefined') {
+    JobrytStore.setState({ activeTab: tab });
+  }
 
   // Remove temporary head preload style once tab switching is active
   const preloadStyle = document.getElementById('tab-preload-style');
