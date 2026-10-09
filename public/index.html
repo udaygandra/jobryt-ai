@@ -888,127 +888,6 @@
           </div>
         </div>
 
-        <!-- Simplified Background Scanner (Scheduler) Banner Card -->
-        <div id="scheduler-card" class="mt-6 p-5 rounded-xl bg-[#181B20] border border-[#2B3036] shadow-sm space-y-4">
-          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036]/70 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-[#D9A441]/10 border border-[#D9A441]/25 flex items-center justify-center text-[#D9A441] shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">Automatic Job Finder Schedule</h3>
-                  <span id="sched-badge-status" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                    ● Active
-                  </span>
-                </div>
-                <p class="text-[12px] text-[#9AA0A6] mt-0.5">
-                  Choose how often Jobryt should automatically sweep job boards in the background for new openings.
-                </p>
-              </div>
-            </div>
-
-            <!-- Enable/Disable Switch -->
-            <div class="flex items-center gap-3 shrink-0">
-              <label class="flex items-center gap-2 cursor-pointer select-none">
-                <input type="checkbox" id="sched-enabled" onchange="onSchedulerToggleChange()" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-[#2B3036] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#E8E6E1] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D9A441] relative"></div>
-                <span id="sched-enabled-label" class="text-xs font-semibold text-[#E8E6E1]">Automatic Scanning</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Plain-English Schedule Frequency Selector (4 Visual Cards) -->
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-2">How often should we look for new jobs?</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="scheduler-preset-grid">
-              
-              <!-- Card 1: Daily -->
-              <div onclick="selectSchedulerPreset('DAILY')" id="sched-card-DAILY" class="sched-preset-card p-3 rounded-lg border border-[#D9A441] bg-[#111317] hover:border-[#D9A441] cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-sm ring-1 ring-[#D9A441]/30">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">🌅</span>
-                  <div class="font-bold text-xs text-[#E8E6E1]">Once a Day</div>
-                </div>
-                <p class="text-[11px] text-[#9AA0A6] leading-snug">Every morning at 9:00 AM. Great for daily reviews without clutter.</p>
-                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">9:00 AM daily</div>
-              </div>
-
-              <!-- Card 2: Twice Daily -->
-              <div onclick="selectSchedulerPreset('TWICE')" id="sched-card-TWICE" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">🌤️</span>
-                  <div class="font-bold text-xs text-[#E8E6E1]">Twice a Day</div>
-                </div>
-                <p class="text-[11px] text-[#9AA0A6] leading-snug">At 9:00 AM & 5:00 PM. Catches both morning and afternoon postings.</p>
-                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">Morning & Evening</div>
-              </div>
-
-              <!-- Card 3: Every 4 Hours -->
-              <div onclick="selectSchedulerPreset('4H')" id="sched-card-4H" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">⚡</span>
-                  <div class="font-bold text-xs text-[#E8E6E1]">Every 4 Hours</div>
-                </div>
-                <p class="text-[11px] text-[#9AA0A6] leading-snug">Active search mode. Be among the first to apply to freshly listed jobs.</p>
-                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">Frequent sweeps</div>
-              </div>
-
-              <!-- Card 4: Manual Only -->
-              <div onclick="selectSchedulerPreset('MANUAL')" id="sched-card-MANUAL" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-base">⏸️</span>
-                  <div class="font-bold text-xs text-[#E8E6E1]">Manual Only</div>
-                </div>
-                <p class="text-[11px] text-[#9AA0A6] leading-snug">Don't scan automatically. Search only when you click "Trigger Now".</p>
-                <div class="text-[10px] font-mono text-[#9AA0A6] mt-1 font-semibold">On-demand only</div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Bottom Action Bar & Status Info -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-[#2B3036]/50">
-            <div class="flex items-center gap-3 text-[11px] font-mono text-[#9AA0A6]">
-              <span id="sched-human-summary" class="text-[#E8E6E1] font-sans font-medium">⏰ Scanning: Once daily at 9:00 AM</span>
-              <span class="text-[#3D444D]" aria-hidden="true">•</span>
-              <span id="sched-last-run-label">Last scan: Idle</span>
-              <span class="text-[#3D444D]" aria-hidden="true">•</span>
-              <span id="sched-found-label" class="text-[#5FA8A0]">0 qualified found</span>
-            </div>
-
-            <div class="flex items-center gap-2 w-full sm:w-auto">
-              <button type="button" onclick="saveSchedulerSettings()" id="btn-save-scheduler" class="flex-1 sm:flex-initial py-2 px-4 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-[0.98]">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                <span>Save Schedule</span>
-              </button>
-              <button type="button" onclick="triggerBackgroundScanNow()" id="btn-trigger-scheduler" class="flex-1 sm:flex-initial py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98]" title="Run one scan in background right now">
-                <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>Trigger Now</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Advanced Collapsible Drawer for Technical Users (Custom Cron) -->
-          <details class="pt-1 text-xs text-[#9AA0A6] group">
-            <summary class="cursor-pointer hover:text-[#E8E6E1] font-medium flex items-center gap-1.5 select-none text-[11px]">
-              <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              <span>⚙️ Advanced: Custom Cron Expression</span>
-            </summary>
-            <div class="mt-3 p-3 rounded-md bg-[#111317] border border-[#2B3036] flex flex-col sm:flex-row items-center gap-3">
-              <div class="flex-1 w-full">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="text-[10px] uppercase font-semibold text-[#9AA0A6]">Cron Syntax (UTC/Local)</span>
-                  <span id="sched-cron-helper" class="text-[10px] text-[#5FA8A0] font-mono">min hr dom mon dow</span>
-                </div>
-                <input type="text" id="sched-cron-input" class="w-full px-3 py-1.5 rounded bg-[#16191E] border border-[#2B3036] text-xs font-mono text-[#E8E6E1] outline-none focus:border-[#D9A441]" placeholder="0 9 * * *" value="0 9 * * *">
-              </div>
-              <input type="hidden" id="sched-preset-select" value="DAILY">
-            </div>
-          </details>
-        </div>
-
         <!-- Form Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
 
@@ -1162,62 +1041,144 @@
               <!-- Dynamically populated per country scope -->
             </div>
 
-            <h3
-              class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1] border-b border-[#2B3036] pb-2 pt-2">
-              Connected Integrations & Services</h3>
+          </div>
 
-            <div class="space-y-2.5">
-              <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036] flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="w-2 h-2 rounded-full bg-[#5FA8A0]"></span>
-                  <div>
-                    <span class="text-xs font-semibold text-[#E8E6E1] block">Google Gemini Engine</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">Waterfall Active (Gemini Flash & Gemma)</span>
-                  </div>
-                </div>
-                <span
-                  class="text-[11px] font-mono text-[#5FA8A0] font-semibold bg-[#5FA8A0]/10 px-2 py-0.5 rounded border border-[#5FA8A0]/25">Operational</span>
+        </div>
+
+        <!-- Section Divider -->
+        <div class="border-t border-[#2B3036] pt-6 mt-8">
+          <div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-[#9AA0A6] mb-1">
+            <span>Automation</span>
+            <span class="text-[#3D444D]" aria-hidden="true">/</span>
+            <span class="text-emerald-400 font-semibold">Background Crawler Schedule</span>
+          </div>
+          <h3 class="text-base font-bold text-[#E8E6E1] tracking-tight">
+            Autonomous Job Finder Schedule
+          </h3>
+          <p class="text-xs text-[#9AA0A6] mt-0.5">
+            Configure how frequently Jobryt automatically searches job boards in the background for new openings matching your criteria.
+          </p>
+        </div>
+
+        <!-- Simplified Background Scanner (Scheduler) Card at bottom of Settings -->
+        <div id="scheduler-card" class="mt-4 p-5 rounded-xl bg-[#181B20] border border-[#2B3036] shadow-sm space-y-4">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#2B3036]/70 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-[#D9A441]/10 border border-[#D9A441]/25 flex items-center justify-center text-[#D9A441] shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-
-              <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036] flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <div>
-                    <span class="text-xs font-semibold text-[#E8E6E1] block">ArbeitNow & Public ATS Feeds</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">Zero Key Required • Europe & Global Remote</span>
-                  </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-sm font-bold text-[#E8E6E1] tracking-tight">Automatic Job Finder Schedule</h3>
+                  <span id="sched-badge-status" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                    ● Active
+                  </span>
                 </div>
-                <span
-                  class="text-[11px] font-mono text-emerald-400 font-semibold bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/25">Active</span>
-              </div>
-
-              <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036] flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="w-2 h-2 rounded-full bg-[#5FA8A0]"></span>
-                  <div>
-                    <span class="text-xs font-semibold text-[#E8E6E1] block">Adzuna Multi-Country Gateway</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">Dynamic routing across 16 countries</span>
-                  </div>
-                </div>
-                <span
-                  class="text-[11px] font-mono text-[#5FA8A0] font-semibold bg-[#5FA8A0]/10 px-2 py-0.5 rounded border border-[#5FA8A0]/25">Connected</span>
-              </div>
-
-              <div class="p-3 rounded-md bg-[#111317] border border-[#2B3036] flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <span class="w-2 h-2 rounded-full bg-[#5FA8A0]"></span>
-                  <div>
-                    <span class="text-xs font-semibold text-[#E8E6E1] block">USAJOBS Federal API</span>
-                    <span class="text-[10px] text-[#9AA0A6] font-mono">US Federal Pipeline Available</span>
-                  </div>
-                </div>
-                <span
-                  class="text-[11px] font-mono text-[#5FA8A0] font-semibold bg-[#5FA8A0]/10 px-2 py-0.5 rounded border border-[#5FA8A0]/25">Connected</span>
+                <p class="text-[12px] text-[#9AA0A6] mt-0.5">
+                  Choose how often Jobryt should automatically sweep job boards in the background for new openings.
+                </p>
               </div>
             </div>
 
+            <!-- Enable/Disable Switch -->
+            <div class="flex items-center gap-3 shrink-0">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="sched-enabled" onchange="onSchedulerToggleChange()" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-[#2B3036] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#E8E6E1] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#D9A441] relative"></div>
+                <span id="sched-enabled-label" class="text-xs font-semibold text-[#E8E6E1]">Automatic Scanning</span>
+              </label>
+            </div>
           </div>
 
+          <!-- Plain-English Schedule Frequency Selector (4 Visual Cards) -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-2">How often should we look for new jobs?</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="scheduler-preset-grid">
+              
+              <!-- Card 1: Daily -->
+              <div onclick="selectSchedulerPreset('DAILY')" id="sched-card-DAILY" class="sched-preset-card p-3 rounded-lg border border-[#D9A441] bg-[#111317] hover:border-[#D9A441] cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-sm ring-1 ring-[#D9A441]/30">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🌅</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Once a Day</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">Every morning at 9:00 AM. Great for daily reviews without clutter.</p>
+                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">9:00 AM daily</div>
+              </div>
+
+              <!-- Card 2: Twice Daily -->
+              <div onclick="selectSchedulerPreset('TWICE')" id="sched-card-TWICE" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🌤️</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Twice a Day</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">At 9:00 AM & 5:00 PM. Catches both morning and afternoon postings.</p>
+                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">Morning & Evening</div>
+              </div>
+
+              <!-- Card 3: Every 4 Hours -->
+              <div onclick="selectSchedulerPreset('4H')" id="sched-card-4H" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">⚡</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Every 4 Hours</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">Active search mode. Be among the first to apply to freshly listed jobs.</p>
+                <div class="text-[10px] font-mono text-[#5FA8A0] mt-1 font-semibold">Frequent sweeps</div>
+              </div>
+
+              <!-- Card 4: Manual Only -->
+              <div onclick="selectSchedulerPreset('MANUAL')" id="sched-card-MANUAL" class="sched-preset-card p-3 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 cursor-pointer transition-all flex flex-col justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">⏸️</span>
+                  <div class="font-bold text-xs text-[#E8E6E1]">Manual Only</div>
+                </div>
+                <p class="text-[11px] text-[#9AA0A6] leading-snug">Don't scan automatically. Search only when you click "Trigger Now".</p>
+                <div class="text-[10px] font-mono text-[#9AA0A6] mt-1 font-semibold">On-demand only</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Bottom Action Bar & Status Info -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-[#2B3036]/50">
+            <div class="flex items-center gap-3 text-[11px] font-mono text-[#9AA0A6]">
+              <span id="sched-human-summary" class="text-[#E8E6E1] font-sans font-medium">⏰ Scanning: Once daily at 9:00 AM</span>
+              <span class="text-[#3D444D]" aria-hidden="true">•</span>
+              <span id="sched-last-run-label">Last scan: Idle</span>
+              <span class="text-[#3D444D]" aria-hidden="true">•</span>
+              <span id="sched-found-label" class="text-[#5FA8A0]">0 qualified found</span>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button type="button" onclick="saveSchedulerSettings()" id="btn-save-scheduler" class="flex-1 sm:flex-initial py-2 px-4 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <span>Save Schedule</span>
+              </button>
+              <button type="button" onclick="triggerBackgroundScanNow()" id="btn-trigger-scheduler" class="flex-1 sm:flex-initial py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-[0.98]" title="Run one scan in background right now">
+                <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Trigger Now</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Collapsible Drawer for Technical Users (Custom Cron) -->
+          <details class="pt-1 text-xs text-[#9AA0A6] group">
+            <summary class="cursor-pointer hover:text-[#E8E6E1] font-medium flex items-center gap-1.5 select-none text-[11px]">
+              <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              <span>⚙️ Advanced: Custom Cron Expression</span>
+            </summary>
+            <div class="mt-3 p-3 rounded-md bg-[#111317] border border-[#2B3036] flex flex-col sm:flex-row items-center gap-3">
+              <div class="flex-1 w-full">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10px] uppercase font-semibold text-[#9AA0A6]">Cron Syntax (UTC/Local)</span>
+                  <span id="sched-cron-helper" class="text-[10px] text-[#5FA8A0] font-mono">min hr dom mon dow</span>
+                </div>
+                <input type="text" id="sched-cron-input" class="w-full px-3 py-1.5 rounded bg-[#16191E] border border-[#2B3036] text-xs font-mono text-[#E8E6E1] outline-none focus:border-[#D9A441]" placeholder="0 9 * * *" value="0 9 * * *">
+              </div>
+              <input type="hidden" id="sched-preset-select" value="DAILY">
+            </div>
+          </details>
         </div>
 
       </div>
