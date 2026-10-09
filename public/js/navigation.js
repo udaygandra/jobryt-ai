@@ -79,6 +79,14 @@ function selectNavTab(tab) {
 
 function switchTab(tab) {
   activeTab = tab;
+  try {
+    localStorage.setItem('jobryt_active_tab', tab);
+  } catch (_) {}
+
+  // Remove temporary head preload style once tab switching is active
+  const preloadStyle = document.getElementById('tab-preload-style');
+  if (preloadStyle) preloadStyle.remove();
+
   closeAllDropdowns();
   document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
 
@@ -176,6 +184,26 @@ function switchTab(tab) {
   if (tab === 'applied') loadAppliedJobs();
   if (tab === 'config') loadSettings();
 }
+
+function restoreActiveTab() {
+  try {
+    const saved = localStorage.getItem('jobryt_active_tab');
+    const validTabs = ['guide', 'feed', 'custom', 'recruiters', 'applied', 'profile', 'config'];
+    if (saved && validTabs.includes(saved)) {
+      switchTab(saved);
+      return saved;
+    }
+  } catch (e) {
+    console.warn('restoreActiveTab error:', e);
+  }
+  return null;
+}
+
+// Window exports
+window.switchTab = switchTab;
+window.selectNavTab = selectNavTab;
+window.selectSideTab = selectSideTab;
+window.restoreActiveTab = restoreActiveTab;
 
 // Global Event Listeners for Navigation
 document.addEventListener('click', (e) => {

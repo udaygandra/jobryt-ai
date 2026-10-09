@@ -59,13 +59,19 @@
     }
   </script>
   <script>
-      (function () {
-        try {
-          const saved = localStorage.getItem('jobryt_theme');
-          const theme = saved || 'dark';
-          document.documentElement.setAttribute('data-theme', theme);
-        } catch (_) { }
-      })();
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem('jobryt_theme');
+        document.documentElement.setAttribute('data-theme', savedTheme || 'dark');
+        const savedTab = localStorage.getItem('jobryt_active_tab');
+        if (savedTab && savedTab !== 'feed') {
+          const s = document.createElement('style');
+          s.id = 'tab-preload-style';
+          s.textContent = `#view-feed { display: none !important; } #view-${savedTab} { display: block !important; }`;
+          document.head.appendChild(s);
+        }
+      } catch (_) { }
+    })();
   </script>
   <!-- Modular Design Tokens & Components Stylesheets -->
   <link rel="stylesheet" href="/css/theme.css">
@@ -806,15 +812,41 @@
 
       <!-- Pending Jobs Container -->
       <div id="pending-jobs-list" class="space-y-4">
-        <!-- Rendered dynamically -->
-        <div class="text-center py-16 text-[#9AA0A6] app-card">
-          <svg class="w-10 h-10 mx-auto text-[#5F6B76] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-          </svg>
-          <p class="font-semibold text-[#E8E6E1]">Approval queue is clear</p>
-          <p class="text-xs text-[#9AA0A6] mt-1 max-w-sm mx-auto">No pending jobs waiting. Click <b>"Run Scan"</b> to
-            ingest listings or use <b>"Tailor Job"</b> to evaluate any link manually.</p>
+        <!-- Static Zero-Flicker Skeletons (Shown instantaneously on cold start/reload) -->
+        <div class="skeleton-card skeleton-shimmer space-y-3.5 p-5 sm:p-6 rounded-xl border border-[#2B3036] bg-[#16191E]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl skeleton-box"></div>
+              <div class="space-y-1.5">
+                <div class="w-48 sm:w-64 h-4 skeleton-box"></div>
+                <div class="w-32 h-3 skeleton-box"></div>
+              </div>
+            </div>
+            <div class="w-16 h-6 rounded-full skeleton-box"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="w-20 h-5 skeleton-box"></div>
+            <div class="w-24 h-5 skeleton-box"></div>
+            <div class="w-16 h-5 skeleton-box"></div>
+          </div>
+          <div class="w-full h-12 skeleton-box rounded-md"></div>
+        </div>
+        <div class="skeleton-card skeleton-shimmer space-y-3.5 p-5 sm:p-6 rounded-xl border border-[#2B3036] bg-[#16191E]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl skeleton-box"></div>
+              <div class="space-y-1.5">
+                <div class="w-40 sm:w-56 h-4 skeleton-box"></div>
+                <div class="w-28 h-3 skeleton-box"></div>
+              </div>
+            </div>
+            <div class="w-16 h-6 rounded-full skeleton-box"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="w-16 h-5 skeleton-box"></div>
+            <div class="w-20 h-5 skeleton-box"></div>
+          </div>
+          <div class="w-full h-12 skeleton-box rounded-md"></div>
         </div>
       </div>
 

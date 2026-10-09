@@ -17,6 +17,14 @@ async function init() {
   if (typeof hydrateFromCachedStatus === 'function') {
     hydrateFromCachedStatus();
   }
+  if (typeof hydrateFromCachedJobs === 'function') {
+    hydrateFromCachedJobs();
+  }
+
+  // Restore active tab from local storage (0ms flicker-free tab retention)
+  if (typeof restoreActiveTab === 'function') {
+    restoreActiveTab();
+  }
 
   // 2. Parallel Network Bootstrap with Promise.allSettled
   try {

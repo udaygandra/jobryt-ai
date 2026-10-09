@@ -78,86 +78,108 @@ function toggleJobDescription(jobId) {
   }
 }
 
-async function loadPendingJobs() {
-  const container = document.getElementById('pending-jobs-list');
-  if (container) {
-    container.innerHTML = `
-      <div class="skeleton-card skeleton-shimmer space-y-3.5 mb-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg skeleton-box"></div>
-            <div class="space-y-1.5">
-              <div class="w-48 h-4 skeleton-box"></div>
-              <div class="w-32 h-3 skeleton-box"></div>
-            </div>
-          </div>
-          <div class="w-16 h-6 rounded-full skeleton-box"></div>
-        </div>
-        <div class="flex gap-2">
-          <div class="w-20 h-5 skeleton-box"></div>
-          <div class="w-24 h-5 skeleton-box"></div>
-        </div>
-        <div class="w-full h-12 skeleton-box rounded-md"></div>
-      </div>
-      <div class="skeleton-card skeleton-shimmer space-y-3.5 mb-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg skeleton-box"></div>
-            <div class="space-y-1.5">
-              <div class="w-40 h-4 skeleton-box"></div>
-              <div class="w-28 h-3 skeleton-box"></div>
-            </div>
-          </div>
-          <div class="w-16 h-6 rounded-full skeleton-box"></div>
-        </div>
-        <div class="flex gap-2">
-          <div class="w-16 h-5 skeleton-box"></div>
-          <div class="w-20 h-5 skeleton-box"></div>
-        </div>
-        <div class="w-full h-12 skeleton-box rounded-md"></div>
-      </div>
-      <div class="skeleton-card skeleton-shimmer space-y-3.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg skeleton-box"></div>
-            <div class="space-y-1.5">
-              <div class="w-44 h-4 skeleton-box"></div>
-              <div class="w-36 h-3 skeleton-box"></div>
-            </div>
-          </div>
-          <div class="w-16 h-6 rounded-full skeleton-box"></div>
-        </div>
-        <div class="flex gap-2">
-          <div class="w-24 h-5 skeleton-box"></div>
-          <div class="w-16 h-5 skeleton-box"></div>
-        </div>
-        <div class="w-full h-12 skeleton-box rounded-md"></div>
-      </div>
-    `;
+function updatePendingBadges(count) {
+  const c = Math.max(0, parseInt(count, 10) || 0);
+  const countPending = document.getElementById('tab-count-pending');
+  if (countPending) countPending.innerText = c;
+  const metricPending = document.getElementById('metric-pending');
+  if (metricPending) metricPending.innerText = c;
+  const pBadge = document.getElementById('tab-count-pending-badge');
+  if (pBadge) pBadge.innerText = c;
+  const feedChip = document.getElementById('feed-pending-chip');
+  if (feedChip) feedChip.innerText = `${c} pending`;
+  const sidePending = document.getElementById('side-count-pending');
+  if (sidePending) sidePending.innerText = c;
+  const sideQueueMetric = document.getElementById('side-metric-queue');
+  if (sideQueueMetric) sideQueueMetric.innerText = c;
+  if (typeof activeTab !== 'undefined' && activeTab === 'feed') {
+    const mobHeaderCount = document.getElementById('mobile-active-section-count');
+    if (mobHeaderCount) mobHeaderCount.innerText = c;
   }
-  try {
-    const res = await fetch('/api/jobs/pending');
-    const data = await res.json();
-    const jobs = data.jobs || [];
-    
-    const countPending = document.getElementById('tab-count-pending');
-    if (countPending) countPending.innerText = jobs.length;
-    const metricPending = document.getElementById('metric-pending');
-    if (metricPending) metricPending.innerText = jobs.length;
-    const pBadge = document.getElementById('tab-count-pending-badge');
-    if (pBadge) pBadge.innerText = jobs.length;
-    const feedChip = document.getElementById('feed-pending-chip');
-    if (feedChip) feedChip.innerText = `${jobs.length} pending`;
-    const sidePending = document.getElementById('side-count-pending');
-    if (sidePending) sidePending.innerText = jobs.length;
-    const sideQueueMetric = document.getElementById('side-metric-queue');
-    if (sideQueueMetric) sideQueueMetric.innerText = jobs.length;
-    if (activeTab === 'feed') {
-      const mobHeaderCount = document.getElementById('mobile-active-section-count');
-      if (mobHeaderCount) mobHeaderCount.innerText = jobs.length;
-    }
+}
 
-    if (jobs.length === 0) {
+function renderPendingSkeletons(container) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="skeleton-card skeleton-shimmer space-y-3.5 mb-4 p-5 sm:p-6 rounded-xl border border-[#2B3036] bg-[#16191E]">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl skeleton-box"></div>
+          <div class="space-y-1.5">
+            <div class="w-48 sm:w-64 h-4 skeleton-box"></div>
+            <div class="w-32 h-3 skeleton-box"></div>
+          </div>
+        </div>
+        <div class="w-16 h-6 rounded-full skeleton-box"></div>
+      </div>
+      <div class="flex gap-2">
+        <div class="w-20 h-5 skeleton-box"></div>
+        <div class="w-24 h-5 skeleton-box"></div>
+        <div class="w-16 h-5 skeleton-box"></div>
+      </div>
+      <div class="w-full h-12 skeleton-box rounded-md"></div>
+    </div>
+    <div class="skeleton-card skeleton-shimmer space-y-3.5 mb-4 p-5 sm:p-6 rounded-xl border border-[#2B3036] bg-[#16191E]">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl skeleton-box"></div>
+          <div class="space-y-1.5">
+            <div class="w-40 sm:w-56 h-4 skeleton-box"></div>
+            <div class="w-28 h-3 skeleton-box"></div>
+          </div>
+        </div>
+        <div class="w-16 h-6 rounded-full skeleton-box"></div>
+      </div>
+      <div class="flex gap-2">
+        <div class="w-16 h-5 skeleton-box"></div>
+        <div class="w-20 h-5 skeleton-box"></div>
+      </div>
+      <div class="w-full h-12 skeleton-box rounded-md"></div>
+    </div>
+  `;
+}
+
+function removeJobFromLocalCache(jobId) {
+  try {
+    const raw = localStorage.getItem('jobryt_cached_pending_jobs');
+    if (!raw) return;
+    const jobs = JSON.parse(raw);
+    if (Array.isArray(jobs)) {
+      const filtered = jobs.filter(j => String(j.id) !== String(jobId));
+      if (filtered.length > 0) {
+        localStorage.setItem('jobryt_cached_pending_jobs', JSON.stringify(filtered));
+      } else {
+        localStorage.removeItem('jobryt_cached_pending_jobs');
+      }
+      updatePendingBadges(filtered.length);
+    }
+  } catch (_) {}
+}
+
+function hydrateFromCachedJobs() {
+  try {
+    const raw = localStorage.getItem('jobryt_cached_pending_jobs');
+    if (!raw) return false;
+    const jobs = JSON.parse(raw);
+    if (Array.isArray(jobs) && jobs.length > 0) {
+      renderPendingJobs(jobs);
+      return true;
+    }
+  } catch (e) {
+    console.warn('hydrateFromCachedJobs parse error:', e);
+  }
+  return false;
+}
+
+function renderPendingJobs(jobs) {
+  const container = document.getElementById('pending-jobs-list');
+  if (!container) return;
+
+  try {
+    const jobList = Array.isArray(jobs) ? jobs : [];
+    updatePendingBadges(jobList.length);
+
+    if (jobList.length === 0) {
       const activeTitles = (window.targetRolesList && window.targetRolesList.length)
         ? window.targetRolesList.slice(0, 3).join(', ')
         : 'Configured in Settings';
@@ -400,6 +422,33 @@ async function loadPendingJobs() {
       `;
     }).join('');
   } catch (e) {
+    console.error('renderPendingJobs error:', e);
+  }
+}
+
+async function loadPendingJobs() {
+  const container = document.getElementById('pending-jobs-list');
+  // If container is empty or only has skeleton cards, ensure skeletons are showing
+  if (container && (!container.children.length || container.querySelector('.skeleton-card'))) {
+    renderPendingSkeletons(container);
+  }
+
+  try {
+    const res = await fetch('/api/jobs/pending');
+    const data = await res.json();
+    const jobs = data.jobs || [];
+
+    // Cache updated jobs
+    try {
+      if (jobs.length > 0) {
+        localStorage.setItem('jobryt_cached_pending_jobs', JSON.stringify(jobs));
+      } else {
+        localStorage.removeItem('jobryt_cached_pending_jobs');
+      }
+    } catch (_) {}
+
+    renderPendingJobs(jobs);
+  } catch (e) {
     console.error('loadPendingJobs error:', e);
   }
 }
@@ -424,6 +473,7 @@ async function applyToJob(jobId) {
         card.classList.add('opacity-40', 'scale-95');
         setTimeout(() => card.remove(), 400);
       }
+      removeJobFromLocalCache(jobId);
       await loadStatus();
       await loadAppliedJobs();
       showApplicationPrompt(data.appliedJob);
@@ -499,6 +549,7 @@ async function rejectJob(jobId) {
       card.classList.add('opacity-0', 'scale-90');
       setTimeout(() => card.remove(), 300);
     }
+    removeJobFromLocalCache(jobId);
     await loadStatus();
   } catch (e) {
     console.error('rejectJob error:', e);
@@ -538,3 +589,11 @@ async function triggerPipelineScan() {
     if (logs) logs.innerHTML += `<div class="text-rose-400">> Network error: ${e.message}</div>`;
   }
 }
+
+// Window exports
+window.hydrateFromCachedJobs = hydrateFromCachedJobs;
+window.renderPendingJobs = renderPendingJobs;
+window.loadPendingJobs = loadPendingJobs;
+window.rejectJob = rejectJob;
+window.applyToJob = applyToJob;
+window.triggerPipelineScan = triggerPipelineScan;
