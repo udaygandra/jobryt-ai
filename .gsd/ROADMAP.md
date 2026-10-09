@@ -67,9 +67,9 @@ updated: 2026-10-08T17:36:00Z
 **Objective:** Expand location autocomplete and suggestions to cover all 18+ countries supported in Settings (US, UK, CA, DE, AU, FR, IN, NL, AE, SG, JP, BR, IT, PL, ZA, AT, NZ, MX, GLOBAL) with comprehensive Tier 1, 2, and 3 cities, backend filtering API, dynamic country-aware quick chips, and Setup Wizard country picker.
 
 **Plans:**
-- [x] [Plan 10.1: Multi-Country Cities Dataset & Global Geo API](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/10/10.1-PLAN.md)
-- [x] [Plan 10.2: Frontend Dynamic Country-Aware Autocomplete & Location Suggestions](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/10/10.2-PLAN.md)
-- [x] [Plan 10.3: Comprehensive Tier 1, Tier 2 & Tier 3 Global Cities Dataset & Search API](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/10/10.3-PLAN.md)
+- [x] [Plan 10.1: Multi-Country Cities Dataset & Global Geo API](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/milestones/v1.1-phases/10/10.1-PLAN.md)
+- [x] [Plan 10.2: Frontend Dynamic Country-Aware Autocomplete & Location Suggestions](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/milestones/v1.1-phases/10/10.2-PLAN.md)
+- [x] [Plan 10.3: Comprehensive Tier 1, Tier 2 & Tier 3 Global Cities Dataset & Search API](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/milestones/v1.1-phases/10/10.3-PLAN.md)
 
 ---
 

@@ -24,12 +24,33 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const { fork } = require('child_process');
+const jobsDb = require('../scripts/core/jobs-db');
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
+async function ensureServerRunning() {
+  try {
+    await request('GET', '/api/status');
+    return null;
+  } catch (_) {
+    console.log('⚡ Server not running on port 3000. Auto-spawning Express server...');
+    const serverProcess = fork(path.join(__dirname, '../server.js'), [], { stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 250));
+      try {
+        await request('GET', '/api/status');
+        console.log('✔ Server started successfully.');
+        return serverProcess;
+      } catch (_) {}
+    }
+    throw new Error('Failed to start server within timeout');
+  }
+}
+
 // Helper: Make HTTP request to local server
-function request(method, pathUrl, body = null, headers = {}) {
+function request(method, pathUrl, body = null, headers = {}, timeoutMs = 120000) {
   return new Promise((resolve, reject) => {
     const url = new URL(pathUrl, BASE_URL);
     const reqHeaders = { ...headers };
@@ -45,7 +66,7 @@ function request(method, pathUrl, body = null, headers = {}) {
       reqHeaders['Content-Length'] = Buffer.byteLength(reqBody);
     }
 
-    const req = http.request(url, { method, headers: reqHeaders, timeout: 25000 }, (res) => {
+    const req = http.request(url, { method, headers: reqHeaders, timeout: timeoutMs }, (res) => {
       const chunks = [];
       res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
@@ -79,6 +100,7 @@ async function runAllFeatureTests() {
   console.log('🧪 RUNNING COMPREHENSIVE END-TO-END APPLICATION & MENU TESTS');
   console.log('='.repeat(70) + '\n');
 
+  const serverProc = await ensureServerRunning();
   let passed = 0;
   let total = 0;
 
@@ -346,6 +368,9 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert.strictEqual(res.status, 200);
     assert(typeof res.json.count === 'number');
     assert(Array.isArray(res.json.jobs));
+    if (testJobId) {
+      jobsDb.removePendingJob(testJobId);
+    }
   });
 
   await test('POST /api/pipeline/run executes autonomous multi-board scan with filters', async () => {
@@ -357,7 +382,7 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
       sendTelegram: false // Do not spam Telegram during automated E2E testing
     };
 
-    const res = await request('POST', '/api/pipeline/run', scanPayload);
+    const res = await request('POST', '/api/pipeline/run', scanPayload, {}, 240000);
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.json.success, true);
     assert(res.json.stats);
@@ -527,12 +552,19 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert(html.includes('toggleTheme()'), 'Theme toggle function must exist');
   });
 
+  try {
+    const db = jobsDb.getDb();
+    db.prepare("DELETE FROM applied_jobs WHERE id LIKE 'test_%' OR id LIKE 'manual_%'").run();
+    db.prepare("DELETE FROM tailored_resumes WHERE id LIKE 'test_%' OR id LIKE 'manual_%'").run();
+  } catch (_) {}
+
   console.log('\n' + '='.repeat(70));
   console.log(`🎉 ALL ${passed}/${total} END-TO-END FEATURE AND MENU TESTS PASSED PERFECTLY!`);
   console.log('='.repeat(70) + '\n');
+  if (serverProc) serverProc.kill();
 }
 
-runAllFeatureTests().catch(err => {
+runAllFeatureTests().then(() => process.exit(0)).catch(err => {
   console.error('\n❌ E2E Feature Test Suite failed:', err);
   process.exit(1);
 });

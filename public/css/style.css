@@ -1,0 +1,59 @@
+/* Jobryt AI - Core UI & Skeleton Animation Styles */
+
+@keyframes skeleton-shimmer {
+  0% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.45;
+  }
+}
+
+.skeleton-shimmer {
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-card {
+  background-color: var(--surface-base, #1C1F24);
+  border: 1px solid var(--border-subtle, #2B3036);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] .skeleton-card {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(15, 23, 42, 0.06));
+}
+
+.skeleton-box {
+  background-color: #242830;
+  border-radius: 0.375rem;
+}
+
+[data-theme="light"] .skeleton-box {
+  background-color: #E2E8F0 !important;
+}
+
+.skeleton-circle {
+  background-color: #242830;
+  border-radius: 9999px;
+}
+
+[data-theme="light"] .skeleton-circle {
+  background-color: #E2E8F0 !important;
+}
+
+.skeleton-pill {
+  background-color: #242830;
+  border-radius: 9999px;
+  height: 1.25rem;
+}
+
+[data-theme="light"] .skeleton-pill {
+  background-color: #E2E8F0 !important;
+}

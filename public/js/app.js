@@ -18,6 +18,7 @@ async function init() {
   await loadPendingJobs();
   await loadAppliedJobs();
   await loadTelegramStatus();
+  checkFirstTimeOnboarding();
 }
 
 window.addEventListener('DOMContentLoaded', init);

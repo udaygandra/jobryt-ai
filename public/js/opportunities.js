@@ -80,6 +80,61 @@ function toggleJobDescription(jobId) {
 
 async function loadPendingJobs() {
   const container = document.getElementById('pending-jobs-list');
+  if (container) {
+    container.innerHTML = `
+      <div class="skeleton-card skeleton-shimmer space-y-3.5 mb-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg skeleton-box"></div>
+            <div class="space-y-1.5">
+              <div class="w-48 h-4 skeleton-box"></div>
+              <div class="w-32 h-3 skeleton-box"></div>
+            </div>
+          </div>
+          <div class="w-16 h-6 rounded-full skeleton-box"></div>
+        </div>
+        <div class="flex gap-2">
+          <div class="w-20 h-5 skeleton-box"></div>
+          <div class="w-24 h-5 skeleton-box"></div>
+        </div>
+        <div class="w-full h-12 skeleton-box rounded-md"></div>
+      </div>
+      <div class="skeleton-card skeleton-shimmer space-y-3.5 mb-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg skeleton-box"></div>
+            <div class="space-y-1.5">
+              <div class="w-40 h-4 skeleton-box"></div>
+              <div class="w-28 h-3 skeleton-box"></div>
+            </div>
+          </div>
+          <div class="w-16 h-6 rounded-full skeleton-box"></div>
+        </div>
+        <div class="flex gap-2">
+          <div class="w-16 h-5 skeleton-box"></div>
+          <div class="w-20 h-5 skeleton-box"></div>
+        </div>
+        <div class="w-full h-12 skeleton-box rounded-md"></div>
+      </div>
+      <div class="skeleton-card skeleton-shimmer space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg skeleton-box"></div>
+            <div class="space-y-1.5">
+              <div class="w-44 h-4 skeleton-box"></div>
+              <div class="w-36 h-3 skeleton-box"></div>
+            </div>
+          </div>
+          <div class="w-16 h-6 rounded-full skeleton-box"></div>
+        </div>
+        <div class="flex gap-2">
+          <div class="w-24 h-5 skeleton-box"></div>
+          <div class="w-16 h-5 skeleton-box"></div>
+        </div>
+        <div class="w-full h-12 skeleton-box rounded-md"></div>
+      </div>
+    `;
+  }
   try {
     const res = await fetch('/api/jobs/pending');
     const data = await res.json();
@@ -130,9 +185,10 @@ async function loadPendingJobs() {
       const otherSkills = (boardSkills.filter(s => !matchedSkills.map(m => m.toLowerCase()).includes(String(s).toLowerCase()))).slice(0, 5);
       const missingSkills = (job.missing_skills || []).slice(0, 3);
 
-      const jdSummary = formatJobDescriptionSummary(job.description);
-      const jdFullHtml = formatFullJobDescription(job.description);
-      const hasFullJd = Boolean(job.description && job.description.trim().length > 0);
+      const rawDesc = job.description || job.snippet || job.details || job.summary || '';
+      const jdSummary = formatJobDescriptionSummary(rawDesc);
+      const jdFullHtml = formatFullJobDescription(rawDesc);
+      const hasFullJd = Boolean(rawDesc && rawDesc.trim().length > 190);
 
       return `
         <div class="app-card app-card-hover rounded-xl p-5 sm:p-6 transition-all border border-[#2B3036] hover:border-[#3D444D] bg-[#16191E] flex flex-col gap-4 group" id="job-card-${job.id}">
@@ -253,19 +309,19 @@ async function loadPendingJobs() {
           </div>
 
           <!-- 4. Action Bar (Apply & Tailor PDF, Link, Pass) -->
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#2B3036]/60">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-[#2B3036]/60">
             <div class="text-[11px] text-[#9AA0A6] font-mono flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-[#D9A441]"></span>
               <span>ATS-Tailored PDF & Cover Letter Pipeline</span>
             </div>
 
-            <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+            <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap justify-end">
               <button onclick="rejectJob('${job.id}')" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#9AA0A6] hover:text-[#E5786D] border border-[#2B3036] hover:border-[#E5786D]/30 transition-all active:scale-[0.98] cursor-pointer">
                 Pass
               </button>
 
               ${jobUrl ? `
-                <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]">
+                <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="py-2 px-3.5 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]">
                   <svg class="w-3.5 h-3.5 shrink-0 text-[#9AA0A6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                   <span>View Posting</span>
                 </a>

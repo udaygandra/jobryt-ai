@@ -18,6 +18,27 @@ const BASE_URL = `http://127.0.0.1:${PORT}`;
 const fixturesDir = path.join(__dirname, 'fixtures');
 if (!fs.existsSync(fixturesDir)) fs.mkdirSync(fixturesDir, { recursive: true });
 
+const { fork } = require('child_process');
+
+async function ensureServerRunning() {
+  try {
+    await request('GET', '/api/status');
+    return null;
+  } catch (_) {
+    console.log('⚡ Server not running on port 3000. Auto-spawning Express server...');
+    const serverProcess = fork(path.join(__dirname, '../server.js'), [], { stdio: 'ignore' });
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 250));
+      try {
+        await request('GET', '/api/status');
+        console.log('✔ Server started successfully.');
+        return serverProcess;
+      } catch (_) {}
+    }
+    throw new Error('Failed to start server within timeout');
+  }
+}
+
 function request(method, pathUrl, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(pathUrl, BASE_URL);
@@ -694,9 +715,15 @@ async function runPdfTests() {
   console.log('\n' + '='.repeat(70));
   console.log('🎉 ALL RESUME PDF PARSING, CLIENT FIDELITY & VALIDATION TESTS PASSED!');
   console.log('='.repeat(70) + '\n');
+  if (serverProc) serverProc.kill();
 }
 
-runPdfTests().catch(err => {
+let serverProc = null;
+ensureServerRunning().then(proc => {
+  serverProc = proc;
+  return runPdfTests();
+}).then(() => process.exit(0)).catch(err => {
   console.error('\n❌ PDF Resume Test failed:', err);
+  if (serverProc) serverProc.kill();
   process.exit(1);
 });

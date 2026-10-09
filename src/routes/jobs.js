@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const jobsDb = require('../../scripts/core/jobs-db');
 const { tailorJobApplication } = require('../../scripts/engine/tailor-engine');
+const { fetchLinkedInJobDetails } = require('../../scripts/engine/fetch-all-boards');
 const { getMasterProfile } = require('./profile');
 
 // GET /api/jobs/pending
@@ -58,18 +59,56 @@ router.post('/apply', async (req, res) => {
       return res.status(404).json({ error: `Job record not found for ID: ${jobId}` });
     }
 
+    // Auto-enrich job description if truncated/stubbed
+    const curDesc = job.description || job.snippet || '';
+    if (curDesc.length < 250) {
+      const u = job.job_url || job.redirect_url || job.url || '';
+      const numMatch = u.match(/-([0-9]{5,})/i) || u.match(/\/([0-9]{5,})/i);
+      if (numMatch && numMatch[1]) {
+        try {
+          const fullDesc = await fetchLinkedInJobDetails(numMatch[1]);
+          if (fullDesc && fullDesc.length > 250) {
+            job.description = fullDesc;
+          }
+        } catch (_) {}
+      }
+    }
+
     const profile = getMasterProfile();
     const result = await tailorJobApplication(job, profile, tone || 'Professional & Direct');
     
-    // If an initial status was requested (e.g., 'Tailored' or 'Applied')
-    if (initialStatus && result && result.id) {
-      jobsDb.updateJobStatus(result.id, initialStatus);
-      result.status = initialStatus;
+    // Default initial status to 'Tailored' (Ready to Submit)
+    const finalStatus = initialStatus || (result && result.status) || 'Tailored';
+    if (result && result.id) {
+      jobsDb.updateJobStatus(result.id, finalStatus);
+      result.status = finalStatus;
     }
 
     res.json({ success: true, appliedJob: result });
   } catch (err) {
     console.error('Apply error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/jobs/:id/refresh-details (Fetch & save full JD if previously truncated)
+router.post('/:id/refresh-details', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const job = jobsDb.findJobRecord(id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    const url = job.job_url || job.redirect_url || job.url || '';
+    const numMatch = url.match(/-([0-9]{5,})/i) || url.match(/\/([0-9]{5,})/i);
+    if (numMatch && numMatch[1]) {
+      const fullDesc = await fetchLinkedInJobDetails(numMatch[1]);
+      if (fullDesc && fullDesc.length > 200) {
+        job.description = fullDesc;
+        jobsDb.savePendingJob(job);
+        return res.json({ success: true, description: fullDesc });
+      }
+    }
+    res.json({ success: false, message: 'Could not retrieve full description' });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

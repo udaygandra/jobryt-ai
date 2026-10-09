@@ -145,5 +145,7 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`================================================================`);
   schedulerRoutes.initCronScheduler(pipelineRoutes.executePipelineScan);
 });
+server.setTimeout(300000);
+server.keepAliveTimeout = 65000;
 
 module.exports = { app, server };

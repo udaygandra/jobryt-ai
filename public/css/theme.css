@@ -122,8 +122,20 @@ body {
   background-color: var(--bg-base) !important;
 }
 
-[data-theme="light"] .bg-\[\#1C1F24\] {
+[data-theme="light"] .bg-\[\#1C1F24\],
+[data-theme="light"] .bg-\[\#16191E\],
+[data-theme="light"] .bg-\[\#181B20\] {
   background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .hover\:bg-\[\#181B20\]:hover,
+[data-theme="light"] .hover\:bg-\[\#16191E\]:hover {
+  background-color: #F8FAFC !important;
+}
+
+[data-theme="light"] .bg-\[\#0F1115\] {
+  background-color: #F8FAFC !important;
 }
 
 [data-theme="light"] .bg-\[\#242830\] {

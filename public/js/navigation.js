@@ -135,17 +135,17 @@ function switchTab(tab) {
 
   // Update mobile top bar chip
   const sectionLabels = {
-    guide: 'Workflow Guide · Onboarding',
-    feed: 'Opportunities · Discovery Queue',
-    custom: 'Opportunities · Job Tailor',
-    recruiters: 'Opportunities · Recruiter Intel',
-    applied: 'Applications · Pipeline',
-    profile: 'Dossier · Master Profile',
-    config: 'Engine · Search Rules'
+    guide: 'Getting Started Guide',
+    feed: 'Find Jobs · Job Matches',
+    custom: 'Find Jobs · Tailor Any Job',
+    recruiters: 'Find Jobs · Find Recruiters',
+    applied: 'My Applications',
+    profile: 'My Resume & Profile',
+    config: 'Job Search Settings'
   };
   const mobHeaderName = document.getElementById('mobile-active-section-name');
   if (mobHeaderName) {
-    mobHeaderName.innerText = sectionLabels[tab] || 'Workflow Guide';
+    mobHeaderName.innerText = sectionLabels[tab] || 'Getting Started';
   }
 
   // Update mobile count indicator based on view

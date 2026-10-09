@@ -8,15 +8,16 @@ async function loadProfile() {
     currentProfile = await res.json();
     populateProfileForm(currentProfile);
 
-    // Pre-fill manual config fields in Search Rules
-    const cfgRoles = document.getElementById('cfg-roles');
-    if (cfgRoles) {
-      cfgRoles.value = (currentProfile.target_titles || []).join(', ');
-    }
-    const cfgLocs = document.getElementById('cfg-locations');
-    if (cfgLocs) {
-      cfgLocs.value = (currentProfile.locations || []).join(', ');
-    }
+    // Pre-fill and sync manual config fields in Search Rules
+    window.targetRolesList = Array.isArray(currentProfile.target_titles) && currentProfile.target_titles.length
+      ? [...currentProfile.target_titles]
+      : (Array.isArray(currentProfile.target_roles) && currentProfile.target_roles.length ? [...currentProfile.target_roles] : (currentProfile.role ? [currentProfile.role] : []));
+    window.targetLocationsList = Array.isArray(currentProfile.locations) && currentProfile.locations.length
+      ? [...currentProfile.locations]
+      : (currentProfile.contact && currentProfile.contact.location ? [currentProfile.contact.location] : ['Remote']);
+
+    if (typeof renderRoleTags === 'function') renderRoleTags();
+    if (typeof renderLocationTags === 'function') renderLocationTags();
   } catch (e) {
     console.error('loadProfile error:', e);
   }
@@ -53,6 +54,15 @@ function populateProfileForm(prof) {
   renderEducationCards(prof.education || []);
   updateProfileCounters();
   renderProfileCountryBoards(prof);
+
+  // Sync tags in Search Preferences
+  window.targetRolesList = targetRoles.length ? [...targetRoles] : (window.targetRolesList || []);
+  const targetLocs = (Array.isArray(prof.locations) && prof.locations.length)
+    ? prof.locations
+    : ((prof.contact && prof.contact.location) ? [prof.contact.location] : []);
+  if (targetLocs.length) window.targetLocationsList = [...targetLocs];
+  if (typeof renderRoleTags === 'function') renderRoleTags();
+  if (typeof renderLocationTags === 'function') renderLocationTags();
 }
 
 async function renderProfileCountryBoards(prof = currentProfile) {
