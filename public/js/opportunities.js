@@ -158,11 +158,73 @@ async function loadPendingJobs() {
     }
 
     if (jobs.length === 0) {
+      const activeTitles = (window.targetRolesList && window.targetRolesList.length)
+        ? window.targetRolesList.slice(0, 3).join(', ')
+        : 'Configured in Settings';
+      const activeLocs = (window.targetLocationsList && window.targetLocationsList.length)
+        ? window.targetLocationsList.slice(0, 3).join(', ')
+        : 'Global / Remote';
+
       container.innerHTML = `
-        <div class="text-center py-16 text-slate-400 glass-card rounded-2xl">
-          <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-          <p class="font-medium text-slate-300">Approval queue is clear</p>
-          <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">No pending jobs waiting. Click <b>"Run Scan"</b> to discover new postings or use <b>"Tailor Job"</b> to evaluate any link manually.</p>
+        <div class="glass-card rounded-2xl p-6 sm:p-10 text-center max-w-2xl mx-auto space-y-6 my-4 border border-[#2B3036]/80 shadow-xl transition-all">
+          <div class="w-14 h-14 rounded-2xl bg-[#D9A441]/10 border border-[#D9A441]/25 flex items-center justify-center mx-auto text-[#D9A441] shadow-lg shadow-[#D9A441]/5">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">
+              Ready to Discover High-Match Roles
+            </h3>
+            <p class="text-xs sm:text-sm text-[#9AA0A6] max-w-md mx-auto leading-relaxed">
+              Your profile is synchronized with autonomous crawler adapters. Trigger a scan to discover, score, and rank opportunities in real time.
+            </p>
+          </div>
+
+          <!-- Quick Setup Status Pills -->
+          <div class="p-3.5 rounded-xl bg-[#111317] border border-[#2B3036] flex flex-col sm:flex-row items-center justify-around gap-3 text-left text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-amber-400 font-mono">🎯 Roles:</span>
+              <span class="font-medium text-[#E8E6E1] truncate">${escapeHtml(activeTitles)}</span>
+            </div>
+            <div class="h-4 w-px bg-[#2B3036] hidden sm:block"></div>
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-[#5FA8A0] font-mono">📍 Locations:</span>
+              <span class="font-medium text-[#E8E6E1] truncate">${escapeHtml(activeLocs)}</span>
+            </div>
+          </div>
+
+          <!-- Action CTA Buttons -->
+          <div class="flex items-center justify-center gap-3 flex-wrap pt-1">
+            <button onclick="triggerPipelineScan()" id="btn-empty-scan"
+              class="px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-2 active:scale-95 shadow-md shadow-[#D9A441]/20 cursor-pointer">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>Run First Discovery Scan</span>
+            </button>
+            <button onclick="selectNavTab('custom')"
+              class="px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-2 active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4 text-[#5FA8A0] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              <span>Tailor Any Job Link</span>
+            </button>
+          </div>
+
+          <!-- Quick Context Banner -->
+          <div class="pt-2 border-t border-[#2B3036]/60 flex items-center justify-center gap-4 text-[11px] text-[#9AA0A6] flex-wrap font-mono">
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Automated Multi-Board Ingestion Active</span>
+            </span>
+            <span class="hidden sm:inline text-[#3D444D]">•</span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span>Scoring Threshold: 60+ Match</span>
+            </span>
+          </div>
         </div>
       `;
       return;
