@@ -133,6 +133,16 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 16.2: Clean Decimal Experience Stepper (0.5 Rounding Engine) & Contact Fields Standard Check](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.2-PLAN.md)
 - [x] [Plan 16.3: Responsive Fluid Navigation, Overflow Guardrails & Chrome Tab Favicon Match](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.3-PLAN.md)
 
+### Phase 17: Multi-LLM Provider Engine, Model State Tracking, Clean Environment & Application Card Recruiter Finder
+**Status:** 🔄 Planned (Milestone v1.2)
+**Objective:** Purge dead n8n, Serper, and Hunter config; upgrade CLI setup wizard for multi-provider prompting; implement smart LLM state tracking and auto-revisiting for top model (`gemini-3.8-flash`); support all LLM providers across resume ingestion and tailoring with test harness; optimize application card space with Google Search fallback and embedded 1-click recruiter intelligence.
+
+**Plans:**
+- [ ] [Plan 17.1: Environment Cleanup, Setup Wizard Overhaul & Complete Serper/Hunter Purge](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/17/17.1-PLAN.md)
+- [ ] [Plan 17.2: Smart LLM State Tracking, Active Model Revisit Logic & Latency Reduction (Priority: gemini-3.8-flash)](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/17/17.2-PLAN.md)
+- [ ] [Plan 17.3: Universal Multi-LLM Provider Support for Ingestion & Tailoring with Automated Tests](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/17/17.3-PLAN.md)
+- [ ] [Plan 17.4: Applications Page Card Space Optimization & Embedded Recruiter Intelligence](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/17/17.4-PLAN.md)
+
 ---
 
 ## Progress Summary
@@ -152,6 +162,7 @@ updated: 2026-10-08T17:36:00Z
 | 14 | ✅ | 4/4 | 100% (v1.2) |
 | 15 | ✅ | 4/4 | 100% (v1.2) |
 | 16 | ✅ | 3/3 | 100% (v1.2) |
+| 17 | 🔄 | 0/4 | 0% (v1.2) |
 
 
 
