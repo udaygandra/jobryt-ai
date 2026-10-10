@@ -78,7 +78,7 @@ function previewLetter(title, company, text) {
   const modalBody = document.getElementById('letter-modal-body');
   const modal = document.getElementById('letter-modal');
   if (modalTitle) modalTitle.innerText = `${title} @ ${company}`;
-  if (modalSub) modalSub.innerText = 'Executive Zero-Fabrication Tailored Cover Letter';
+  if (modalSub) modalSub.innerText = 'Tailored Cover Letter';
   if (modalBody) modalBody.innerText = text || 'No letter content available.';
   if (modal) modal.classList.remove('hidden');
 }

@@ -49,8 +49,8 @@ async function refreshWorkflowGuide() {
     if (step2Badge) {
       if (hasResume && candidate.skills_count > 0) {
         step2Badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-        step2Badge.innerHTML = '✓ Ground Truth Active';
-        if (step2Desc) step2Desc.innerText = `Zero-fabrication baseline ready with ${candidate.skills_count} verifiable skills and timeline.`;
+        step2Badge.innerHTML = '✓ Profile Active';
+        if (step2Desc) step2Desc.innerText = `Profile ready with ${candidate.skills_count} verified skills and career timeline.`;
       } else {
         step2Badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20';
         step2Badge.innerHTML = 'Pending Profile';
