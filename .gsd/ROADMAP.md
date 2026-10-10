@@ -251,13 +251,13 @@ updated: 2026-10-08T17:36:00Z
 ---
 
 ### Phase 30: True Full Reset Engine, Settings Persistence Integrity & Pre-Scan Validation Guardrails
-**Status:** 📋 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Deliver an end-to-end reliable "Start from Fresh (Full Reset)" lifecycle: completely purge pipeline databases, erase master profile & uploaded resumes, reset settings to clean defaults without triggering premature background scans; fix settings loading & saving so user changes to target roles, country scope, and cities persist permanently; implement strict pre-scan validations on both frontend and backend to block empty or misconfigured scans; and build a guided post-reset onboarding workflow so users are never left disoriented.
 
 **Plans:**
-- [ ] [Plan 30.1: True Full Reset (Zero-Residue Wipe of Profile, Resumes, Settings & Queues) & Settings Persistence Integrity](.gsd/phases/30/30.1-PLAN.md)
-- [ ] [Plan 30.2: Pre-Scan Comprehensive Validation Engine (Frontend Guardrails & Backend API Gate)](.gsd/phases/30/30.2-PLAN.md)
-- [ ] [Plan 30.3: Guided Post-Reset Onboarding Workflow & Automated End-to-End Test Suite](.gsd/phases/30/30.3-PLAN.md)
+- [x] [Plan 30.1: True Full Reset (Zero-Residue Wipe of Profile, Resumes, Settings & Queues) & Settings Persistence Integrity](.gsd/phases/30/30.1-PLAN.md)
+- [x] [Plan 30.2: Pre-Scan Comprehensive Validation Engine (Frontend Guardrails & Backend API Gate)](.gsd/phases/30/30.2-PLAN.md)
+- [x] [Plan 30.3: Guided Post-Reset Onboarding Workflow & Automated End-to-End Test Suite](.gsd/phases/30/30.3-PLAN.md)
 
 ---
 
@@ -291,7 +291,7 @@ updated: 2026-10-08T17:36:00Z
 | 27 | ✅ | 2/2 | 100% (v1.2) |
 | 28 | ✅ | 3/3 | 100% (v1.2) |
 | 29 | ✅ | 3/3 | 100% (v1.2) |
-| 30 | 📋 | 3/3 | Planned (v1.2) |
+| 30 | ✅ | 3/3 | 100% (v1.2) |
 
 
 

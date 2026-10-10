@@ -56,6 +56,65 @@ function saveLastScanResult(data) {
 }
 
 /**
+ * Validates whether search preferences and candidate profile baseline satisfy preconditions for scanning.
+ */
+function validateScanCriteria({ targetTitles, targetLocations, boardsEnabled, profile }) {
+  const errors = [];
+
+  // 1. Roles validation: must have at least 1 real role, not placeholder
+  const cleanRoles = (targetTitles || []).map(r => (r || '').trim()).filter(r => r && r.toLowerCase() !== 'target role' && r.toLowerCase() !== 'your role');
+  if (cleanRoles.length === 0) {
+    errors.push({
+      field: 'roles',
+      title: 'Target Job Roles Missing',
+      message: 'Please add at least 1 target job title in Search Settings (e.g. Software Engineer, Data Analyst).'
+    });
+  }
+
+  // 2. Locations validation: must have at least 1 location/city
+  const cleanLocs = (targetLocations || []).map(l => (l || '').trim()).filter(Boolean);
+  if (cleanLocs.length === 0) {
+    errors.push({
+      field: 'locations',
+      title: 'Target Cities / Locations Missing',
+      message: 'Please specify at least 1 target city, state/province, or "Remote" in Search Settings.'
+    });
+  }
+
+  // 3. Active boards validation: at least 1 board enabled
+  const boards = boardsEnabled || {};
+  const hasActiveBoard = Object.values(boards).some(v => v === true);
+  if (!hasActiveBoard) {
+    errors.push({
+      field: 'boards',
+      title: 'All Job Boards Disabled',
+      message: 'Please enable at least 1 job board (e.g. LinkedIn, Adzuna, Canada Job Bank) in Search Settings.'
+    });
+  }
+
+  // 4. Candidate profile baseline: must have at least basic skills or role/experience
+  const prof = profile || {};
+  const hasSkills = Array.isArray(prof.skills) && prof.skills.length > 0;
+  const hasRole = Boolean((prof.role || prof.headline || '').trim());
+  const hasExp = Array.isArray(prof.experience) && prof.experience.length > 0;
+  const hasSummary = Boolean((prof.writing_sample || prof.summary || '').trim());
+  if (!hasSkills && !hasRole && !hasExp && !hasSummary) {
+    errors.push({
+      field: 'profile',
+      title: 'Candidate Profile / Resume Empty',
+      message: 'Please upload a resume or specify your current role & skills in My Resume & Profile so jobs can be accurately scored.'
+    });
+  }
+
+  return {
+    isValid: errors.length === 0,
+    cleanRoles,
+    cleanLocs,
+    errors
+  };
+}
+
+/**
  * Executes a full multi-board pipeline scan with optional overrides.
  * Shared by manual API triggers and the autonomous cron scheduler.
  */
@@ -83,7 +142,7 @@ async function executePipelineScan(overrides = {}) {
       ? settings.target_titles
       : ((settings.target_roles && settings.target_roles.length > 0)
         ? settings.target_roles
-        : (profile.role ? [profile.role] : ['Target Role'])));
+        : (profile.role ? [profile.role] : [])));
 
   // Target locations: solely from overrides or settings (fallback to profile resident location only if settings empty)
   const targetLocations = (overrides.targetLocations && overrides.targetLocations.length > 0)
@@ -92,7 +151,24 @@ async function executePipelineScan(overrides = {}) {
       ? settings.locations
       : ((settings.target_locations && settings.target_locations.length > 0)
         ? settings.target_locations
-        : (profile.contact?.location ? [profile.contact.location] : ['Remote'])));
+        : (profile.contact?.location ? [profile.contact.location] : [])));
+
+  // Pre-Scan Validation Gate: Ensure search criteria and profile baseline are valid
+  const validation = validateScanCriteria({
+    targetTitles,
+    targetLocations,
+    boardsEnabled: settings.boards_enabled,
+    profile
+  });
+
+  if (!validation.isValid && !overrides.skipValidation && !overrides.injectedRawJobs) {
+    return {
+      success: false,
+      status: 'validation_failed',
+      validationErrors: validation.errors,
+      message: 'Scan cannot proceed because required search preferences or candidate profile data are missing.'
+    };
+  }
 
   const minThreshold = overrides.minScore !== undefined
     ? Number(overrides.minScore)
@@ -368,9 +444,39 @@ router.post('/run', async (req, res) => {
     if (result.status === 'already_running') {
       return res.status(409).json(result);
     }
+    if (result.status === 'validation_failed') {
+      return res.status(422).json(result);
+    }
     res.json(result);
   } catch (err) {
     console.error('Pipeline error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/pipeline/validate
+router.get('/validate', (req, res) => {
+  try {
+    const profile = getMasterProfile();
+    const settings = settingsHelper.getSettings();
+    const targetTitles = (settings.target_titles && settings.target_titles.length > 0)
+      ? settings.target_titles
+      : ((settings.target_roles && settings.target_roles.length > 0)
+        ? settings.target_roles
+        : (profile.role ? [profile.role] : []));
+    const targetLocations = (settings.locations && settings.locations.length > 0)
+      ? settings.locations
+      : ((settings.target_locations && settings.target_locations.length > 0)
+        ? settings.target_locations
+        : (profile.contact?.location ? [profile.contact.location] : []));
+    const validation = validateScanCriteria({
+      targetTitles,
+      targetLocations,
+      boardsEnabled: settings.boards_enabled,
+      profile
+    });
+    res.json(validation);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -516,4 +622,4 @@ router.post('/evaluate-custom', async (req, res) => {
   }
 });
 
-module.exports = { router, executePipelineScan };
+module.exports = { router, executePipelineScan, validateScanCriteria };

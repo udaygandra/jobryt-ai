@@ -115,11 +115,47 @@ function sanitizeSettings(raw, masterProfile = null) {
   const score = parseInt(sanitized.score_threshold, 10);
   sanitized.score_threshold = (!isNaN(score) && score >= 40 && score <= 95) ? score : 60;
 
+  // Normalize target roles/titles bidirectionally
+  if (Array.isArray(raw.target_titles)) {
+    sanitized.target_titles = raw.target_titles;
+    sanitized.target_roles = raw.target_titles;
+  } else if (Array.isArray(raw.target_roles)) {
+    sanitized.target_titles = raw.target_roles;
+    sanitized.target_roles = raw.target_roles;
+  }
+
+  // Normalize locations bidirectionally
+  if (Array.isArray(raw.locations)) {
+    sanitized.locations = raw.locations;
+    sanitized.target_locations = raw.locations;
+  } else if (Array.isArray(raw.target_locations)) {
+    sanitized.locations = raw.target_locations;
+    sanitized.target_locations = raw.target_locations;
+  }
+
   // Clamp commute_radius_km between 0 and 100 (default 25)
   const radius = parseInt(sanitized.commute_radius_km, 10);
   sanitized.commute_radius_km = (!isNaN(radius) && radius >= 0 && radius <= 100) ? radius : 25;
 
   return sanitized;
+}
+
+// ── Factory Reset Settings ──────────────────────────────────────────────────
+// Resets settings.json to clean defaults with empty target roles and locations.
+function factoryResetSettings() {
+  const resetData = {
+    ...DEFAULT_SETTINGS,
+    timezone: getSystemTimezone(),
+    country_scope: 'AUTO',
+    target_titles: [],
+    target_roles: [],
+    locations: [],
+    target_locations: [],
+    boards_enabled: { ...DEFAULT_SETTINGS.boards_enabled }
+  };
+  const settingsPath = path.join(__dirname, '..', '..', 'data', 'config', 'settings.json');
+  writeJsonFile(settingsPath, resetData);
+  return resetData;
 }
 
 // ── Read Current Settings ───────────────────────────────────────────────────
@@ -536,6 +572,7 @@ module.exports = {
   WORK_MODES,
   getSettings,
   updateSettings,
+  factoryResetSettings,
   parseHumanSchedule,
   renderSettingsDashboard,
   renderSubMenu,

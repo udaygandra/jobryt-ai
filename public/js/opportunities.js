@@ -737,7 +737,100 @@ function renderScanDiagnostics(data) {
   }
 }
 
+// ── Pre-Scan Validation Guardrails ───────────────────────────────────────────
+async function validateScanPreconditions() {
+  try {
+    const res = await fetch('/api/pipeline/validate');
+    if (!res.ok) return true; // if endpoint fails, don't hard block client
+    const data = await res.json();
+    if (!data.isValid) {
+      showScanValidationModal(data.errors || []);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('[Opportunities] Validation pre-check warning:', err.message);
+    return true;
+  }
+}
+
+function showScanValidationModal(errors) {
+  const modal = document.getElementById('scan-validation-modal');
+  const checklist = document.getElementById('scan-validation-checklist');
+  if (!modal || !checklist) return;
+
+  const iconMap = {
+    roles: '🎯',
+    locations: '📍',
+    boards: '📋',
+    profile: '📄'
+  };
+
+  if (!errors || errors.length === 0) {
+    checklist.innerHTML = `
+      <div class="p-3 rounded-lg bg-[#111317] border border-amber-500/30 flex items-start gap-3">
+        <span class="text-xl">⚠️</span>
+        <div>
+          <div class="text-xs font-bold text-[#E8E6E1]">Missing Search Preferences</div>
+          <div class="text-[11px] text-[#9AA0A6] mt-0.5">Please specify your target job roles, target locations, or upload a resume before scanning.</div>
+        </div>
+      </div>
+    `;
+  } else {
+    checklist.innerHTML = errors.map(err => {
+      const icon = iconMap[err.field] || '⚠️';
+      const cleanTitle = (typeof escapeHtml === 'function') ? escapeHtml(err.title || 'Incomplete Setup') : (err.title || 'Incomplete Setup');
+      const cleanMsg = (typeof escapeHtml === 'function') ? escapeHtml(err.message || '') : (err.message || '');
+      return `
+        <div class="p-3 rounded-lg bg-[#111317] border border-amber-500/30 flex items-start gap-3">
+          <div class="w-7 h-7 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 text-sm font-bold">
+            ${icon}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold text-[#E8E6E1]">${cleanTitle}</div>
+            <div class="text-[11px] text-[#9AA0A6] mt-0.5 leading-snug">${cleanMsg}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeScanValidationModal() {
+  const modal = document.getElementById('scan-validation-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function goToSettingsFromValidation() {
+  closeScanValidationModal();
+  if (typeof selectNavTab === 'function') {
+    selectNavTab('config');
+  }
+  setTimeout(() => {
+    const input = document.getElementById('input-add-role');
+    if (input) {
+      input.focus();
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
+}
+
+function goToProfileFromValidation() {
+  closeScanValidationModal();
+  if (typeof selectNavTab === 'function') {
+    selectNavTab('profile');
+  }
+}
+
 async function triggerPipelineScan() {
+  // Pre-Scan Validation: Prevent meaningless scans with 0 criteria
+  const isReady = await validateScanPreconditions();
+  if (!isReady) {
+    return;
+  }
+
   openScanModal();
 
   try {
@@ -747,6 +840,12 @@ async function triggerPipelineScan() {
       body: JSON.stringify({})
     });
     const data = await res.json();
+
+    if (res.status === 422 || data.status === 'validation_failed') {
+      closeScanModal();
+      showScanValidationModal(data.validationErrors || []);
+      return;
+    }
 
     if (res.status === 409 || data.status === 'already_running') {
       // Scan already running concurrently - attach to stream
@@ -891,3 +990,8 @@ window.closeScanModal = closeScanModal;
 window.stopScan = stopScan;
 window.checkScanStatus = checkScanStatus;
 window.renderScanDiagnostics = renderScanDiagnostics;
+window.validateScanPreconditions = validateScanPreconditions;
+window.showScanValidationModal = showScanValidationModal;
+window.closeScanValidationModal = closeScanValidationModal;
+window.goToSettingsFromValidation = goToSettingsFromValidation;
+window.goToProfileFromValidation = goToProfileFromValidation;

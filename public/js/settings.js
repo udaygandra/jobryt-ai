@@ -1100,23 +1100,46 @@ async function loadSettings() {
 
     setupTagInputListeners();
 
-    // Initialize tags and country detection from current master profile
+    // 1. Target Roles: Populate directly from search settings first!
+    if (Array.isArray(currentSettings.target_titles) && currentSettings.target_titles.length > 0) {
+      window.targetRolesList = [...currentSettings.target_titles];
+    } else if (Array.isArray(currentSettings.target_roles) && currentSettings.target_roles.length > 0) {
+      window.targetRolesList = [...currentSettings.target_roles];
+    } else {
+      window.targetRolesList = [];
+    }
+
+    // 2. Target Locations: Populate directly from search settings first!
+    if (Array.isArray(currentSettings.locations) && currentSettings.locations.length > 0) {
+      window.targetLocationsList = [...currentSettings.locations];
+    } else if (Array.isArray(currentSettings.target_locations) && currentSettings.target_locations.length > 0) {
+      window.targetLocationsList = [...currentSettings.target_locations];
+    } else {
+      window.targetLocationsList = [];
+    }
+
+    // 3. Fallback to profile ONLY on initial cold start if settings lists are completely empty
     let detectedProfileCountry = null;
     try {
       const profRes = await fetch('/api/profile');
       const profData = await profRes.json();
-      window.targetRolesList = Array.isArray(profData.target_titles) && profData.target_titles.length
-        ? [...profData.target_titles]
-        : (Array.isArray(profData.target_roles) && profData.target_roles.length
-          ? [...profData.target_roles]
-          : (profData.headline ? [profData.headline] : []));
-      window.targetLocationsList = Array.isArray(profData.locations) && profData.locations.length
-        ? [...profData.locations]
-        : (profData.contact?.location ? [profData.contact.location, 'Remote'] : ['Remote']);
-      renderRoleTags();
-      renderLocationTags();
 
-      // Detect candidate country from master profile
+      if (window.targetRolesList.length === 0) {
+        if (Array.isArray(profData.target_titles) && profData.target_titles.length > 0) {
+          window.targetRolesList = [...profData.target_titles];
+        } else if (profData.role) {
+          window.targetRolesList = [profData.role];
+        }
+      }
+
+      if (window.targetLocationsList.length === 0) {
+        if (Array.isArray(profData.locations) && profData.locations.length > 0) {
+          window.targetLocationsList = [...profData.locations];
+        } else if (profData.contact?.location) {
+          window.targetLocationsList = [profData.contact.location];
+        }
+      }
+
       detectedProfileCountry = profData.country_code || null;
       if (!detectedProfileCountry) {
         const locStr = [profData.contact?.location, ...(window.targetLocationsList || [])].filter(Boolean).join(' ').toLowerCase();
@@ -1130,12 +1153,14 @@ async function loadSettings() {
       window.detectedProfileCountry = detectedProfileCountry;
     } catch (_) {}
 
-    // Populate country scope dropdown
+    renderRoleTags();
+    renderLocationTags();
+
+    // Populate country scope dropdown: preserve user's explicit choice
     let targetScope = currentSettings.country_scope;
-    if ((!targetScope || targetScope === 'AUTO') && detectedProfileCountry) {
-      targetScope = detectedProfileCountry;
-    } else if (!targetScope) {
-      targetScope = 'AUTO';
+    if (!targetScope || targetScope === 'AUTO') {
+      if (detectedProfileCountry) targetScope = detectedProfileCountry;
+      else targetScope = 'AUTO';
     }
 
     if (cfgScope) {
@@ -1247,20 +1272,27 @@ async function saveAllSettings() {
   });
 
   try {
-    await fetch('/api/settings', {
+    const payload = {
+      score_threshold: minScore,
+      freshness_hours: freshness,
+      commute_radius_km: isNaN(radius) ? 25 : radius,
+      country_scope: scope,
+      work_type: worktype,
+      boards_enabled: boards,
+      target_titles: window.targetRolesList || [],
+      target_roles: window.targetRolesList || [],
+      locations: window.targetLocationsList || [],
+      target_locations: window.targetLocationsList || []
+    };
+    const res = await fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        score_threshold: minScore,
-        freshness_hours: freshness,
-        commute_radius_km: isNaN(radius) ? 25 : radius,
-        country_scope: scope,
-        work_type: worktype,
-        boards_enabled: boards,
-        target_titles: window.targetRolesList || [],
-        locations: window.targetLocationsList || []
-      })
+      body: JSON.stringify(payload)
     });
+    const data = await res.json();
+    if (data.success && data.settings) {
+      currentSettings = data.settings;
+    }
     showToast('✅ Preferences & settings saved successfully!');
     await loadStatus();
   } catch (e) {
@@ -1685,14 +1717,14 @@ async function executeSettingsReset(action) {
     // Stage 1: Explicit Warning
     const warnOk = window.confirm(
       '⚠️ WARNING: Start from Fresh (Full Reset)\n\n' +
-      'This will permanently delete all unapplied opportunities, seen job history, and rejected jobs, and restore search preferences to defaults.\n\n' +
-      '(Your Master Resume and Profile will be safely preserved.)'
+      'This will permanently delete all unapplied opportunities, seen job history, and rejected jobs, erase your uploaded resume and master profile, and restore search preferences to clean factory defaults.\n\n' +
+      'Are you sure you want to proceed with a complete fresh start?'
     );
     if (!warnOk) return;
 
     // Stage 2: Final Proceed Confirmation Guard
     const proceedOk = window.confirm(
-      '⚠️ Are you sure you still want to proceed with a Full Reset?\n\nThis action cannot be undone.'
+      '⚠️ Final Confirmation: All candidate profile data, resumes, and search history will be erased.\n\nProceed with Full Reset?'
     );
     if (!proceedOk) return;
   }
@@ -1723,6 +1755,15 @@ async function executeSettingsReset(action) {
     const data = await res.json();
     if (data.success) {
       showToast(`✅ ${data.message}`);
+      if (action === 'fresh_start') {
+        window.targetRolesList = [];
+        window.targetLocationsList = [];
+        try { localStorage.removeItem('jobryt_cached_pending_jobs'); } catch (_) {}
+        if (typeof renderRoleTags === 'function') renderRoleTags();
+        if (typeof renderLocationTags === 'function') renderLocationTags();
+        if (typeof loadProfileData === 'function') await loadProfileData();
+        if (typeof showFreshStartBanner === 'function') showFreshStartBanner();
+      }
       if (typeof loadSettings === 'function') await loadSettings();
       if (typeof loadStatus === 'function') await loadStatus();
       if (typeof loadPendingJobs === 'function') loadPendingJobs();
@@ -1747,6 +1788,15 @@ async function executeSettingsReset(action) {
 async function handleClearAndRescan() {
   await executeSettingsReset('clear_queue');
 }
+function showFreshStartBanner() {
+  const banner = document.getElementById('fresh-start-banner');
+  if (banner) {
+    banner.classList.remove('hidden');
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
 window.executeSettingsReset = executeSettingsReset;
 window.handleClearAndRescan = handleClearAndRescan;
+window.showFreshStartBanner = showFreshStartBanner;
 

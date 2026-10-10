@@ -6,9 +6,12 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
+const { getDataDir } = require('../../scripts/core/common-utils');
 const settingsHelper = require('../../scripts/core/settings-helper');
 
 const rootDir = path.resolve(__dirname, '../../');
+const dataDir = getDataDir();
+const profilesDir = path.join(dataDir, 'profiles');
 
 // GET /api/settings
 router.get('/', (req, res) => {
@@ -236,42 +239,48 @@ router.post('/reset', async (req, res) => {
       message = 'Preferences reset to defaults (70% score, 25 km radius, 24h freshness, all boards enabled).';
     } else if (action === 'fresh_start') {
       // 3. Full factory reset
-      jobsDb.clearPipelineData();
-      const defaultPrefs = {
-        score_threshold: 70,
-        commute_radius_km: 25,
-        freshness_hours: 24,
-        work_type: 'Open to All',
-        boards_enabled: {
-          linkedin: true,
-          indeed: true,
-          canada_job_bank: true,
-          adzuna: true,
-          usajobs: true,
-          arbeitsagentur: true,
-          mycareersfuture: true,
-          seek: true,
-          reed: true,
-          naukri: true,
-          bayt: true,
-          wttj: true,
-          daijob: true,
-          vagas: true,
-          jobicy: true,
-          remotive: true,
-          arbeitnow: true,
-          himalayas: true,
-        }
-      };
-      updatedSettings = settingsHelper.updateSettings(defaultPrefs);
-      message = 'All job tracking data purged and settings reset to defaults. Clean scan running.';
+      jobsDb.clearAllTrackingData();
 
+      // Wipe last_scan_result.json
+      const lastScanPath = path.join(dataDir, 'tracking', 'last_scan_result.json');
+      if (fs.existsSync(lastScanPath)) {
+        try { fs.unlinkSync(lastScanPath); } catch (_) {}
+      }
+
+      // Reset master-profile.json to clean empty initial state
+      const profilePath = path.join(profilesDir, 'master-profile.json');
+      const cleanProfile = {
+        name: '',
+        role: '',
+        headline: '',
+        contact: { email: '', phone: '', location: '' },
+        skills: [],
+        skills_familiar: [],
+        skills_unstated_default: false,
+        experience: [],
+        education: [],
+        target_titles: [],
+        locations: [],
+        writing_sample: '',
+        updated: new Date().toISOString()
+      };
+      fs.writeFileSync(profilePath, JSON.stringify(cleanProfile, null, 2), 'utf8');
+
+      // Unlink any uploaded resume documents in profilesDir
       try {
-        const { executePipelineScan } = require('./pipeline');
-        executePipelineScan({ source: 'fresh_start' }).catch(err => {
-          console.warn('[Settings Reset] Background fresh start error:', err.message);
-        });
+        if (fs.existsSync(profilesDir)) {
+          const files = fs.readdirSync(profilesDir);
+          for (const f of files) {
+            if (f.startsWith('upload-') || f.endsWith('.pdf') || f.endsWith('.docx') || f.endsWith('.txt')) {
+              try { fs.unlinkSync(path.join(profilesDir, f)); } catch (_) {}
+            }
+          }
+        }
       } catch (_) {}
+
+      // Reset settings.json to clean factory defaults with empty roles & locations
+      updatedSettings = settingsHelper.factoryResetSettings();
+      message = 'All profile data, uploaded resumes, job tracking queues, and search preferences have been fully wiped. Ready for fresh setup!';
     } else {
       return res.status(400).json({ error: `Unknown reset action: ${action}` });
     }
