@@ -37,9 +37,9 @@ CRITICAL RULES:
 1. STRICT ZERO FABRICATION (EXPERIENCE, DATES, SKILLS, COMPANIES):
    - Copy experience bullets, companies, dates, education, and skills verbatim from the resume.
    - Do NOT invent companies, dates, degrees, or certifications.
-2. MARKET-VALIDATED TARGET TITLES DISCOVERY:
+2. MARKET-VALIDATED TARGET TITLES DISCOVERY (MANDATORY 4 TO 10 TITLES — NEVER ONLY 1):
    - In "target_titles", you MUST discover and return 4 to 10 real, searchable job titles matching the candidate's demonstrated tools, seniority, and industry.
-   - Never return only 1 title. Include standard market equivalents, tool specializations, and domain titles.
+   - Never return only 1 title! Even if only a single headline title is printed on the resume, expand it into equivalent titles (e.g. Full Stack Developer, Full Stack Engineer, Frontend Developer, Backend Developer, Software Engineer, React Developer, Node.js Developer).
 3. Copy EVERY bullet point verbatim. Do NOT condense or omit.
 4. Extract ALL skills, tools, and technologies as individual strings in an array.
 5. Extract complete contact details (email, phone, location, linkedin, country_code).
@@ -787,7 +787,7 @@ async function parseResume(inputFilePath, options = {}) {
         contents: [{
           parts: [
             { text: SYSTEM_PROMPT },
-            { text: "Extract profile verbatim from this PDF resume." },
+            { text: "Extract structured master profile and discover 4 to 10 market-validated target roles matching candidate's stack and experience level from this PDF resume." },
             { inlineData: { mimeType: 'application/pdf', data: fileBuf.toString('base64') } }
           ]
         }],
@@ -802,7 +802,7 @@ async function parseResume(inputFilePath, options = {}) {
         contents: [{
           parts: [
             { text: SYSTEM_PROMPT },
-            { text: `Extract profile from this resume text:\n\n${extractedText}` }
+            { text: `Extract structured master profile and discover 4 to 10 market-validated target roles matching candidate's stack and experience level from this resume text:\n\n${extractedText}` }
           ]
         }],
         generationConfig: { response_mime_type: 'application/json' }
@@ -812,7 +812,7 @@ async function parseResume(inputFilePath, options = {}) {
         contents: [{
           parts: [
             { text: SYSTEM_PROMPT },
-            { text: `Extract profile from this text:\n\n${fileBuf.toString('utf8')}` }
+            { text: `Extract structured master profile and discover 4 to 10 market-validated target roles matching candidate's stack and experience level from this text:\n\n${fileBuf.toString('utf8')}` }
           ]
         }],
         generationConfig: { response_mime_type: 'application/json' }
