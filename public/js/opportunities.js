@@ -327,9 +327,10 @@ function renderPendingJobs(jobs) {
               </div>
               ${job.breakdown ? `
                 <div class="flex items-center gap-1.5 text-[10px] font-mono text-[#9AA0A6] flex-wrap justify-end">
-                  <span class="px-1.5 py-0.5 rounded bg-[#20242B] border border-[#2B3036]" title="Skills Match (40% Weight)">🎯 Skills: <strong class="text-[#CBD5E1]">${job.breakdown.skills_fit_score || 85}%</strong></span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#20242B] border border-[#2B3036]" title="Skills Match (45% Weight)">🎯 Skills: <strong class="text-[#CBD5E1]">${job.breakdown.skills_fit_score || 85}%</strong></span>
                   <span class="px-1.5 py-0.5 rounded bg-[#20242B] border border-[#2B3036]" title="Seniority Match (30% Weight)">⚡ Seniority: <strong class="text-[#CBD5E1]">${job.breakdown.seniority_fit_score || 80}%</strong></span>
-                  <span class="px-1.5 py-0.5 rounded bg-[#20242B] border border-[#2B3036]" title="Location Match (30% Weight)">📍 Loc: <strong class="text-[#CBD5E1]">${job.breakdown.location_fit_score || 90}%</strong></span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#20242B] border border-[#2B3036]" title="Role Function Fit (10% Weight)">💼 Role: <strong class="text-[#CBD5E1]">${job.breakdown.function_fit_score != null ? job.breakdown.function_fit_score : (job.breakdown.seniority_fit_score || 80)}%</strong></span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#20242B] border border-[#2B3036]" title="Location Fit & Hard Gate (15% Weight)">📍 Loc: <strong class="${job.breakdown.location_gate_passed === false ? 'text-red-400' : 'text-[#CBD5E1]'}">${job.breakdown.location_fit_score || 90}%</strong></span>
                 </div>
               ` : ''}
               ${(job.skills_unstated_default || (job.notes_concerns && job.notes_concerns.includes('90% default applied'))) ? `

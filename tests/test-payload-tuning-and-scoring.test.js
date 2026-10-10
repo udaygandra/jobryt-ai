@@ -253,7 +253,7 @@ describe('3. Top-Tier 3-Pillar Scoring & Edge Cases (node-logic.js)', () => {
     score_threshold: 70
   };
 
-  it('should calculate heuristic score using 40/30/30 weights', () => {
+  it('should calculate heuristic score using Scoring v2 weights', () => {
     const job = {
       id: 'job-100',
       title: 'Senior Backend Engineer',
@@ -266,7 +266,7 @@ describe('3. Top-Tier 3-Pillar Scoring & Edge Cases (node-logic.js)', () => {
     const result = computeHeuristicScore(job, resume, settings);
     assert.ok(result.overall_score >= 80, `Expected score >= 80, got ${result.overall_score}`);
     assert.strictEqual(result.should_apply, true);
-    assert.strictEqual(result.scoring_pillars.formula, '40% skills + 30% seniority + 30% location');
+    assert.strictEqual(result.scoring_pillars.formula, '45% skills + 30% seniority + 10% function + 15% location (gate)');
     assert.ok(result.scoring_pillars.skills_fit_score >= 80);
     assert.ok(result.scoring_pillars.seniority_fit_score >= 80);
     assert.ok(result.scoring_pillars.location_fit_score >= 80);

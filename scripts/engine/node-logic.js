@@ -14,6 +14,8 @@
  */
 
 const assert = require('assert');
+const { classifyWorkMode } = require('./board-requests');
+const { locationGate, combine, WEIGHTS } = require('./scoring-v2');
 
 // ── 1. Job Normalization ────────────────────────────────────────────────────
 function normalizeJob(rawJob, defaultSource = 'unknown') {
@@ -162,21 +164,9 @@ function runGeoFilter(items, profileObj = null) {
     const title = job.title || '';
     const desc = job.description || job.snippet || '';
 
-    // Check if the job requires local hybrid attendance
-    const isHybridJob = /\b(hybrid|hybride)\b/i.test(loc) ||
-      /\b(hybrid|hybride)\b/i.test(title) ||
-      /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(desc);
-
-    // Explicit nationwide remote indicators
-    const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(loc) ||
-      /\b(remote|wfh|telecommute|virtual)\b/i.test(title) ||
-      /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(loc) ||
-      /\(remote\)|-\s*remote/i.test(title);
-
-    const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(desc);
-
-    // A job is only treated as remote if explicitly indicated and NOT requiring hybrid attendance in an external city
-    const isRemote = (job.remote === true || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridJob;
+    // Unified work-mode classification (hybrid in external city is strictly rejected)
+    const mode = classifyWorkMode(title, loc, desc, { sourceRemote: job.remote === true });
+    const isRemote = mode === 'remote';
 
     if (!isJobLocationEligible(loc, locations, countryScope, isRemote, desc)) {
       return false;
@@ -278,43 +268,29 @@ function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
     disqs.push('Role is an entry-level/junior position; candidate is seeking management or executive roles.');
   }
 
-  // Location Fit Score
-  let locationScore = 85;
-  try {
-    const { calculateLocationFitScore } = require('../core/geo-helper');
-    const jobLoc = job.location || '';
-    const isHybridJob = /\b(hybrid|hybride)\b/i.test(jobLoc) ||
-      /\b(hybrid|hybride)\b/i.test(title) ||
-      /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(desc);
-
-    const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(jobLoc) ||
-      /\b(remote|wfh|telecommute|virtual)\b/i.test(title) ||
-      /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(jobLoc) ||
-      /\(remote\)|-\s*remote/i.test(title);
-
-    const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(desc);
-
-    const isRemote = (job.remote === true || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridJob;
-    const commuteRadius = (settings && settings.commute_radius_km !== undefined)
-      ? Number(settings.commute_radius_km)
-      : ((profile && profile.commute_radius_km !== undefined) ? Number(profile.commute_radius_km) : 25);
-    locationScore = calculateLocationFitScore(jobLoc, locations, countryScope, isRemote, workType, commuteRadius, desc);
-  } catch (_) {}
-
-  if (locationScore < 40) {
-    disqs.push('Job location is outside candidate commuting area and is not a 100% remote nationwide role.');
+  // Deterministic Location Gate & Radial Score
+  const gateRes = locationGate(job, profile, settings);
+  const locationScore = gateRes.score;
+  if (!gateRes.pass && gateRes.reason) {
+    disqs.push(gateRes.reason);
   }
 
-  // 3-Pillar Weighted Score: Skills 40%, Seniority 30%, Location 30%
-  let overall = Math.round((skillsScore * 0.40) + (seniorityScore * 0.30) + (locationScore * 0.30));
-  if (disqs.length > 0 || locationScore < 40 || seniorityScore < 40) {
-    overall = Math.min(overall, 45);
-  }
+  const fnScore = seniorityScore; // For CPU heuristic fallback, function mirrors seniority/role tier
+
+  // 4-Pillar Scoring v2: 45% Skills + 30% Seniority + 10% Function + 15% Location (Gate)
+  const overall = combine({
+    skills: skillsScore,
+    seniority: seniorityScore,
+    fn: fnScore,
+    location: locationScore,
+    gateFailed: !gateRes.pass,
+    disqs
+  });
 
   const minThreshold = (settings.score_threshold !== undefined)
     ? Number(settings.score_threshold)
     : ((typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60);
-  const isQualified = overall >= minThreshold && disqs.length === 0;
+  const isQualified = overall >= minThreshold && disqs.length === 0 && gateRes.pass;
 
   return {
     ...job,
@@ -323,18 +299,21 @@ function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
     should_apply: isQualified,
     skills_edge_case: skillsUnstated,
     scoring_pillars: {
-      formula: '40% skills + 30% seniority + 30% location',
+      formula: '45% skills + 30% seniority + 10% function + 15% location (gate)',
       skills_fit_score: skillsScore,
       seniority_fit_score: seniorityScore,
+      function_fit_score: fnScore,
       location_fit_score: locationScore,
+      location_gate_passed: gateRes.pass,
       matched_skills: matchedSkills,
       unstated_skills_default: skillsUnstated
     },
     breakdown: {
       skills_fit_score: skillsScore,
       seniority_fit_score: seniorityScore,
+      function_fit_score: fnScore,
       location_fit_score: locationScore,
-      title_fit_score: seniorityScore
+      title_fit_score: fnScore
     },
     disqualification_reasons: disqs,
     priority_level: overall >= 85 ? 'High' : overall >= minThreshold ? 'Medium' : 'Low',
@@ -511,53 +490,31 @@ function runParseScore(item, profileObj = null, settingsObj = null) {
     disqs.push('Role is an entry-level/junior position; candidate is seeking management or executive roles.');
   }
 
-  // Pillar 3: Location Match (30% Weight) with User's Commute Radius Settings
-  const commuteRadius = (settings && settings.commute_radius_km !== undefined)
-    ? Number(settings.commute_radius_km)
-    : ((profile && profile.commute_radius_km !== undefined) ? Number(profile.commute_radius_km) : 25);
-
-  const jobLoc = item.json.location || '';
-  const isHybridJob = /\b(hybrid|hybride)\b/i.test(jobLoc) ||
-    /\b(hybrid|hybride)\b/i.test(jobTitle) ||
-    /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(descText);
-
-  const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(jobLoc) ||
-    /\b(remote|wfh|telecommute|virtual)\b/i.test(jobTitle) ||
-    /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(jobLoc) ||
-    /\(remote\)|-\s*remote/i.test(jobTitle);
-
-  const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(descText);
-
-  const isRemote = (item.json.remote === true || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridJob;
-
-  let deterministicGeoScore = null;
-  try {
-    const { calculateLocationFitScore } = require('../core/geo-helper');
-    const locations = profile.locations || settings.target_locations || (profile.basics?.location ? [profile.basics.location] : []);
-    const countryScope = profile.country_scope || settings.target_country || 'GLOBAL';
-    const workType = profile.work_type || settings.work_type || 'Open to All';
-    deterministicGeoScore = calculateLocationFitScore(jobLoc, locations, countryScope, isRemote, workType, commuteRadius, descText);
-  } catch (_) {}
-
-  // 100% Deterministic: Location Fit is derived directly from geographic calculation, never LLM hallucination
-  let locationFit = deterministicGeoScore !== null ? deterministicGeoScore : (typeof b.location_fit_score === 'number' ? b.location_fit_score : 85);
-
-  if (locationFit < 40) {
-    disqs.push('Job location is outside candidate commuting area and is not a 100% remote nationwide role.');
+  // Deterministic Location Gate & Radial Score
+  const gateRes = locationGate(item.json, profile, settings);
+  const locationFit = gateRes.score;
+  if (!gateRes.pass && gateRes.reason) {
+    disqs.push(gateRes.reason);
   }
 
-  const titleFit = typeof b.title_fit_score === 'number' ? b.title_fit_score : 80;
+  const fnFit = typeof b.function_fit_score === 'number'
+    ? b.function_fit_score
+    : (typeof b.title_fit_score === 'number' ? b.title_fit_score : 85);
 
-  // Code node arithmetic: 40% Skills, 30% Seniority, 30% Location
-  let overall = Math.round(skillsFit * 0.40 + seniorityFit * 0.30 + locationFit * 0.30);
-  if (disqs.length > 0 || locationFit < 40 || seniorityFit < 40) {
-    overall = Math.min(overall, 45);
-  }
+  // 4-Pillar Scoring v2: 45% Skills + 30% Seniority + 10% Function + 15% Location (Gate)
+  const overall = combine({
+    skills: skillsFit,
+    seniority: seniorityFit,
+    fn: fnFit,
+    location: locationFit,
+    gateFailed: !gateRes.pass,
+    disqs
+  });
 
   const minThreshold = (settings.score_threshold !== undefined)
     ? Number(settings.score_threshold)
     : ((typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60);
-  const shouldApply = overall >= minThreshold && disqs.length === 0 && locationFit >= 40;
+  const shouldApply = overall >= minThreshold && disqs.length === 0 && gateRes.pass;
   const priorityLevel = overall >= 80 ? 'High' : overall >= 65 ? 'Medium' : 'Low';
   const safetyTier = overall >= 80 ? 'Strongest Application' : overall >= 65 ? 'Safe Opportunity' : 'Stretch Opportunity';
 
@@ -571,17 +528,20 @@ function runParseScore(item, profileObj = null, settingsObj = null) {
     disqualification_reasons: disqs,
     skills_edge_case: parsed.skills_edge_case || parsed.skills_unstated_default || false,
     scoring_pillars: {
-      formula: '40% skills + 30% seniority + 30% location',
+      formula: '45% skills + 30% seniority + 10% function + 15% location (gate)',
       skills_fit_score: skillsFit,
       seniority_fit_score: seniorityFit,
+      function_fit_score: fnFit,
       location_fit_score: locationFit,
+      location_gate_passed: gateRes.pass,
       unstated_skills_default: Boolean(parsed.skills_edge_case || parsed.skills_unstated_default)
     },
     breakdown: {
       skills_fit_score: skillsFit,
       seniority_fit_score: seniorityFit,
+      function_fit_score: fnFit,
       location_fit_score: locationFit,
-      title_fit_score: titleFit
+      title_fit_score: fnFit
     },
     parse_error: false
   };

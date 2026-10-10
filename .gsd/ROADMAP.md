@@ -187,13 +187,13 @@ updated: 2026-10-08T17:36:00Z
 ---
 
 ### Phase 24: Concurrent Ingestion, Per-API Request Builders & Scoring v2
-**Status:** 📋 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Run all board/role/location/page fetches through a bounded, per-host rate-limited concurrent pool; build each board's request from only the user's Settings (radius, freshness, work type, scope) to raise yield and accuracy; and re-weight scoring so location is a code-computed gate driven by the user's radius (45% skills / 30% seniority / 10% function / 15% location).
 
 **Plans:**
-- [ ] [Plan 24.1: Per-Task Search Context & Bounded-Concurrency Fetch Pool](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/24/24.1-PLAN.md)
-- [ ] [Plan 24.2: Per-API Request Builders](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/24/24.2-PLAN.md)
-- [ ] [Plan 24.3: Scoring v2 — Location as Gate, Re-weighted Pillars](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/24/24.3-PLAN.md)
+- [x] [Plan 24.1: Per-Task Search Context & Bounded-Concurrency Fetch Pool](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/24/24.1-PLAN.md)
+- [x] [Plan 24.2: Per-API Request Builders](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/24/24.2-PLAN.md)
+- [x] [Plan 24.3: Scoring v2 — Location as Gate, Re-weighted Pillars](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/24/24.3-PLAN.md)
 
 ---
 
@@ -221,6 +221,7 @@ updated: 2026-10-08T17:36:00Z
 | 21 | ✅ | 2/2 | 100% (v1.2) |
 | 22 | ✅ | 1/1 | 100% (v1.2) |
 | 23 | ✅ | 2/2 | 100% (v1.2) |
+| 24 | ✅ | 3/3 | 100% (v1.2) |
 
 
 
