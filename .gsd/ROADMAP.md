@@ -168,6 +168,14 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 20.2: Eye-Friendly Warm Light Theme Palette & Visual Ergonomics Overhaul](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/20/20.2-PLAN.md)
 - [x] [Plan 20.3: Fix Container Read-Only .env Mount & API Key Persistence Resilience (EROFS Fix)](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/20/20.3-PLAN.md)
 
+### Phase 21: Resume & Profile Input Clarity (#FFFFFF) & Applications Light Theme Palette Polish
+**Status:** ⏳ In Progress (Milestone v1.2)
+**Objective:** Enforce pure `#FFFFFF` background across all Resume and Profile form inputs, textareas, selects, and tag containers in light theme to eliminate the disabled/read-only perception; overhaul the Applications light theme color palette to eliminate the pitch-black LinkedIn outreach box, polish the action toolbar buttons (`Find Recruiters`, `Job Link`, `Cover Letter`), and modernize Recruiter Intelligence chips with vibrant, accessible contrast.
+
+**Plans:**
+- [ ] [Plan 21.1: Pure #FFFFFF Backgrounds & Form Input Clarity for Resume, Profile & Settings in Light Theme](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/21/21.1-PLAN.md)
+- [ ] [Plan 21.2: Applications Light Theme Color Overhaul — Recruiter Drawer, Outreach Box, Action Toolbar & Notes Surface](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/21/21.2-PLAN.md)
+
 ---
 
 ## Progress Summary
@@ -191,7 +199,4 @@ updated: 2026-10-08T17:36:00Z
 | 18 | ✅ | 2/2 | 100% (v1.2) |
 | 19 | ✅ | 2/2 | 100% (v1.2) |
 | 20 | ✅ | 3/3 | 100% (v1.2) |
-
-
-
-
+| 21 | ⏳ | 0/2 | 0% (v1.2) |
