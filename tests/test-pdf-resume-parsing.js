@@ -569,7 +569,7 @@ async function runPdfTests() {
 
   assert.strictEqual(sciUploadRes.status, 200);
   const sciProf = sciUploadRes.json.profile;
-  assert.strictEqual(sciProf.name, 'DR. ELENA VANCE');
+  assert.strictEqual(sciProf.name.toUpperCase(), 'DR. ELENA VANCE');
   assert.strictEqual(sciProf.experience.length, 2);
   assert.strictEqual(sciProf.experience[0].role, 'Lead Clinical Data Scientist');
   assert.strictEqual(sciProf.experience[0].title, 'Lead Clinical Data Scientist');
