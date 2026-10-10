@@ -105,12 +105,12 @@ async function loadAppliedJobs(filterStatus = null) {
       }
 
       return `
-        <div id="applied-card-${app.id}" class="glass-card glass-card-hover rounded-2xl p-5 border border-white/[0.07] space-y-3 transition-all">
-          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div class="space-y-1.5 flex-1 min-w-0">
-              <div class="flex items-center gap-2.5 flex-wrap">
+        <div id="applied-card-${app.id}" class="glass-card glass-card-hover rounded-xl p-4 border border-white/[0.07] space-y-2.5 transition-all">
+          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5">
+            <div class="space-y-1 flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
                 <!-- Status Badge -->
-                <span class="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeColor} border rounded-md font-mono">
+                <span class="px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider ${badgeColor} border rounded-md font-mono">
                   ${escapeHtml(currentStatus === 'Tailored' ? 'Tailored (Ready to Submit)' : currentStatus)}
                 </span>
                 <span class="text-xs font-mono text-slate-300 tabular-nums">Match: <b>${app.match_score}/100</b></span>
@@ -122,22 +122,22 @@ async function loadAppliedJobs(filterStatus = null) {
                 <p class="text-xs font-medium text-slate-300 mt-0.5">${escapeHtml(app.company)} • ${escapeHtml(app.location || 'Remote')}</p>
               </div>
               ${app.tailored_summary ? `
-                <div class="pitch-summary-card mt-2.5 p-3 rounded-xl border space-y-1.5 transition-all">
-                  <div class="flex items-center justify-between text-[11px] font-mono">
-                    <span class="flex items-center gap-1.5 font-bold tracking-wider text-[#D9A441] uppercase">
-                      <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="pitch-summary-card mt-2 p-2 sm:p-2.5 rounded-lg border space-y-1 transition-all">
+                  <div class="flex items-center justify-between text-[10.5px] font-mono">
+                    <span class="flex items-center gap-1.5 font-bold tracking-wider text-[#D9A441] uppercase text-[10px]">
+                      <svg class="w-3 h-3 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                       <span>Tailored Pitch & Executive Summary</span>
                     </span>
-                    <span class="text-[10px] text-slate-400 font-sans hidden sm:inline">Role Alignment</span>
+                    <span class="text-[9.5px] text-slate-400 font-sans hidden sm:inline">Role Alignment</span>
                   </div>
-                  <p id="pitch-text-${app.id}" class="text-xs text-slate-300 leading-relaxed font-normal line-clamp-2 transition-all select-text">
+                  <p id="pitch-text-${app.id}" class="text-[11.5px] text-slate-300 leading-relaxed font-normal line-clamp-2 transition-all select-text">
                     "${escapeHtml(app.tailored_summary)}"
                   </p>
                   ${app.tailored_summary.length > 130 ? `
                     <div class="flex items-center justify-end pt-0.5">
-                      <button type="button" onclick="togglePitchExpand('${app.id}')" id="pitch-btn-${app.id}" class="text-[11px] font-semibold text-[#D9A441] hover:text-[#E8BD65] flex items-center gap-1 cursor-pointer transition-colors focus:outline-none">
+                      <button type="button" onclick="togglePitchExpand('${app.id}')" id="pitch-btn-${app.id}" class="text-[10.5px] font-semibold text-[#D9A441] hover:text-[#E8BD65] flex items-center gap-1 cursor-pointer transition-colors focus:outline-none">
                         <span id="pitch-label-${app.id}">Read full pitch</span>
                         <svg id="pitch-icon-${app.id}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                       </button>
@@ -147,58 +147,64 @@ async function loadAppliedJobs(filterStatus = null) {
               ` : ''}
             </div>
 
-            <!-- Stage & Action Buttons -->
-            <div class="flex items-center gap-2 shrink-0 w-full lg:w-auto pt-2 lg:pt-0 flex-wrap justify-start sm:justify-end">
-              <!-- LinkedIn-style Stage Selector -->
-              <div class="flex items-center gap-1.5 bg-[#111317] px-2.5 py-1.5 rounded-md border border-[#2B3036] shrink-0">
-                <span class="text-[10px] uppercase font-bold text-[#9AA0A6] tracking-wider">Stage:</span>
-                <select onchange="updateApplicationStatus('${app.id}', this.value)" class="bg-transparent text-xs text-[#E8E6E1] font-semibold focus:outline-none cursor-pointer">
-                  <option value="Applied" ${currentStatus === 'Applied' ? 'selected' : ''} class="bg-[#1C1F24] text-emerald-400">Applied (Submitted)</option>
-                  <option value="Tailored" ${/tailored/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-amber-400">Tailored (Ready to Submit)</option>
-                  <option value="Interviewing" ${/interview/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-purple-400">Interviewing</option>
-                  <option value="Offer" ${/offer/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-teal-400">Offer Received 🎉</option>
-                  <option value="Rejected" ${/reject/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-rose-400">Archived / Rejected</option>
-                </select>
+            <!-- Multi-Row Structured Action Toolbar -->
+            <div class="flex flex-col gap-2 shrink-0 w-full lg:w-auto items-stretch lg:items-end justify-center pt-1 lg:pt-0">
+              <!-- Row 1: Lifecycle & Primary Application Access -->
+              <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-start sm:justify-end">
+                <!-- LinkedIn-style Stage Selector -->
+                <div class="flex items-center gap-1.5 bg-[#111317] px-2.5 py-1.5 rounded-md border border-[#2B3036] shrink-0">
+                  <span class="text-[10px] uppercase font-bold text-[#9AA0A6] tracking-wider">Stage:</span>
+                  <select onchange="updateApplicationStatus('${app.id}', this.value)" class="bg-transparent text-xs text-[#E8E6E1] font-semibold focus:outline-none cursor-pointer">
+                    <option value="Applied" ${currentStatus === 'Applied' ? 'selected' : ''} class="bg-[#1C1F24] text-emerald-400">Applied (Submitted)</option>
+                    <option value="Tailored" ${/tailored/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-amber-400">Tailored (Ready to Submit)</option>
+                    <option value="Interviewing" ${/interview/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-purple-400">Interviewing</option>
+                    <option value="Offer" ${/offer/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-teal-400">Offer Received 🎉</option>
+                    <option value="Rejected" ${/reject/i.test(currentStatus) ? 'selected' : ''} class="bg-[#1C1F24] text-rose-400">Archived / Rejected</option>
+                  </select>
+                </div>
+
+                <!-- External Posting Link or Search Job Google Fallback -->
+                ${jobUrl ? `
+                  <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-xs font-medium text-[#9AA0A6] hover:text-[#E8E6E1] bg-[#111317] hover:bg-[#242830] border border-[#2B3036] flex items-center gap-1.5 shrink-0 transition-colors" title="Open Original Posting">
+                    <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <span>Job Link</span>
+                  </a>
+                ` : `
+                  <a href="https://www.google.com/search?q=${encodeURIComponent((app.title || '') + ' ' + (app.company || '') + ' job')}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-xs font-medium text-blue-400 hover:text-blue-300 bg-[#111317] hover:bg-[#242830] border border-blue-500/30 flex items-center gap-1.5 shrink-0 transition-colors" title="Find job posting on Google">
+                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span>Search Job</span>
+                  </a>
+                `}
+
+                <!-- Download PDF -->
+                ${pdfDownloadUrl ? `
+                  <a href="${pdfDownloadUrl}" target="_blank" download class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] transition-all flex items-center gap-1 active:scale-95 shadow-xs cursor-pointer shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span>PDF</span>
+                  </a>
+                ` : ''}
               </div>
 
-              <!-- Notes Toggle Button -->
-              <button onclick="toggleCardNotes('${app.id}')" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1 active:scale-95 cursor-pointer shrink-0">
-                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                <span>Notes ${notes ? '●' : ''}</span>
-              </button>
+              <!-- Row 2: Intelligence, Notes & Outreach Assets -->
+              <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-start sm:justify-end">
+                <!-- Cover Letter Preview -->
+                <button onclick="previewLetter(${JSON.stringify(escapeHtml(app.title))}, ${JSON.stringify(escapeHtml(app.company))}, ${JSON.stringify(app.cover_letter || '')})" class="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] transition-all flex items-center gap-1 active:scale-95 cursor-pointer shrink-0" title="View & Copy Cover Letter">
+                  <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                  <span>Cover Letter</span>
+                </button>
 
-              <!-- Cover Letter Preview -->
-              <button onclick="previewLetter(${JSON.stringify(escapeHtml(app.title))}, ${JSON.stringify(escapeHtml(app.company))}, ${JSON.stringify(app.cover_letter || '')})" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] transition-all flex items-center gap-1 active:scale-95 cursor-pointer shrink-0" title="View & Copy Cover Letter">
-                <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                <span>Cover Letter</span>
-              </button>
+                <!-- Notes Toggle Button -->
+                <button onclick="toggleCardNotes('${app.id}')" class="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1 active:scale-95 cursor-pointer shrink-0">
+                  <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  <span>Notes ${notes ? '●' : ''}</span>
+                </button>
 
-              <!-- Download PDF -->
-              ${pdfDownloadUrl ? `
-                <a href="${pdfDownloadUrl}" target="_blank" download class="px-3.5 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] transition-all flex items-center gap-1 active:scale-95 shadow-xs cursor-pointer shrink-0">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                  <span>PDF</span>
-                </a>
-              ` : ''}
-
-              <!-- External Posting Link or Search Job Google Fallback -->
-              ${jobUrl ? `
-                <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-xs font-medium text-[#9AA0A6] hover:text-[#E8E6E1] bg-[#111317] hover:bg-[#242830] border border-[#2B3036] flex items-center gap-1.5 shrink-0" title="Open Original Posting">
-                  <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                  <span>Job Link</span>
-                </a>
-              ` : `
-                <a href="https://www.google.com/search?q=${encodeURIComponent((app.title || '') + ' ' + (app.company || '') + ' job')}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-md text-xs font-medium text-blue-400 hover:text-blue-300 bg-[#111317] hover:bg-[#242830] border border-blue-500/30 flex items-center gap-1.5 shrink-0" title="Find job posting on Google">
-                  <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                  <span>Search Job</span>
-                </a>
-              `}
-
-              <!-- Recruiter Finder Button -->
-              <button onclick="toggleCardRecruiters('${app.id}', ${JSON.stringify(escapeHtml(app.company || ''))}, ${JSON.stringify(escapeHtml(app.location || ''))}, ${JSON.stringify(escapeHtml(app.title || ''))})" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-sky-950/40 hover:bg-sky-900/50 text-sky-300 hover:text-sky-200 border border-sky-500/30 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer shrink-0" title="Find Recruiters & Hiring Managers on LinkedIn">
-                <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                <span>Find Recruiters</span>
-              </button>
+                <!-- Recruiter Finder Button -->
+                <button onclick="toggleCardRecruiters('${app.id}', ${JSON.stringify(escapeHtml(app.company || ''))}, ${JSON.stringify(escapeHtml(app.location || ''))}, ${JSON.stringify(escapeHtml(app.title || ''))})" class="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-sky-950/40 hover:bg-sky-900/50 text-sky-300 hover:text-sky-200 border border-sky-500/30 transition-all flex items-center gap-1 active:scale-95 cursor-pointer shrink-0" title="Find Recruiters & Hiring Managers on LinkedIn">
+                  <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                  <span>Find Recruiters</span>
+                </button>
+              </div>
             </div>
           </div>
 

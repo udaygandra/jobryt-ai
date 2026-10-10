@@ -309,6 +309,7 @@ function saveAppliedJob(job) {
   const jobId = String(job.jobId || job.job_id || id);
   const title = String(job.tailored_title || job.title || 'Target Role');
   const company = String(job.company_name || job.company || 'Target Company');
+  const location = String(job.location || '');
   let jobUrl = String(job.job_url || job.redirect_url || job.apply_url || job.url || job.link || '').trim();
   if (!jobUrl) {
     jobUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + company + ' job')}`;
