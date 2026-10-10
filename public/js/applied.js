@@ -190,12 +190,12 @@ async function loadAppliedJobs(filterStatus = null) {
             <div class="flex items-center gap-2 flex-wrap">
               <!-- Job Posting Link -->
               ${jobUrl ? `
-                <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#9AA0A6] hover:text-[#E8E6E1] bg-[#111317] hover:bg-[#242830] border border-[#2B3036] flex items-center gap-1.5 transition-colors" title="Open Original Posting">
+                <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-action btn-card-joblink px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#9AA0A6] hover:text-[#E8E6E1] bg-[#111317] hover:bg-[#242830] border border-[#2B3036] flex items-center gap-1.5 transition-colors" title="Open Original Posting">
                   <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                   <span>Job Link</span>
                 </a>
               ` : `
-                <a href="https://www.google.com/search?q=${encodeURIComponent((app.title || '') + ' ' + (app.company || '') + ' job')}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 hover:text-blue-300 bg-[#111317] hover:bg-[#242830] border border-blue-500/30 flex items-center gap-1.5 transition-colors" title="Find job posting on Google">
+                <a href="https://www.google.com/search?q=${encodeURIComponent((app.title || '') + ' ' + (app.company || '') + ' job')}" target="_blank" rel="noopener noreferrer" class="btn-card-action btn-card-jobsearch px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 hover:text-blue-300 bg-[#111317] hover:bg-[#242830] border border-blue-500/30 flex items-center gap-1.5 transition-colors" title="Find job posting on Google">
                   <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                   <span>Search Job</span>
                 </a>
@@ -203,54 +203,54 @@ async function loadAppliedJobs(filterStatus = null) {
 
               <!-- PDF Resume Download -->
               ${pdfDownloadUrl ? `
-                <a href="${pdfDownloadUrl}" target="_blank" download class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] transition-all flex items-center gap-1.5 active:scale-95 shadow-xs cursor-pointer">
+                <a href="${pdfDownloadUrl}" target="_blank" download class="btn-card-pdf px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] transition-all flex items-center gap-1.5 active:scale-95 shadow-xs cursor-pointer">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                   <span>PDF Resume</span>
                 </a>
               ` : ''}
 
               <!-- Cover Letter Preview -->
-              <button onclick="previewCardLetter('${app.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer" title="View & Copy Tailored Cover Letter">
+              <button onclick="previewCardLetter('${app.id}')" class="btn-card-action btn-card-coverletter px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer" title="View & Copy Tailored Cover Letter">
                 <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 <span>Cover Letter</span>
               </button>
 
               <!-- Find Recruiters Button -->
-              <button onclick="toggleCardRecruiters('${app.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-950/40 hover:bg-sky-900/50 text-sky-300 hover:text-sky-200 border border-sky-500/30 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer" title="Find Recruiters & Hiring Managers on LinkedIn">
+              <button onclick="toggleCardRecruiters('${app.id}')" class="btn-card-action btn-find-recruiters px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-950/40 hover:bg-sky-900/50 text-sky-300 hover:text-sky-200 border border-sky-500/30 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer" title="Find Recruiters & Hiring Managers on LinkedIn">
                 <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>Find Recruiters</span>
               </button>
             </div>
 
             <!-- Right Action: Notes Drawer Toggle -->
-            <button onclick="toggleCardNotes('${app.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-95 cursor-pointer" title="Application & Interview Notes">
+            <button onclick="toggleCardNotes('${app.id}')" class="btn-card-action btn-card-notes px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-95 cursor-pointer" title="Application & Interview Notes">
               <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               <span>Notes ${notes ? '●' : ''}</span>
             </button>
           </div>
 
           <!-- Inline Notes Editor Drawer -->
-          <div id="notes-drawer-${app.id}" class="hidden pt-3 border-t border-[#2B3036]/60">
+          <div id="notes-drawer-${app.id}" class="card-notes-drawer hidden pt-3 border-t border-[#2B3036]/60">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-[11px] font-semibold text-[#9AA0A6] uppercase tracking-wider">Application & Interview Notes</span>
               <span class="text-[10px] text-slate-500 font-mono">Saved in SQLite</span>
             </div>
             <div class="flex gap-2">
-              <textarea id="notes-input-${app.id}" rows="2" class="flex-1 px-3 py-1.5 rounded-md bg-[#111317] border border-[#2B3036] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] focus:border-[#D9A441] outline-none" placeholder="Add recruiter contact, screening date, questions asked, or referral notes...">${escapeHtml(notes)}</textarea>
-              <button onclick="saveApplicationNotes('${app.id}')" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] shrink-0 self-end">Save Note</button>
+              <textarea id="notes-input-${app.id}" rows="2" class="card-notes-textarea flex-1 px-3 py-1.5 rounded-md bg-[#111317] border border-[#2B3036] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] focus:border-[#D9A441] outline-none" placeholder="Add recruiter contact, screening date, questions asked, or referral notes...">${escapeHtml(notes)}</textarea>
+              <button onclick="saveApplicationNotes('${app.id}')" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] shrink-0 self-end cursor-pointer">Save Note</button>
             </div>
           </div>
 
           <!-- Inline Recruiter Intelligence Drawer -->
-          <div id="recruiter-drawer-${app.id}" class="hidden pt-3 border-t border-[#2B3036]/60 space-y-3">
+          <div id="recruiter-drawer-${app.id}" class="card-recruiter-drawer hidden pt-3 border-t border-[#2B3036]/60 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-                <span class="text-[11px] font-semibold text-sky-300 uppercase tracking-wider">Recruiter & Hiring Intelligence — ${escapeHtml(app.company || '')}</span>
+                <span class="recruiter-drawer-title text-[11px] font-semibold text-sky-300 uppercase tracking-wider">Recruiter & Hiring Intelligence — ${escapeHtml(app.company || '')}</span>
               </div>
-              <span class="text-[10px] text-slate-400 font-mono">100% Free • Direct LinkedIn & Google X-Ray</span>
+              <span class="recruiter-drawer-badge text-[10px] text-slate-400 font-mono">100% Free • Direct LinkedIn & Google X-Ray</span>
             </div>
-            <div id="recruiter-content-${app.id}" class="p-3.5 rounded-xl bg-[#111317] border border-[#2B3036] text-xs text-[#9AA0A6]">
+            <div id="recruiter-content-${app.id}" class="recruiter-content-card p-3.5 rounded-xl bg-[#111317] border border-[#2B3036] text-xs text-[#9AA0A6]">
               <div class="flex items-center gap-2 text-slate-400">
                 <svg class="w-4 h-4 animate-spin text-sky-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                 <span>Loading recruiter search links and drafting outreach message...</span>
@@ -403,15 +403,15 @@ function renderRecruiterContent(appId, data, company, title) {
     <div class="space-y-3">
       <!-- Search Chips -->
       <div class="flex items-center gap-2 flex-wrap">
-        <a href="${data.xRaySearchUrl}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 transition-all active:scale-95" title="Google X-Ray targeting technical recruiters & talent acquisition on LinkedIn">
+        <a href="${data.xRaySearchUrl}" target="_blank" rel="noopener noreferrer" class="chip-recruiter chip-xray px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 transition-all active:scale-95" title="Google X-Ray targeting technical recruiters & talent acquisition on LinkedIn">
           <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <span>Find Recruiters (Google X-Ray)</span>
         </a>
-        <a href="${data.leadershipSearchUrl}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all active:scale-95" title="Google X-Ray targeting Engineering Managers & Department Heads">
+        <a href="${data.leadershipSearchUrl}" target="_blank" rel="noopener noreferrer" class="chip-recruiter chip-leadership px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-all active:scale-95" title="Google X-Ray targeting Engineering Managers & Department Heads">
           <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
           <span>Find Engineering Managers</span>
         </a>
-        <a href="${data.linkedInSearchUrl}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 transition-all active:scale-95" title="LinkedIn Direct People Search">
+        <a href="${data.linkedInSearchUrl}" target="_blank" rel="noopener noreferrer" class="chip-recruiter chip-linkedin px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 transition-all active:scale-95" title="LinkedIn Direct People Search">
           <svg class="w-3.5 h-3.5 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
           <span>LinkedIn People</span>
         </a>
@@ -420,13 +420,13 @@ function renderRecruiterContent(appId, data, company, title) {
       <!-- Pre-drafted Outreach Message Box -->
       <div class="space-y-1.5 pt-1">
         <div class="flex items-center justify-between text-[11px]">
-          <span class="font-medium text-slate-300">Tailored LinkedIn Connection Note (${customNote.length}/300 chars):</span>
-          <button onclick="copyRecruiterNote('${appId}')" class="px-2.5 py-1 rounded bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] font-semibold text-[11px] flex items-center gap-1 active:scale-95 transition-all">
+          <span class="recruiter-note-label font-medium text-slate-300">Tailored LinkedIn Connection Note (${customNote.length}/300 chars):</span>
+          <button onclick="copyRecruiterNote('${appId}')" class="btn-copy-recruiter-note px-2.5 py-1 rounded bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] font-semibold text-[11px] flex items-center gap-1 active:scale-95 transition-all cursor-pointer">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
             <span>Copy Note</span>
           </button>
         </div>
-        <div id="recruiter-note-${appId}" class="p-2.5 rounded-lg bg-[#0D0F12] border border-[#2B3036] text-xs text-slate-200 leading-relaxed font-sans select-all font-mono text-[11px]">
+        <div id="recruiter-note-${appId}" class="recruiter-note-box p-3 rounded-lg bg-[#0D0F12] border border-[#2B3036] text-xs text-slate-200 leading-relaxed font-sans select-all font-mono text-[11px]">
           ${escapeHtml(customNote)}
         </div>
       </div>
