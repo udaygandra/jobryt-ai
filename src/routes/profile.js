@@ -205,11 +205,7 @@ router.post('/upload-resume', async (req, res) => {
     try {
       const { syncProfileToSettings } = require('../../scripts/core/settings-helper');
       syncedSettings = syncProfileToSettings(parsed);
-      if (syncedSettings && Array.isArray(syncedSettings.target_roles) && syncedSettings.target_roles.length > 0) {
-        parsed.target_titles = [...syncedSettings.target_roles];
-        parsed.target_roles = [...syncedSettings.target_roles];
-      }
-      // Persist to master-profile.json
+      // Persist to master-profile.json as candidate credential baseline
       const masterProfilePath = path.join(profilesDir, 'master-profile.json');
       fs.writeFileSync(masterProfilePath, JSON.stringify(parsed, null, 2), 'utf8');
     } catch (syncErr) {

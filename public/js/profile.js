@@ -138,10 +138,13 @@ function populateProfileForm(prof) {
   if (document.getElementById('prof-status')) document.getElementById('prof-status').value = (prof.contact && prof.contact.status) || '';
   if (document.getElementById('prof-linkedin')) document.getElementById('prof-linkedin').value = (prof.contact && prof.contact.linkedin) || '';
   if (document.getElementById('prof-github')) document.getElementById('prof-github').value = (prof.contact && prof.contact.github) || '';
+  const currentRole = prof.role || (Array.isArray(prof.target_titles) && prof.target_titles[0]) || (Array.isArray(prof.target_roles) && prof.target_roles[0]) || '';
+  if (document.getElementById('prof-current-role')) document.getElementById('prof-current-role').value = currentRole;
+  if (document.getElementById('prof-target-roles')) document.getElementById('prof-target-roles').value = currentRole;
+
   const targetRoles = (Array.isArray(prof.target_titles) && prof.target_titles.length)
     ? prof.target_titles
-    : ((Array.isArray(prof.target_roles) && prof.target_roles.length) ? prof.target_roles : (prof.role ? [prof.role] : []));
-  if (document.getElementById('prof-target-roles')) document.getElementById('prof-target-roles').value = targetRoles.join(', ');
+    : ((Array.isArray(prof.target_roles) && prof.target_roles.length) ? prof.target_roles : (currentRole ? [currentRole] : []));
 
   // Decimal experience rounding
   const roundedYears = roundExperienceYears(prof.total_experience_stated || prof.years_of_experience);
@@ -601,12 +604,10 @@ function syncFormToJson() {
     profile.years_of_experience = rounded;
   }
 
-  const roles = (document.getElementById('prof-target-roles')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-  if (roles.length) {
-    profile.target_titles = roles;
-    profile.target_roles = roles;
-    profile.role = roles[0];
-    profile.title = roles[0];
+  const currentRole = (document.getElementById('prof-current-role')?.value || document.getElementById('prof-target-roles')?.value || '').trim();
+  if (currentRole) {
+    profile.role = currentRole;
+    profile.title = currentRole;
   }
 
   // Workday-style skills tag list
@@ -1022,9 +1023,9 @@ async function saveMasterProfile() {
           message: 'A valid email address is required.'
         },
         {
-          field: 'prof-target-roles',
+          field: document.getElementById('prof-current-role') ? 'prof-current-role' : 'prof-target-roles',
           type: 'required',
-          message: 'At least one target job title or role is required.'
+          message: 'Current role or professional title is required.'
         }
       ]);
       if (!isValid) {

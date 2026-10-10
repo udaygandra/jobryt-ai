@@ -170,21 +170,6 @@ router.post('/', (req, res) => {
     }
     const updated = settingsHelper.updateSettings(newSettings);
 
-    // Sync target_titles and locations with master profile if provided
-    if (Array.isArray(newSettings.target_titles) || Array.isArray(newSettings.locations)) {
-      try {
-        const { getMasterProfile } = require('./profile');
-        const { writeJsonFile, getDataDir } = require('../../scripts/core/common-utils');
-        const prof = getMasterProfile();
-        if (Array.isArray(newSettings.target_titles)) prof.target_titles = newSettings.target_titles;
-        if (Array.isArray(newSettings.locations)) prof.locations = newSettings.locations;
-        const profilePath = path.join(getDataDir(), 'profiles', 'master-profile.json');
-        writeJsonFile(profilePath, prof);
-      } catch (profSyncErr) {
-        console.warn('Could not sync profile titles/locations:', profSyncErr.message);
-      }
-    }
-
     res.json({ success: true, settings: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
