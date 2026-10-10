@@ -22,6 +22,9 @@ CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
    - Preserve experience order as listed in the resume.
    - Extract all education and certifications with dates/institutions when available.
    - Extract contact information completely: name, email, phone, location, work authorization / residency status (e.g. "Permanent Resident of Canada"), linkedin, github/portfolio when present.
+   - STANDARDIZED LOCATION EXTRACTION:
+     * Extract candidate's location into `contact.location` and target locations into `locations`.
+     * Always format extracted locations as standardized `City, ST, Country` (e.g. "Redwood City, CA, USA", "Toronto, ON, Canada", "Austin, TX, USA", "London, UK", "Bengaluru, KA, India"). If the resume specifies Remote, include "Remote". Avoid ambiguous single-word names.
    - For `target_titles`: List target roles directly matching or closely supported by the resume's core functions and experience level.
    - Where an experience header combines role and project/division (e.g. "Data Analyst II — Power Trading & Market Analytics"), split it into `role` ("Data Analyst II") and `project` ("Power Trading & Market Analytics").
    - CLIENT FIDELITY: If the candidate or resume mentions a client name (e.g. "Client: Apple", "Client: Barclays", "Client: Citigroup", "Client - Target"), extract the exact client name into `client`. NEVER redact, anonymize, or save it as "Highly Confidential" or "Confidential". Keep the exact client name as provided.

@@ -51,7 +51,7 @@ FIELD RULES
 - `notes_concerns`: maximum 2 sentences.
 - `reasoning`: maximum 3 sentences.
 
-DO NOT compute `overall_score`, `should_apply`, `priority_level`, or `safety_tier`. n8n computes those deterministically.
+DO NOT compute `overall_score`, `should_apply`, `priority_level`, or `safety_tier`. The scoring pipeline computes those deterministically from your pillar breakdown.
 
 RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
 {
