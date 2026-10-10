@@ -159,6 +159,14 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 19.1: Fix Recruiter Drawer Execution & Event Handling Architecture](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/19/19.1-PLAN.md)
 - [x] [Plan 19.2: Complete UX Redesign of Application Cards & Space Utilization](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/19/19.2-PLAN.md)
 
+### Phase 20: Floating Toast Theme Adaptability & Eye-Friendly Light Palette Redesign
+**Status:** 🔄 Planned (Milestone v1.2)
+**Objective:** Fix floating toast invisibility in light mode caused by text color inversion on dark backgrounds; implement dedicated theme-adaptive toast classes with semantic SVG icons; overhaul light theme palette with soothing low-glare warm-neutral tones (`#EDEFF2` canvas, soft off-white cards, frosted header) to eliminate eye strain and blinding brightness.
+
+**Plans:**
+- [ ] [Plan 20.1: Theme-Aware Toast Notification Engine & Text Inversion Fix](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/20/20.1-PLAN.md)
+- [ ] [Plan 20.2: Eye-Friendly Warm Light Theme Palette & Visual Ergonomics Overhaul](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/20/20.2-PLAN.md)
+
 ---
 
 ## Progress Summary
@@ -181,6 +189,7 @@ updated: 2026-10-08T17:36:00Z
 | 17 | ✅ | 4/4 | 100% (v1.2) |
 | 18 | ✅ | 2/2 | 100% (v1.2) |
 | 19 | ✅ | 2/2 | 100% (v1.2) |
+| 20 | 🔄 | 0/2 | 0% (v1.2) |
 
 
 
