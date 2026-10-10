@@ -1310,10 +1310,17 @@
               </svg>
               <span id="btn-upload-label">Upload Resume</span>
             </button>
+            <!-- View / Edit Raw JSON Modal Trigger -->
+            <button type="button" onclick="openProfileJsonModal()" id="btn-view-profile-json"
+              class="px-3.5 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-1.5 active:scale-[0.98] cursor-pointer"
+              title="View or directly edit the full profile JSON schema">
+              <svg class="w-3.5 h-3.5 text-[#5FA8A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+              <span>View / Edit JSON</span>
+            </button>
             <!-- Save Profile Button -->
             <button type="button" onclick="saveMasterProfile()" id="btn-save-profile"
               class="px-4 py-2 text-xs font-semibold rounded-md bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-[0.98] flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               <span>Save Profile</span>
@@ -1346,8 +1353,7 @@
             Dismiss</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
-          <div class="space-y-5">
+        <div class="w-full max-w-5xl mx-auto space-y-6 mt-6">
 
             <!-- Basic Personal Info -->
             <div class="space-y-4">
@@ -1571,25 +1577,6 @@
                 <!-- Dynamically rendered education cards -->
               </div>
             </div>
-
-          </div>
-
-          <!-- Raw JSON Editor (Right Column) with Live Bidirectional Sync -->
-          <div class="space-y-2 flex flex-col">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">Master Profile
-                  JSON</label>
-                <span class="text-[11px] text-[#5FA8A0] font-mono">JSON Profile Schema</span>
-              </div>
-              <button type="button" onclick="formatJsonEditor()"
-                class="px-2.5 py-1 text-[11px] font-mono text-[#9AA0A6] hover:text-[#E8E6E1] bg-[#242830] hover:bg-[#2B3036] rounded border border-[#2B3036]">
-                Format JSON
-              </button>
-            </div>
-            <textarea id="prof-json" rows="30" onchange="syncJsonToForm()"
-              class="w-full flex-1 min-h-[600px] px-3.5 py-2.5 rounded-md bg-[#111317] border border-[#2B3036] text-[11px] text-[#E8E6E1] font-mono leading-relaxed focus:border-[#D9A441] outline-none"></textarea>
-          </div>
         </div>
 
       </div>
@@ -1946,6 +1933,57 @@
     </div>
 
   </main>
+
+  <!-- ── Candidate Profile JSON Modal ────────────────────────────────────── -->
+  <div id="prof-json-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs hidden" role="dialog" aria-modal="true" aria-labelledby="prof-json-modal-title">
+    <div class="bg-[#16191E] border border-[#2B3036] rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#2B3036] bg-[#111317]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[#5FA8A0]/10 border border-[#5FA8A0]/20 flex items-center justify-center text-[#5FA8A0] font-bold text-xs">
+            { }
+          </div>
+          <div>
+            <h3 id="prof-json-modal-title" class="text-sm sm:text-base font-bold text-[#E8E6E1]">
+              Candidate Profile JSON Editor
+            </h3>
+            <p class="text-[11px] text-[#9AA0A6]">
+              Direct view and editing of your candidate JSON schema. Changes apply directly to your profile.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="formatJsonEditor()"
+            class="px-3 py-1.5 text-xs font-mono text-[#E8E6E1] bg-[#242830] hover:bg-[#2B3036] rounded-md border border-[#2B3036] transition-colors cursor-pointer">
+            Format JSON
+          </button>
+          <button type="button" onclick="closeProfileJsonModal()"
+            class="w-8 h-8 rounded-md flex items-center justify-center text-[#9AA0A6] hover:text-[#E8E6E1] hover:bg-[#242830] transition-colors cursor-pointer" title="Close modal">
+            ✕
+          </button>
+        </div>
+      </div>
+      <!-- Modal Body -->
+      <div class="p-5 sm:p-6 flex-1 overflow-hidden flex flex-col min-h-[350px]">
+        <textarea id="prof-json" rows="22" onchange="syncJsonToForm()"
+          class="w-full flex-1 px-4 py-3 rounded-lg bg-[#111317] border border-[#2B3036] text-xs text-[#E8E6E1] font-mono leading-relaxed focus:border-[#D9A441] outline-none resize-none selection:bg-[#D9A441] selection:text-[#14161A]"></textarea>
+      </div>
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between px-5 sm:px-6 py-3.5 border-t border-[#2B3036] bg-[#111317]">
+        <span class="text-[11px] text-[#9AA0A6] font-mono">Format: Valid JSON Object</span>
+        <div class="flex items-center gap-2.5">
+          <button type="button" onclick="closeProfileJsonModal()"
+            class="px-4 py-2 text-xs font-medium rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" onclick="applyProfileJsonModal()"
+            class="px-4 py-2 text-xs font-semibold rounded-md bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-[0.98] transition-colors cursor-pointer">
+            Apply Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Live Scan Progress Modal -->
   <div id="scan-modal" class="fixed inset-0 z-50 bg-[#14161A]/95 hidden flex items-center justify-center p-4">

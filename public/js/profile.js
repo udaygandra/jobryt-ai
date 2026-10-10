@@ -939,3 +939,38 @@ async function saveMasterProfile() {
     showToast('Error saving profile: ' + e.message, 'error');
   }
 }
+
+// On-Demand Candidate Profile JSON Modal Controls
+function openProfileJsonModal() {
+  syncFormToJson();
+  const modal = document.getElementById('prof-json-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    const textarea = document.getElementById('prof-json');
+    if (textarea) textarea.focus();
+  }
+}
+
+function closeProfileJsonModal() {
+  const modal = document.getElementById('prof-json-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function applyProfileJsonModal() {
+  try {
+    const raw = document.getElementById('prof-json')?.value.trim();
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      populateProfileForm(parsed);
+      showToast('✅ Profile JSON changes applied to form.');
+    }
+    closeProfileJsonModal();
+  } catch (err) {
+    showToast('Invalid JSON syntax: ' + err.message, 'error');
+  }
+}
+
+window.openProfileJsonModal = openProfileJsonModal;
+window.closeProfileJsonModal = closeProfileJsonModal;
+window.applyProfileJsonModal = applyProfileJsonModal;
+window.saveMasterProfile = saveMasterProfile;
