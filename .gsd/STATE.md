@@ -1,12 +1,12 @@
 # Project State
 
-> Updated by /execute 27 on 2026-10-10
+> Updated by /plan on 2026-10-10
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 27 - Resume Upload Full-Screen Animated Loader & Setup Wizard Guardrails
-- **Task**: Execution & Verification Complete (Plans 27.1, 27.2)
-- **Status**: Completed (109/109 tests passing, 150/150 benchmark passing)
+- **Phase**: 28 - Profile vs Settings Decoupling & Uncapped High-Performance Concurrent Scoring
+- **Task**: Planning Complete (Plans 28.1, 28.2, 28.3)
+- **Status**: Ready for execution (/execute 28)
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -35,4 +35,4 @@
 - [x] **Phase 27: Resume Upload Full-Screen Animated Loader & Setup Wizard Guardrails** (Milestone v1.2)
 
 ## Next Recommended Action
-All 27 phases in Milestone v1.2 are complete and verified. Run `/audit-milestone` to perform milestone quality audit or explore next milestone capabilities.
+Run `/execute 28` to execute all 3 plans for Profile vs Settings Decoupling & Uncapped High-Performance Concurrent Scoring.
