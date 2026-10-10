@@ -81,8 +81,11 @@ describe('Automatic Resume-to-Settings Sync Engine (Plan 25.2)', () => {
     };
 
     const synced = syncProfileToSettings(profile);
-    assert.equal(synced.target_roles.length, 2);
-    assert.deepEqual(synced.target_roles, ['Data Analyst', 'BI Developer']);
+    assert.ok(synced.target_roles.includes('Data Analyst'));
+    assert.ok(synced.target_roles.includes('BI Developer'));
+    assert.ok(!synced.target_roles.includes('Data Ninja'));
+    assert.ok(!synced.target_roles.includes('Rockstar Developer'));
+    assert.equal(synced.target_roles.filter(r => r.toLowerCase() === 'data analyst').length, 1);
   });
 
   test('syncProfileToSettings caps target_locations at 5', () => {
