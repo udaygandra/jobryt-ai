@@ -4,8 +4,8 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 25 - Market-Validated Target Roles Discovery & Settings Sync
-- **Task**: Planning complete (Plans 25.1, 25.2, 25.3, 25.4)
+- **Phase**: 25 - Unified Resume-to-Profile Extraction, Market Target Roles & Settings Sync
+- **Task**: Planning complete (Plans 25.1, 25.2, 25.3)
 - **Status**: Ready for execution (/execute 25)
 
 ## Completed Plans & Phases

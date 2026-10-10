@@ -197,15 +197,14 @@ updated: 2026-10-08T17:36:00Z
 
 ---
 
-### Phase 25: Market-Validated Target Roles Discovery & Settings Sync
+### Phase 25: Unified Resume-to-Profile Extraction, Market Target Roles & Settings Sync
 **Status:** 📋 Planned (Milestone v1.2)
-**Objective:** When the user uploads a resume in "My Resume and Profile", automatically extract a structured candidate profile (Prompt A), propose candidate titles via a 4-expert reasoning panel (Prompt B), validate them against live job board market data (pruning thin demand <15 and noisy matches), and select only accurate market-validated roles (up to 10 roles, strictly non-padding) to populate in Profile and synchronize directly into Settings (`target_roles`).
+**Objective:** Enhance the single resume parser prompt to extract all Master Profile UI fields and simultaneously identify up to 10 accurate, market-calibrated target roles (calibrated to seniority, industry, and location without padding), standardized location, and country code, directly synchronizing them into `settings.target_roles` upon resume upload in "My Resume and Profile".
 
 **Plans:**
-- [ ] [Plan 25.1: Resume Ingestion, PII Redaction & Structured Profile Extraction (Prompt A)](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
-- [ ] [Plan 25.2: 4-Expert Title Generation (Prompt B) & Parallel Market Demand Probing](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
-- [ ] [Plan 25.3: Market-Accurate Role Selection (Up to 10 Roles) & Settings Synchronization](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
-- [ ] [Plan 25.4: UI Presentation in "My Resume & Profile" & End-to-End Verification](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.4-PLAN.md)
+- [ ] [Plan 25.1: Unified Resume-to-Profile & Market Target Roles Prompt Engineering](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
+- [ ] [Plan 25.2: Automatic Settings Sync Engine & Profile Upload Route Integration](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
+- [ ] [Plan 25.3: UI Presentation in "My Resume & Profile", Tag Cloud Sync & Regression Verification](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
 
 ---
 
@@ -234,7 +233,7 @@ updated: 2026-10-08T17:36:00Z
 | 22 | ✅ | 1/1 | 100% (v1.2) |
 | 23 | ✅ | 2/2 | 100% (v1.2) |
 | 24 | ✅ | 3/3 | 100% (v1.2) |
-| 25 | 📋 | 4/4 | Planned (v1.2) |
+| 25 | 📋 | 3/3 | Planned (v1.2) |
 
 
 
