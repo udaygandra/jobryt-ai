@@ -242,6 +242,26 @@ function detectCandidateTimezone(profileObj) {
     return defaultFallback;
   }
 
+  // International checks (checked first to prevent collisions like London, UK vs London, ON)
+  if (/\b(uk|united kingdom|england|great britain|london,?\s*uk)\b/i.test(locText) || (/london/i.test(locText) && !/\b(on|ontario|canada)\b/i.test(locText))) {
+    return 'Europe/London';
+  }
+  if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg|france|paris|amsterdam|netherlands|spain|madrid|italy|rome)\b/i.test(locText)) {
+    return 'Europe/Berlin';
+  }
+  if (/\b(india|delhi|mumbai|bangalore|hyderabad|bengaluru|pune|chennai|warangal)\b/i.test(locText)) {
+    return 'Asia/Kolkata';
+  }
+  if (/\b(singapore|tokyo|japan|hong kong|seoul|korea)\b/i.test(locText)) {
+    return /\b(tokyo|japan|seoul|korea)\b/i.test(locText) ? 'Asia/Tokyo' : 'Asia/Singapore';
+  }
+  if (/\b(uae|dubai|abu dhabi|qatar|doha|saudi|riyadh)\b/i.test(locText)) {
+    return 'Asia/Dubai';
+  }
+  if (/\b(sydney|melbourne|brisbane|australia)\b/i.test(locText)) {
+    return 'Australia/Sydney';
+  }
+
   // Newfoundland (NST/NDT: UTC-3:30)
   if (/\b(nl|newfoundland|st\.?\s*john'?s?)\b/i.test(locText)) {
     return 'America/St_Johns';
@@ -270,28 +290,6 @@ function detectCandidateTimezone(profileObj) {
   // Eastern (EST/EDT: UTC-5) - Ontario, Quebec, New York, Florida, etc.
   if (/\b(on|ontario|toronto|gta|mississauga|brampton|markham|vaughan|ottawa|hamilton|london|kitchener|waterloo|windsor|qc|quebec|montreal|laval|gatineau|ny|new york|nyc|boston|ma|massachusetts|miami|fl|florida|dc|washington dc|atlanta|ga|georgia|pa|philadelphia|pittsburgh|nc|charlotte|raleigh|va|virginia|ohio|columbus|cleveland|detroit|mi|michigan)\b/i.test(locText)) {
     return (locText.includes('canada') || /\b(on|ontario|toronto|ottawa|qc|quebec|montreal)\b/i.test(locText)) ? 'America/Toronto' : 'America/New_York';
-  }
-
-  // Germany & Central Europe (CET/CEST)
-  if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg|france|paris|amsterdam|netherlands|spain|madrid|italy|rome)\b/i.test(locText)) {
-    return 'Europe/Berlin';
-  }
-
-  // International checks
-  if (/\b(uk|united kingdom|london|england|great britain)\b/i.test(locText)) {
-    return 'Europe/London';
-  }
-  if (/\b(india|delhi|mumbai|bangalore|hyderabad|bengaluru|pune|chennai|warangal)\b/i.test(locText)) {
-    return 'Asia/Kolkata';
-  }
-  if (/\b(singapore|tokyo|japan|hong kong|seoul|korea)\b/i.test(locText)) {
-    return /\b(tokyo|japan|seoul|korea)\b/i.test(locText) ? 'Asia/Tokyo' : 'Asia/Singapore';
-  }
-  if (/\b(uae|dubai|abu dhabi|qatar|doha|saudi|riyadh)\b/i.test(locText)) {
-    return 'Asia/Dubai';
-  }
-  if (/\b(sydney|melbourne|brisbane|australia)\b/i.test(locText)) {
-    return 'Australia/Sydney';
   }
 
   // Default fallback based on country scope
