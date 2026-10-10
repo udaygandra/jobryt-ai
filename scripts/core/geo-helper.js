@@ -297,11 +297,39 @@ function getSearchLocationQuery(targetLoc) {
   return formatLocationName(targetLoc);
 }
 
+function isCandidateExplicitNationwide(candLocations = [], countryCode = 'CA') {
+  const list = Array.isArray(candLocations) ? candLocations : [String(candLocations || '')];
+  for (const item of list) {
+    if (!item) continue;
+    const trimmed = item.trim().toLowerCase();
+    if (/all provinces|all states|all regions|nationwide|entire country|any province|any state|all cities/i.test(trimmed)) {
+      return true;
+    }
+    if (countryCode === 'CA' && /^(canada|ca)$/i.test(trimmed)) return true;
+    if (countryCode === 'US' && /^(united states|usa|us|u\.s\.)$/i.test(trimmed)) return true;
+    if (countryCode === 'US_CA' && /^(north america|usa and canada|canada and usa)$/i.test(trimmed)) return true;
+  }
+  return false;
+}
+
 // ── 3. Candidate Matching Logic ─────────────────────────────────────────────
-function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = 'CA', isJobRemote = false) {
+function isExplicitlyNegativeRemote(text = '') {
+  if (!text || typeof text !== 'string') return false;
+  return /\b(no remote|not remote|non-remote|not a remote|remote:\s*no|100%\s*on-site|100%\s*in-office|strictly in-office|strictly on-site|on-site only|in-person only|no work from home|no wfh)\b/i.test(text) ||
+    /\bremote(\s+work)?\s+(is\s+)?(not\s+(available|permitted|offered|allowed|an option)|unavailable)\b/i.test(text) ||
+    /\bnot\s+(available|eligible)\s+for\s+remote\b/i.test(text);
+}
+
+function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = 'CA', isJobRemote = false, jobDesc = '') {
   if (!jobLoc || typeof jobLoc !== 'string') return true;
   const lower = jobLoc.toLowerCase().trim();
+  const descText = String(jobDesc || '').toLowerCase();
   const geo = loadGeoHierarchy();
+
+  // Normalize isJobRemote if passed as string (e.g. 'onsite', 'hybrid', 'remote', etc.)
+  const isExplicitRemote = typeof isJobRemote === 'boolean'
+    ? isJobRemote
+    : (typeof isJobRemote === 'string' && /^(remote|wfh|telecommute|virtual)$/i.test(isJobRemote.trim()));
 
   // 1. Determine if job is located in Canada
   let isCanada = /\bcanada\b/i.test(lower) || /\bremote\s*[-–(,]?\s*ca\b/i.test(lower);
@@ -324,7 +352,16 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
   const isGlobal = /^(worldwide|global|remote|anywhere|north america|americas|any)$/i.test(lower) || /\b(worldwide|anywhere|north america|americas)\b/i.test(lower);
   const candLocsText = (Array.isArray(candidateLocations) ? candidateLocations.join(' ') : String(candidateLocations || '')).toLowerCase();
   const candidateAllowsWorldwide = /worldwide|global|anywhere/i.test(candLocsText);
-  const isDetectedRemote = isJobRemote || isGlobal || /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(lower);
+  
+  // Guard against false positive remote detection (e.g. "no remote", "not a remote role", "on-site only")
+  const hasNegativeRemote = isExplicitlyNegativeRemote(lower) || isExplicitlyNegativeRemote(descText);
+  const isDetectedRemote = !hasNegativeRemote && (
+    isExplicitRemote ||
+    isGlobal ||
+    /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(lower) ||
+    /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote|remote\s*across/i.test(lower) ||
+    /\b(100% remote|fully remote|remote work available across|remote across canada|remote anywhere in canada)\b/i.test(descText)
+  );
 
   // 3. Country Scope Gate (Strict Destination Routing)
   let countryMatch = true;
@@ -342,9 +379,8 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
 
   if (!countryMatch) return false;
 
-  // 4. LINKEDIN MODEL:
-  // If the job is REMOTE and within candidate's country scope, it is ELIGIBLE regardless of HQ city!
-  // (e.g. A Toronto candidate CAN work for a Vancouver-based or Calgary-based Remote company)
+  // 4. REMOTE JOBS:
+  // If the job is verified REMOTE and within candidate's country scope, it is eligible
   if (isDetectedRemote) {
     return true;
   }
@@ -352,10 +388,10 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
   // If candidate selected Worldwide / Global, all jobs in country scope are accepted
   if (candidateAllowsWorldwide) return true;
 
-  // Nationwide allowances (e.g. "United States (All States / Nationwide)", "Canada (All Provinces / Nationwide)", "North America")
-  const candidateAllowsAllUS = /united states|usa|all states/i.test(candLocsText);
-  const candidateAllowsAllCA = /canada|all provinces/i.test(candLocsText);
-  const candidateAllowsAllNA = /north america/i.test(candLocsText);
+  // Explicit Nationwide allowances only (must not match generic country name inside a city string)
+  const candidateAllowsAllUS = isCandidateExplicitNationwide(candidateLocations, 'US');
+  const candidateAllowsAllCA = isCandidateExplicitNationwide(candidateLocations, 'CA');
+  const candidateAllowsAllNA = isCandidateExplicitNationwide(candidateLocations, 'US_CA');
 
   if (candidateAllowsAllNA && (isUS || isCanada)) return true;
   if (candidateAllowsAllUS && isUS) return true;
@@ -365,60 +401,94 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
   // Must physically match candidate's target commuting location / metropolitan cluster!
   if (Array.isArray(candidateLocations) && candidateLocations.length > 0) {
     let physicalCityMatch = false;
-    const candidateAllowedTokens = new Set();
+    const candidateAllowedCityTokens = new Set();
+    const candidateAllowedWholeRegionTokens = new Set();
 
     for (const candLoc of candidateLocations) {
       if (!candLoc) continue;
       const cLower = candLoc.toLowerCase().trim();
-      candidateAllowedTokens.add(cLower);
+      const cFirstPart = cLower.split(',')[0].trim();
+      if (cFirstPart) candidateAllowedCityTokens.add(cFirstPart);
 
-      if (Array.isArray(geo.data?.cities)) {
-        for (const city of geo.data.cities) {
-          const isMatch = (city.metro && (cLower.includes(city.metro.toLowerCase()) || city.metro.toLowerCase().includes(cLower))) ||
-                          (city.display_city && (cLower.includes(city.display_city.toLowerCase()) || city.display_city.toLowerCase().includes(cLower))) ||
-                          (Array.isArray(city.names) && city.names.some(n => cLower.includes(n.toLowerCase())));
-          if (isMatch) {
-            city.names.forEach(n => candidateAllowedTokens.add(n.toLowerCase()));
-            if (city.display_city) candidateAllowedTokens.add(city.display_city.toLowerCase());
-            if (city.metro) candidateAllowedTokens.add(city.metro.toLowerCase());
-            if (city.province) candidateAllowedTokens.add(city.province.toLowerCase());
-            if (city.province_name) candidateAllowedTokens.add(city.province_name.toLowerCase());
-            if (city.state) candidateAllowedTokens.add(city.state.toLowerCase());
-            if (city.state_name) candidateAllowedTokens.add(city.state_name.toLowerCase());
-          }
-        }
+      // Check if candidate explicitly requested a whole province / state
+      const isExplicitWholeProvince = /all provinces|all cities|nationwide|entire province|entire state/i.test(cLower) ||
+        (cLower.length > 3 && !cLower.includes(',') && (geo.caProvs.has(cLower) || geo.usStates.has(cLower)));
+      if (isExplicitWholeProvince) {
+        candidateAllowedWholeRegionTokens.add(cLower);
       }
 
-      // Dynamic province/state expansion from cLower
+      // Check candidate home province/state (e.g. candidate in "Toronto, ON, Canada" has home province "Ontario")
       if (Array.isArray(geo.data?.canadian_provinces)) {
-        for (const p of geo.data.canadian_provinces) {
-          if ((p.name && cLower.includes(p.name.toLowerCase())) || (p.code && new RegExp(`\\b${p.code}\\b`, 'i').test(cLower))) {
-            if (p.name) candidateAllowedTokens.add(p.name.toLowerCase());
-            if (p.code) candidateAllowedTokens.add(p.code.toLowerCase());
+        for (const prov of geo.data.canadian_provinces) {
+          if (cLower.includes(prov.name.toLowerCase()) || new RegExp(`(,\\s*|\\b)${prov.code}(\\b|\\s*$)`, 'i').test(cLower)) {
+            candidateAllowedWholeRegionTokens.add(prov.name.toLowerCase());
           }
         }
       }
       if (Array.isArray(geo.data?.us_states)) {
-        for (const s of geo.data.us_states) {
-          if ((s.name && cLower.includes(s.name.toLowerCase())) || (s.code && new RegExp(`\\b${s.code}\\b`, 'i').test(cLower))) {
-            if (s.name) candidateAllowedTokens.add(s.name.toLowerCase());
-            if (s.code) candidateAllowedTokens.add(s.code.toLowerCase());
+        for (const st of geo.data.us_states) {
+          if (cLower.includes(st.name.toLowerCase()) || new RegExp(`(,\\s*|\\b)${st.code}(\\b|\\s*$)`, 'i').test(cLower)) {
+            candidateAllowedWholeRegionTokens.add(st.name.toLowerCase());
+          }
+        }
+      }
+
+      if (Array.isArray(geo.data?.cities)) {
+        for (const city of geo.data.cities) {
+          const isMatch = (city.display_city && (cLower.includes(city.display_city.toLowerCase()) || city.display_city.toLowerCase().includes(cFirstPart))) ||
+                          (city.metro && (cLower.includes(city.metro.toLowerCase()) || city.metro.toLowerCase().includes(cFirstPart))) ||
+                          (Array.isArray(city.names) && city.names.some(n => cLower.includes(n.toLowerCase()) || cFirstPart.includes(n.toLowerCase())));
+          if (isMatch) {
+            city.names.forEach(n => candidateAllowedCityTokens.add(n.toLowerCase()));
+            if (city.display_city) candidateAllowedCityTokens.add(city.display_city.toLowerCase().split(',')[0].trim());
+            if (city.metro) candidateAllowedCityTokens.add(city.metro.toLowerCase());
           }
         }
       }
     }
 
-    for (const token of candidateAllowedTokens) {
+    // A. Match against explicit city / metro cluster tokens
+    for (const token of candidateAllowedCityTokens) {
       if (token.length < 2) continue;
       if (token.length <= 3) {
-        if (new RegExp(`\\b${token.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\b`, 'i').test(lower)) {
+        if (new RegExp(`\\b${token.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\b`, 'i').test(lower)) {
           physicalCityMatch = true;
           break;
         }
       } else {
-        if (lower.includes(token) || token.includes(lower)) {
+        if (lower.includes(token)) {
           physicalCityMatch = true;
           break;
+        }
+      }
+    }
+
+    // B. If no city token matched, check if job is pure province/state encompassed by candidate
+    if (!physicalCityMatch && candidateAllowedWholeRegionTokens.size > 0) {
+      const lowerClean = lower.replace(/^(location|lieu)\s*[:\-]?\s*/i, '').trim();
+      const isPureRegion = geo.caProvs.has(lowerClean) || geo.usStates.has(lowerClean) ||
+        !lowerClean.includes(',');
+      if (isPureRegion) {
+        for (const regToken of candidateAllowedWholeRegionTokens) {
+          if (lowerClean === regToken || (regToken.length > 3 && lowerClean.includes(regToken))) {
+            let hasConflictingCity = false;
+            if (Array.isArray(geo.data?.cities)) {
+              for (const c of geo.data.cities) {
+                if (c.names && c.names.some(n => n.length > 3 && lowerClean.includes(n))) {
+                  const matchesOurCity = candidateAllowedCityTokens.has(c.display_city?.toLowerCase()?.split(',')[0]?.trim()) ||
+                    c.names.some(n => candidateAllowedCityTokens.has(n.toLowerCase()));
+                  if (!matchesOurCity) {
+                    hasConflictingCity = true;
+                    break;
+                  }
+                }
+              }
+            }
+            if (!hasConflictingCity) {
+              physicalCityMatch = true;
+              break;
+            }
+          }
         }
       }
     }
@@ -429,22 +499,290 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
   return true;
 }
 
+// ── Coordinates and Haversine Distance ──────────────────────────────────────
+const CITY_COORDINATES = Object.freeze({
+  // Greater Toronto Area & Ontario
+  'toronto': { lat: 43.6532, lon: -79.3832 },
+  'downtown toronto': { lat: 43.6532, lon: -79.3832 },
+  'north york': { lat: 43.7615, lon: -79.4111 },
+  'east york': { lat: 43.6912, lon: -79.3417 },
+  'york': { lat: 43.6957, lon: -79.4504 },
+  'etobicoke': { lat: 43.6205, lon: -79.5132 },
+  'scarborough': { lat: 43.7764, lon: -79.2318 },
+  'mississauga': { lat: 43.5890, lon: -79.6441 },
+  'markham': { lat: 43.8561, lon: -79.3370 },
+  'vaughan': { lat: 43.8563, lon: -79.5085 },
+  'richmond hill': { lat: 43.8828, lon: -79.4403 },
+  'brampton': { lat: 43.7315, lon: -79.7624 },
+  'oakville': { lat: 43.4675, lon: -79.6877 },
+  'pickering': { lat: 43.8384, lon: -79.0868 },
+  'ajax': { lat: 43.8509, lon: -79.0204 },
+  'whitby': { lat: 43.8971, lon: -78.9429 },
+  'oshawa': { lat: 43.8975, lon: -78.8658 },
+  'milton': { lat: 43.5183, lon: -79.8774 },
+  'newmarket': { lat: 44.0592, lon: -79.4613 },
+  'aurora': { lat: 44.0065, lon: -79.4504 },
+  'burlington': { lat: 43.3255, lon: -79.7990 },
+  'hamilton': { lat: 43.2557, lon: -79.8711 },
+  'guelph': { lat: 43.5448, lon: -80.2482 },
+  'kitchener': { lat: 43.4516, lon: -80.4925 },
+  'waterloo': { lat: 43.4643, lon: -80.5204 },
+  'cambridge': { lat: 43.3616, lon: -80.3144 },
+  'barrie': { lat: 44.3894, lon: -79.6903 },
+  'london': { lat: 42.9849, lon: -81.2453 },
+  'windsor': { lat: 42.3149, lon: -83.0364 },
+  'kingston': { lat: 44.2312, lon: -76.4860 },
+  'ottawa': { lat: 45.4215, lon: -75.6972 },
+  'sudbury': { lat: 46.4917, lon: -80.9930 },
+  'thunder bay': { lat: 48.3809, lon: -89.2477 },
+  'niagara falls': { lat: 43.0896, lon: -79.0849 },
+  'st. catharines': { lat: 43.1594, lon: -79.2469 },
+
+  // Quebec
+  'montreal': { lat: 45.5017, lon: -73.5673 },
+  'laval': { lat: 45.5699, lon: -73.6920 },
+  'longueuil': { lat: 45.5312, lon: -73.5181 },
+  'brossard': { lat: 45.4667, lon: -73.4500 },
+  'quebec city': { lat: 46.8139, lon: -71.2080 },
+  'quebec': { lat: 46.8139, lon: -71.2080 },
+  'gatineau': { lat: 45.4765, lon: -75.7013 },
+
+  // British Columbia
+  'vancouver': { lat: 49.2827, lon: -123.1207 },
+  'burnaby': { lat: 49.2488, lon: -122.9805 },
+  'surrey': { lat: 49.1913, lon: -122.8490 },
+  'richmond': { lat: 49.1666, lon: -123.1336 },
+  'coquitlam': { lat: 49.2838, lon: -122.7932 },
+  'langley': { lat: 49.1042, lon: -122.6604 },
+  'north vancouver': { lat: 49.3163, lon: -123.0688 },
+  'victoria': { lat: 48.4284, lon: -123.3656 },
+  'kelowna': { lat: 49.8880, lon: -119.4960 },
+
+  // Alberta & Prairie
+  'calgary': { lat: 51.0447, lon: -114.0719 },
+  'edmonton': { lat: 53.5461, lon: -113.4938 },
+  'winnipeg': { lat: 49.8951, lon: -97.1384 },
+  'saskatoon': { lat: 52.1332, lon: -106.6700 },
+  'regina': { lat: 50.4452, lon: -104.6189 },
+
+  // Atlantic
+  'halifax': { lat: 44.6488, lon: -63.5752 },
+  'moncton': { lat: 46.0878, lon: -64.7782 },
+  'saint john': { lat: 45.2733, lon: -66.0633 },
+  'fredericton': { lat: 45.9636, lon: -66.6431 },
+  'st. john\'s': { lat: 47.5615, lon: -52.7126 },
+  'charlottetown': { lat: 46.2382, lon: -63.1311 },
+
+  // United States Metros
+  'new york': { lat: 40.7128, lon: -74.0060 },
+  'nyc': { lat: 40.7128, lon: -74.0060 },
+  'brooklyn': { lat: 40.6782, lon: -73.9442 },
+  'manhattan': { lat: 40.7831, lon: -73.9712 },
+  'queens': { lat: 40.7282, lon: -73.7949 },
+  'jersey city': { lat: 40.7178, lon: -74.0431 },
+  'los angeles': { lat: 34.0522, lon: -118.2437 },
+  'san francisco': { lat: 37.7749, lon: -122.4194 },
+  'san jose': { lat: 37.3382, lon: -121.8863 },
+  'oakland': { lat: 37.8044, lon: -122.2712 },
+  'seattle': { lat: 47.6062, lon: -122.3321 },
+  'bellevue': { lat: 47.6101, lon: -122.2015 },
+  'chicago': { lat: 41.8781, lon: -87.6298 },
+  'austin': { lat: 30.2672, lon: -97.7431 },
+  'boston': { lat: 42.3601, lon: -71.0589 },
+  'cambridge': { lat: 42.3736, lon: -71.1097 },
+  'washington': { lat: 38.9072, lon: -77.0369 },
+  'dallas': { lat: 32.7767, lon: -96.7970 },
+  'houston': { lat: 29.7604, lon: -95.3698 },
+  'denver': { lat: 39.7392, lon: -104.9903 },
+  'atlanta': { lat: 33.7490, lon: -84.3880 },
+  'miami': { lat: 25.7617, lon: -80.1918 },
+
+  // Global Hubs
+  'london, uk': { lat: 51.5074, lon: -0.1278 },
+  'berlin': { lat: 52.5200, lon: 13.4050 },
+  'paris': { lat: 48.8566, lon: 2.3522 },
+  'singapore': { lat: 1.3521, lon: 103.8198 },
+  'sydney': { lat: -33.8688, lon: 151.2093 },
+  'melbourne': { lat: -37.8136, lon: 144.9631 },
+  'dubai': { lat: 25.2048, lon: 55.2708 },
+  'tokyo': { lat: 35.6762, lon: 139.6503 },
+  'bengaluru': { lat: 12.9716, lon: 77.5946 },
+  'bangalore': { lat: 12.9716, lon: 77.5946 }
+});
+
+function calculateHaversineDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's mean radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
+function resolveCoordinates(loc) {
+  if (!loc || typeof loc !== 'string') return null;
+  const clean = loc.toLowerCase().replace(/^(location|lieu)\s*[:\-]?\s*/i, '').trim();
+  const parts = clean.split(/[,\(\)\/]/).map(p => p.trim()).filter(Boolean);
+  for (const p of parts) {
+    if (CITY_COORDINATES[p]) return CITY_COORDINATES[p];
+  }
+  for (const [key, coords] of Object.entries(CITY_COORDINATES)) {
+    if (clean.includes(key)) return coords;
+  }
+  return null;
+}
+
+function calculateCommuteDistanceKm(jobLoc, candidateLocations = []) {
+  if (!jobLoc) return 999;
+  const candList = Array.isArray(candidateLocations) ? candidateLocations : [candidateLocations];
+  const jCoords = resolveCoordinates(jobLoc);
+
+  let minDistance = 999;
+
+  for (const candLoc of candList) {
+    if (!candLoc) continue;
+    const cCoords = resolveCoordinates(candLoc);
+
+    if (jCoords && cCoords) {
+      const d = calculateHaversineDistanceKm(cCoords.lat, cCoords.lon, jCoords.lat, jCoords.lon);
+      if (d < minDistance) minDistance = d;
+      continue;
+    }
+
+    // Heuristic fallbacks if exact GPS coordinates are unmapped
+    const jClean = (jobLoc || '').toLowerCase().replace(/^(location|lieu)\s*[:\-]?\s*/i, '').trim();
+    const cClean = (candLoc || '').toLowerCase().trim();
+    const cFirst = cClean.split(',')[0].trim();
+
+    if (jClean.includes(cFirst) || cClean.includes(jClean.split(',')[0].trim())) {
+      if (0 < minDistance) minDistance = 0;
+      continue;
+    }
+
+    // Metro cluster estimate
+    const geo = loadGeoHierarchy();
+    let inSameMetro = false;
+    let suburbDistance = 35;
+    if (Array.isArray(geo.data?.cities)) {
+      for (const city of geo.data.cities) {
+        const matchesCand = (city.display_city && cClean.includes(city.display_city.toLowerCase().split(',')[0].trim())) ||
+                            (city.names && city.names.some(n => cClean.includes(n.toLowerCase())));
+        if (matchesCand) {
+          const matchesJob = (city.display_city && jClean.includes(city.display_city.toLowerCase().split(',')[0].trim())) ||
+                             (city.names && city.names.some(n => jClean.includes(n.toLowerCase())));
+          if (matchesJob) {
+            inSameMetro = true;
+            // Check borough vs suburb
+            if (/\b(north york|east york|york|etobicoke)\b/i.test(jClean)) suburbDistance = 12;
+            else if (/\b(mississauga|markham|vaughan|richmond hill)\b/i.test(jClean)) suburbDistance = 23;
+            else if (/\b(brampton|oakville|milton|pickering|ajax|whitby|burlington)\b/i.test(jClean)) suburbDistance = 35;
+            break;
+          }
+        }
+      }
+    }
+
+    if (inSameMetro && suburbDistance < minDistance) {
+      minDistance = suburbDistance;
+    }
+  }
+
+  return minDistance;
+}
+
+function calculateLocationFitScore(jobLoc, candidateLocations = [], countryScope = 'GLOBAL', isJobRemote = false, candidateWorkType = 'Open to All', commuteRadiusKm = 25, jobDesc = '') {
+  if (!jobLoc || typeof jobLoc !== 'string') return 80;
+  const lower = jobLoc.toLowerCase().trim();
+  const descText = String(jobDesc || '').toLowerCase();
+  const candLocsText = (Array.isArray(candidateLocations) ? candidateLocations.join(' ') : String(candidateLocations || '')).toLowerCase();
+  const pref = (candidateWorkType || 'Open to All').toLowerCase().trim();
+
+  const hasNegativeRemote = isExplicitlyNegativeRemote(lower) || isExplicitlyNegativeRemote(descText);
+  const isDetectedRemote = !hasNegativeRemote && (
+    isJobRemote ||
+    /^(worldwide|global|remote|anywhere)$/i.test(lower) ||
+    /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(lower) ||
+    /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote|remote\s*across/i.test(lower) ||
+    /\b(100% remote|fully remote|remote work available across|remote across canada|remote anywhere in canada)\b/i.test(descText)
+  );
+
+  // 1. Check basic country eligibility & city bounds
+  const eligible = isJobLocationEligible(jobLoc, candidateLocations, countryScope, isDetectedRemote, descText);
+  if (!eligible) return 15;
+
+  // 2. Candidate wants Remote-only but job is strictly onsite or negative-remote
+  if (pref.includes('remote') && !pref.includes('hybrid') && (hasNegativeRemote || !isDetectedRemote)) {
+    return 15;
+  }
+
+  // 3. Remote within candidate's country scope -> Always 100% (zero travel required)
+  if (isDetectedRemote) {
+    return 100;
+  }
+
+  // 4. If candidate explicitly specified nationwide or worldwide
+  const allowsAll = isCandidateExplicitNationwide(candidateLocations, countryScope) || /worldwide|global|anywhere/i.test(candLocsText);
+  if (allowsAll) {
+    return 85;
+  }
+
+  // 5. Dynamic Radial Gradient Scoring for Onsite / Hybrid Positions
+  const R = (typeof commuteRadiusKm === 'number' && !isNaN(commuteRadiusKm)) ? Math.max(0, Math.min(100, commuteRadiusKm)) : 25;
+  const distanceKm = calculateCommuteDistanceKm(jobLoc, candidateLocations);
+
+  // Exact 0 km / walk distance
+  if (distanceKm <= 2) {
+    return 100;
+  }
+
+  // If user set 0 km radius, require exact city match
+  if (R <= 0) {
+    return distanceKm <= 2 ? 100 : 15;
+  }
+
+  // Bracket Zones:
+  // Zone 1: Immediate Core (<= 0.20 * R): 90-100% gradient
+  // Zone 2: Inner Commute / Suburbs (<= 0.50 * R or 0.60 * R for R=25): 80-90% gradient
+  // Zone 3: Outer Commuter Ring (<= 1.00 * R): 70-80% gradient
+  // Zone 4: Beyond Radius (> R): <= 20% (15%)
+  const z1 = 0.20 * R;
+  const z2 = (R <= 25) ? (0.60 * R) : (0.50 * R);
+  const z3 = 1.00 * R;
+
+  if (distanceKm <= z1) {
+    return Math.round(100 - 10 * (distanceKm / z1));
+  } else if (distanceKm <= z2) {
+    return Math.round(90 - 10 * ((distanceKm - z1) / (z2 - z1)));
+  } else if (distanceKm <= z3) {
+    return Math.round(80 - 10 * ((distanceKm - z2) / (z3 - z2)));
+  } else {
+    // Outside commute tolerance!
+    return 15;
+  }
+}
+
 function isJobWorkplaceEligible(jobLoc, jobDesc = '', jobTitle = '', candidateWorkType = 'Open to All', isExplicitRemoteSource = false) {
   if (!candidateWorkType || candidateWorkType === 'Open to All' || candidateWorkType === 'Any') return true;
   const pref = candidateWorkType.toLowerCase().trim();
   const text = `${jobLoc || ''} ${jobTitle || ''} ${jobDesc || ''}`.toLowerCase();
 
-  const isRemoteJob = isExplicitRemoteSource || /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(text);
+  const hasNegativeRemote = isExplicitlyNegativeRemote(text);
+  const isRemoteJob = !hasNegativeRemote && (isExplicitRemoteSource || /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(text));
   const isHybridJob = /\b(hybrid|flexible work model|in-office \d days|partially remote)\b/i.test(text);
-  const isStrictlyOnsite = /\b(100% on-site|on-site only|in-person only|no remote|must be in office 5 days)\b/i.test(text);
+  const isStrictlyOnsite = hasNegativeRemote || /\b(100% on-site|on-site only|in-person only|no remote|must be in office 5 days)\b/i.test(text);
 
   if (pref.includes('remote') && !pref.includes('hybrid')) {
-    return !isStrictlyOnsite && (isRemoteJob || (isHybridJob && !isStrictlyOnsite));
+    return isRemoteJob && !isStrictlyOnsite && !isHybridJob;
+  }
+  if (pref.includes('onsite') || pref.includes('on-site')) {
+    return !isRemoteJob;
   }
   if (pref.includes('hybrid')) {
     return isHybridJob || isRemoteJob || !isStrictlyOnsite;
   }
-  return true; // onsite or open to all allows onsite
+  return true;
 }
 
 const SENIORITY_MODIFIERS = new Set([
@@ -999,6 +1337,12 @@ module.exports = {
   harmonizeLocationAndWorkType,
   detectCandidateTimezone,
   searchLiveCities,
+  calculateLocationFitScore,
+  isExplicitlyNegativeRemote,
+  calculateHaversineDistanceKm,
+  resolveCoordinates,
+  calculateCommuteDistanceKm,
+  CITY_COORDINATES,
   SUPPORTED_COUNTRIES,
   COUNTRY_PATTERNS
 };

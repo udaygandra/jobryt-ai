@@ -996,6 +996,30 @@
               </select>
             </div>
 
+            <!-- Commute Radius (FB Marketplace Style: 0-100 km, default 25 km) -->
+            <div class="pt-1">
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6]">
+                  Commute Radius (Onsite / Hybrid)
+                </label>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/30">
+                  <span id="lbl-radius">25</span>&nbsp;km
+                </span>
+              </div>
+              <input type="range" id="cfg-radius" min="0" max="100" step="5" value="25"
+                oninput="document.getElementById('lbl-radius').innerText = this.value"
+                class="w-full h-2 bg-[#242830] rounded-lg appearance-none cursor-pointer accent-[#D9A441]">
+              <div class="flex justify-between text-[10px] text-[#9AA0A6] mt-1 font-mono">
+                <span>0 km (City Only)</span>
+                <span class="text-[#D9A441]">25 km (Default)</span>
+                <span>50 km</span>
+                <span>100 km</span>
+              </div>
+              <p class="text-[11px] text-[#9AA0A6] mt-1.5">
+                Radial gradient scoring: 90-100% within 20% radius, 80-90% within 50%, 70-80% up to radius limit.
+              </p>
+            </div>
+
             <!-- Scoring Threshold & Freshness Window -->
             <div class="grid grid-cols-2 gap-4 pt-2">
               <div>
@@ -1180,6 +1204,73 @@
               <input type="hidden" id="sched-preset-select" value="DAILY">
             </div>
           </details>
+
+          <!-- Section: Maintenance & Reset Options -->
+          <div class="border-t border-[#2B3036] pt-6 mt-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-[#E8E6E1] flex items-center gap-2">
+                  <span>🛠️ Pipeline Hygiene & Reset Options</span>
+                </h3>
+                <p class="text-[11px] text-[#9AA0A6] mt-0.5">
+                  Manage search queue data hygiene, restore default preferences, or start over from a clean slate.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <!-- Action 1: Clear Opportunities -->
+              <div class="p-3.5 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#5FA8A0]/50 transition-all flex flex-col justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2 font-bold text-xs text-[#E8E6E1]">
+                    <span class="text-base text-[#5FA8A0]">🧹</span>
+                    <span>Clear Opportunities</span>
+                  </div>
+                  <p class="text-[11px] text-[#9AA0A6] mt-1.5 leading-snug">
+                    Purges current unapplied opportunities and unblocks recent jobs. Run a manual scan from the header when you are ready.
+                  </p>
+                </div>
+                <button type="button" onclick="executeSettingsReset('clear_queue')" id="btn-reset-queue"
+                  class="w-full py-2 px-3 rounded text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#5FA8A0] border border-[#5FA8A0]/30 hover:border-[#5FA8A0] flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+                  <span>Clear Opportunities</span>
+                </button>
+              </div>
+
+              <!-- Action 2: Reset Preferences to Default -->
+              <div class="p-3.5 rounded-lg border border-[#2B3036] bg-[#111317] hover:border-[#D9A441]/50 transition-all flex flex-col justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2 font-bold text-xs text-[#E8E6E1]">
+                    <span class="text-base text-[#D9A441]">⚙️</span>
+                    <span>Reset Search Preferences</span>
+                  </div>
+                  <p class="text-[11px] text-[#9AA0A6] mt-1.5 leading-snug">
+                    Restores default match threshold (70%), commute radius (25 km), 24h freshness, and all job boards without touching your resume.
+                  </p>
+                </div>
+                <button type="button" onclick="executeSettingsReset('reset_preferences')" id="btn-reset-prefs"
+                  class="w-full py-2 px-3 rounded text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#D9A441] border border-[#D9A441]/30 hover:border-[#D9A441] flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+                  <span>Restore Default Settings</span>
+                </button>
+              </div>
+
+              <!-- Action 3: Start from Fresh (Full Reset) -->
+              <div class="p-3.5 rounded-lg border border-rose-500/30 bg-[#161214] hover:border-rose-500/60 transition-all flex flex-col justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2 font-bold text-xs text-rose-300">
+                    <span class="text-base">🗑️</span>
+                    <span>Start from Fresh (Full Reset)</span>
+                  </div>
+                  <p class="text-[11px] text-zinc-400 mt-1.5 leading-snug">
+                    Wipes all job tracking history (seen, pending, rejected) and restores default settings for a clean day-1 slate.
+                  </p>
+                </div>
+                <button type="button" onclick="executeSettingsReset('fresh_start')" id="btn-reset-fresh"
+                  class="w-full py-2 px-3 rounded text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:border-rose-500 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+                  <span>Wipe All & Start Fresh</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

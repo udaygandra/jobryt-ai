@@ -176,6 +176,14 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 21.1: Pure #FFFFFF Backgrounds & Form Input Clarity for Resume, Profile & Settings in Light Theme](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/21/21.1-PLAN.md)
 - [x] [Plan 21.2: Applications Light Theme Color Overhaul — Recruiter Drawer, Outreach Box, Action Toolbar & Notes Surface](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/21/21.2-PLAN.md)
 
+### Phase 23: Clean Board Ingestion Payloads, Reliable Multi-Board Yield & Deterministic Scoring
+**Status:** ✅ Complete (Milestone v1.2)
+**Objective:** Eliminate false-remote leakages where out-of-province hybrid jobs (e.g. Vancouver hybrid roles) leak through geo-filtering; tailor API payloads cleanly to each specific board without confusing or conflicting parameters; expand usable candidate yield; and rebuild scoring so Location Fit is 100% deterministic (calculated via Haversine GPS distance in `geo-helper.js`), preventing LLM hallucinations from awarding 100% location scores to out-of-bounds jobs.
+
+**Plans:**
+- [x] [Plan 23.1: Clean Board Ingestion Payloads, Reliable Multi-Board Yield & False-Remote Bug Elimination](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/23/23.1-PLAN.md)
+- [x] [Plan 23.2: Rebuilt Deterministic 3-Pillar Scoring Strategy & Anti-Hallucination Guardrails](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/23/23.2-PLAN.md)
+
 ---
 
 ## Progress Summary
@@ -200,4 +208,9 @@ updated: 2026-10-08T17:36:00Z
 | 19 | ✅ | 2/2 | 100% (v1.2) |
 | 20 | ✅ | 3/3 | 100% (v1.2) |
 | 21 | ✅ | 2/2 | 100% (v1.2) |
+| 22 | ✅ | 1/1 | 100% (v1.2) |
+| 23 | ✅ | 2/2 | 100% (v1.2) |
+
+
+
 

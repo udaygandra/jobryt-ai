@@ -30,11 +30,11 @@ async function executePipelineScan(overrides = {}) {
 
   const targetTitles = (overrides.targetTitles && overrides.targetTitles.length > 0)
     ? overrides.targetTitles
-    : (profile.target_titles || ['Target Role']);
+    : (settings.target_titles && settings.target_titles.length > 0 ? settings.target_titles : (profile.target_titles || ['Target Role']));
 
   const targetLocations = (overrides.targetLocations && overrides.targetLocations.length > 0)
     ? overrides.targetLocations
-    : (profile.locations || ['Remote']);
+    : (settings.locations && settings.locations.length > 0 ? settings.locations : (profile.locations || ['Remote']));
 
   const minThreshold = overrides.minScore !== undefined
     ? Number(overrides.minScore)
@@ -44,19 +44,30 @@ async function executePipelineScan(overrides = {}) {
     ? Number(overrides.freshnessHours)
     : (settings.freshness_hours !== undefined ? settings.freshness_hours : 24);
 
-  console.log(`[Pipeline Scan] Triggered (source: ${overrides.source || 'api'}) with roles: ${targetTitles.join(', ')} | Locs: ${targetLocations.join(', ')} | Threshold: ${minThreshold}+`);
+  const activeScope = overrides.countryScope || settings.country_scope || 'AUTO';
+  const activeWorkType = overrides.work_type || settings.work_type || profile.work_type || 'Open to All';
 
-  if (overrides.targetTitles) {
+  console.log(`[Pipeline Scan] Triggered (source: ${overrides.source || 'api'}) with roles: ${targetTitles.join(', ')} | Locs: ${targetLocations.join(', ')} | Scope: ${activeScope} | Threshold: ${minThreshold}+`);
+
+  if (targetTitles[0]) {
     process.env.ADZUNA_SEARCH_ROLE = targetTitles[0];
   }
-  if (overrides.targetLocations) {
+  if (targetLocations[0]) {
     process.env.ADZUNA_SEARCH_LOCATION = targetLocations[0];
   }
 
-  // Step 1: Ingest from job boards
+  // Step 1: Ingest from job boards with dynamic search payload
   let rawFetchedJobs = [];
   try {
-    rawFetchedJobs = await fetchAllJobs();
+    rawFetchedJobs = await fetchAllJobs({
+      targetTitles,
+      targetLocations,
+      countryScope: activeScope,
+      candidateWorkType: activeWorkType,
+      boardsEnabled: settings.boards_enabled,
+      freshnessHours,
+      commuteRadiusKm: settings.commute_radius_km
+    });
   } catch (fetchErr) {
     console.warn('[Pipeline] Fetch note:', fetchErr.message);
   }
@@ -64,20 +75,25 @@ async function executePipelineScan(overrides = {}) {
   const allRawItems = rawFetchedJobs.map(j => normalizeJob(j, j.source || 'unknown')).filter(Boolean);
 
   // Step 2: Freshness & Geo Filters
-  const activeScope = overrides.countryScope || settings.country_scope || 'AUTO';
   let filteredItems = runFreshnessFilter(allRawItems.map(j => ({ json: j })), freshnessHours);
-  filteredItems = runGeoFilter(filteredItems, { ...profile, target_titles: targetTitles, locations: targetLocations, country_scope: activeScope });
+  filteredItems = runGeoFilter(filteredItems, { ...profile, target_titles: targetTitles, locations: targetLocations, country_scope: activeScope, work_type: activeWorkType });
   const freshItems = filteredItems.map(i => i.json);
 
-  // Step 3: Deduplication filter
+  // Step 3: Deduplication filter (against seen_jobs, pending_jobs, applied_jobs, rejected_jobs)
+  const existingPendingIds = new Set((jobsDb.getPendingJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingAppliedIds = new Set((jobsDb.getAppliedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingRejectedIds = new Set((jobsDb.getRejectedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+
   const unSeenJobs = freshItems.filter(job => {
     const id = job.id ? String(job.id) : null;
-    const url = job.redirect_url || job.job_url || null;
+    const rawUrl = String(job.redirect_url || job.job_url || '');
+    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
     const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const sig = compClean && titClean ? `comp_${compClean}_tit_${titClean}` : null;
-    if (id && jobsDb.isJobSeen(id)) return false;
-    if (url && jobsDb.isJobSeen(url)) return false;
+
+    if (id && (jobsDb.isJobSeen(id) || existingPendingIds.has(id) || existingAppliedIds.has(id) || existingRejectedIds.has(id))) return false;
+    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search') && jobsDb.isJobSeen(cleanUrl)) return false;
     if (sig && jobsDb.isJobSeen(sig)) return false;
     return true;
   });
@@ -90,21 +106,25 @@ async function executePipelineScan(overrides = {}) {
 
   for (const job of jobsToScore) {
     if (job.id) newlySeenIds.push(String(job.id));
-    if (job.job_url) newlySeenIds.push(String(job.job_url));
-    if (job.redirect_url) newlySeenIds.push(String(job.redirect_url));
+    const rawUrl = String(job.redirect_url || job.job_url || '');
+    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
+    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search')) newlySeenIds.push(cleanUrl);
+    const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (compClean && titClean) newlySeenIds.push(`comp_${compClean}_tit_${titClean}`);
 
     let scoredItem = null;
     try {
-      const prompt = buildDynamicScoringPrompt(profile, job.title, job.description);
+      const prompt = buildDynamicScoringPrompt({ ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, commute_radius_km: settings.commute_radius_km }, job.title, job.description);
       const llmRes = await callLLMProvider({ prompt });
       if (llmRes.success) {
         job.rawText = llmRes.rawText;
-        scoredItem = runParseScore({ json: { ...job } }, profile).json;
+        scoredItem = runParseScore({ json: { ...job } }, { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope }, settings).json;
       }
     } catch (_) {}
 
     if (!scoredItem || typeof scoredItem.score !== 'number') {
-      scoredItem = computeHeuristicScore(job, profile);
+      scoredItem = computeHeuristicScore(job, { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, work_type: activeWorkType }, settings);
     }
 
     const finalJob = {
@@ -115,6 +135,8 @@ async function executePipelineScan(overrides = {}) {
       company: (job.company || scoredItem.company || 'Direct Employer').trim(),
       location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
       source: job.source || scoredItem.source || 'Direct',
+      match_score: scoredItem.score,
+      score: scoredItem.score,
       job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
       redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
       why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
@@ -123,7 +145,7 @@ async function executePipelineScan(overrides = {}) {
     scoredJobs.push(finalJob);
   }
 
-  // Step 5: Persist qualified to pending, rejected to rejected
+  // Step 5: Persist qualified to pending, rejected to rejected based on user score_threshold
   const qualified = scoredJobs.filter(j => (j.score || 0) >= minThreshold && j.should_apply !== false);
   const rejected = scoredJobs.filter(j => (j.score || 0) < minThreshold || j.should_apply === false);
 

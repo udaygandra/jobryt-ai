@@ -22,11 +22,12 @@ const { getDataDir, readJsonFile, writeJsonFile } = require('./common-utils');
 // These values are used when settings.json is missing or has incomplete data.
 // They define a sensible starting configuration for a new user.
 const DEFAULT_SETTINGS = Object.freeze({
-  freshness_hours: 24,           // Only show jobs posted in last 24 hours
+  freshness_hours: 72,           // Only show jobs posted in last 72 hours (3 days)
   score_threshold: 60,           // Minimum match score to notify (0-100)
   cron_schedule: '30 8,11,14,17,20 * * *',  // When to run the pipeline
   cron_description: '5 times daily (8:30 AM, 11:30 AM, 2:30 PM, 5:30 PM, 8:30 PM)',
   work_type: 'Open to All',      // Remote, Hybrid, Onsite, or all
+  commute_radius_km: 25,         // Commute radius in kilometers (0-100, default 25)
   country_scope: 'AUTO',         // CA, US, US_CA, GLOBAL, or AUTO-detect
   timezone: 'America/Toronto',   // Candidate timezone for scheduling
   boards_enabled: {
@@ -105,6 +106,10 @@ function sanitizeSettings(raw, masterProfile = null) {
   // Clamp score_threshold between 40 and 95
   const score = parseInt(sanitized.score_threshold, 10);
   sanitized.score_threshold = (!isNaN(score) && score >= 40 && score <= 95) ? score : 60;
+
+  // Clamp commute_radius_km between 0 and 100 (default 25)
+  const radius = parseInt(sanitized.commute_radius_km, 10);
+  sanitized.commute_radius_km = (!isNaN(radius) && radius >= 0 && radius <= 100) ? radius : 25;
 
   return sanitized;
 }

@@ -247,6 +247,8 @@ Company: {{COMPANY}}
 Description: {{JOB_DESCRIPTION}}
 </job_posting>
 
+SPECIAL EDGE CASE: If no specific technical skills are mentioned in the job description, set skills_fit_score = 90.
+
 Return ONLY JSON. Do NOT compute overall_score or should_apply.
 {
   "key_matched_skills": [string],
@@ -259,13 +261,14 @@ Return ONLY JSON. Do NOT compute overall_score or should_apply.
   "compensation_insight": string,
   "company_tier": "FAANG_TOP_PRODUCT|TOP_ENTERPRISE|STRONG_STARTUP|MID_TIER|LOW_QUALITY|UNKNOWN",
   "work_type": "Remote|Hybrid|Onsite|Unknown",
-  "breakdown": {"title_fit_score": number, "skills_fit_score": number, "seniority_fit_score": number, "domain_fit_score": number}
+  "breakdown": {"skills_fit_score": number, "seniority_fit_score": number, "location_fit_score": number, "title_fit_score": number}
 }`;
 
   return loadPrompt('job-scoring.txt', {
     CANDIDATE_NAME: name,
     TARGET_ROLES: targetTitles,
     LOCATIONS: locations,
+    COMMUTE_RADIUS_KM: String(profileObj.commute_radius_km || 25),
     WORK_STATUS: workStatus,
     YEARS_EXPERIENCE: String(yearsExperience),
     SKILLS: skills,

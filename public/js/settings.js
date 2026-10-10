@@ -1082,6 +1082,10 @@ async function loadSettings() {
     if (lblScore) lblScore.innerText = currentSettings.score_threshold || 60;
     const cfgFreshness = document.getElementById('cfg-freshness');
     if (cfgFreshness) cfgFreshness.value = currentSettings.freshness_hours !== undefined ? currentSettings.freshness_hours : 24;
+    const cfgRadius = document.getElementById('cfg-radius');
+    if (cfgRadius) cfgRadius.value = currentSettings.commute_radius_km !== undefined ? currentSettings.commute_radius_km : 25;
+    const lblRadius = document.getElementById('lbl-radius');
+    if (lblRadius) lblRadius.innerText = currentSettings.commute_radius_km !== undefined ? currentSettings.commute_radius_km : 25;
     const cfgScope = document.getElementById('cfg-scope');
     const cfgWorktype = document.getElementById('cfg-worktype');
     if (cfgWorktype) cfgWorktype.value = currentSettings.work_type || 'Open to All';
@@ -1229,6 +1233,7 @@ async function saveAllSettings() {
 
   const minScore = parseInt(document.getElementById('cfg-score')?.value || '60', 10);
   const freshness = parseInt(document.getElementById('cfg-freshness')?.value || '24', 10);
+  const radius = parseInt(document.getElementById('cfg-radius')?.value || '25', 10);
   const scope = document.getElementById('cfg-scope')?.value || 'AUTO';
   const worktype = document.getElementById('cfg-worktype')?.value || 'Open to All';
 
@@ -1246,6 +1251,7 @@ async function saveAllSettings() {
       body: JSON.stringify({
         score_threshold: minScore,
         freshness_hours: freshness,
+        commute_radius_km: isNaN(radius) ? 25 : radius,
         country_scope: scope,
         work_type: worktype,
         boards_enabled: boards,
@@ -1664,3 +1670,81 @@ async function triggerBackgroundScanNow() {
     await loadSchedulerSettings();
   }
 }
+
+// ── Maintenance & Reset Handlers ──────────────────────────────────────────
+async function executeSettingsReset(action) {
+  if (action === 'clear_queue' || action === 'clear_and_rescan') {
+    const ok = window.confirm('Purge current opportunities queue and unblock recent jobs? (You can run a manual scan from the header whenever you are ready.)');
+    if (!ok) return;
+  } else if (action === 'reset_preferences') {
+    const ok = window.confirm('Restore default settings (70% match score, 25 km commute radius, 24h freshness, all boards enabled)? Your master resume and profile will remain unchanged.');
+    if (!ok) return;
+  } else if (action === 'fresh_start') {
+    // Stage 1: Explicit Warning
+    const warnOk = window.confirm(
+      '⚠️ WARNING: Start from Fresh (Full Reset)\n\n' +
+      'This will permanently delete all unapplied opportunities, seen job history, and rejected jobs, and restore search preferences to defaults.\n\n' +
+      '(Your Master Resume and Profile will be safely preserved.)'
+    );
+    if (!warnOk) return;
+
+    // Stage 2: Final Proceed Confirmation Guard
+    const proceedOk = window.confirm(
+      '⚠️ Are you sure you still want to proceed with a Full Reset?\n\nThis action cannot be undone.'
+    );
+    if (!proceedOk) return;
+  }
+
+  const btnMap = {
+    'clear_queue': document.getElementById('btn-reset-queue'),
+    'clear_and_rescan': document.getElementById('btn-reset-queue') || document.getElementById('btn-reset-rescan'),
+    'reset_preferences': document.getElementById('btn-reset-prefs'),
+    'fresh_start': document.getElementById('btn-reset-fresh')
+  };
+  const activeBtn = btnMap[action];
+  const origHtml = activeBtn ? activeBtn.innerHTML : '';
+  if (activeBtn) {
+    activeBtn.disabled = true;
+    activeBtn.innerHTML = `<span class="animate-spin text-xs">⏳</span> <span>Working...</span>`;
+  }
+
+  try {
+    const res = await fetch('/api/settings/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Server returned non-JSON response (${res.status} ${res.statusText}).`);
+    }
+    const data = await res.json();
+    if (data.success) {
+      showToast(`✅ ${data.message}`);
+      if (typeof loadSettings === 'function') await loadSettings();
+      if (typeof loadStatus === 'function') await loadStatus();
+      if (typeof loadPendingJobs === 'function') loadPendingJobs();
+      if (action === 'clear_and_rescan') {
+        setTimeout(() => {
+          if (typeof loadPendingJobs === 'function') loadPendingJobs();
+        }, 3000);
+      }
+    } else {
+      showToast(`⚠️ Reset failed: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showToast(`Reset error: ${err.message}`, 'error');
+  } finally {
+    if (activeBtn) {
+      activeBtn.disabled = false;
+      activeBtn.innerHTML = origHtml;
+    }
+  }
+}
+
+async function handleClearAndRescan() {
+  await executeSettingsReset('clear_queue');
+}
+window.executeSettingsReset = executeSettingsReset;
+window.handleClearAndRescan = handleClearAndRescan;
+

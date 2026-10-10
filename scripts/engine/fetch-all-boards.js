@@ -36,6 +36,7 @@ const {
   isJobWorkplaceEligible,
   isJobRoleRelevant,
   getSearchLocationQuery,
+  isExplicitlyNegativeRemote,
 } = require('../core/geo-helper');
 
 const dataDir = getDataDir();
@@ -60,11 +61,11 @@ let activeTitles = Array.isArray(profileObj.target_titles) && profileObj.target_
   ? [...profileObj.target_titles]
   : [...targetTitles];
 
-const candidateWorkType = settings.work_type || profileObj.work_type || 'Open to All';
-const freshnessHours = settings.freshness_hours !== undefined ? settings.freshness_hours : 24;
-const isFreshnessDisabled = freshnessHours <= 0;
-const maxDaysOld = isFreshnessDisabled ? 365 : Math.max(1, Math.ceil(freshnessHours / 24));
-const boardsEnabled = settings.boards_enabled || {};
+let candidateWorkType = settings.work_type || profileObj.work_type || 'Open to All';
+let freshnessHours = settings.freshness_hours !== undefined ? settings.freshness_hours : 24;
+let isFreshnessDisabled = freshnessHours <= 0;
+let maxDaysOld = isFreshnessDisabled ? 365 : Math.max(1, Math.ceil(freshnessHours / 24));
+const boardsEnabled = { ...(settings.boards_enabled || {}) };
 
 // Country scope determines which region-specific boards to query (e.g. Canada Job Bank vs USAJOBS)
 let countryScope = (settings.country_scope && settings.country_scope !== 'AUTO')
@@ -117,8 +118,9 @@ const ADZUNA_CODE_MAP = Object.freeze({
 });
 
 let country = (ADZUNA_CODE_MAP[countryScope] || (process.env.ADZUNA_COUNTRY || 'us')).toLowerCase().trim();
+let commuteRadiusKm = 25;
 
-function setSearchContext({ role, location, scope, locations, titles } = {}) {
+function setSearchContext({ role, location, scope, locations, titles, workType, boards, freshness, radius } = {}) {
   if (role !== undefined) currentRole = role;
   if (location !== undefined) currentLoc = location;
   if (locations !== undefined) {
@@ -133,6 +135,20 @@ function setSearchContext({ role, location, scope, locations, titles } = {}) {
     countryScope = scope;
     country = (ADZUNA_CODE_MAP[countryScope] || (process.env.ADZUNA_COUNTRY || 'us')).toLowerCase().trim();
   }
+  if (workType !== undefined) {
+    candidateWorkType = workType;
+  }
+  if (boards !== undefined && typeof boards === 'object') {
+    Object.assign(boardsEnabled, boards);
+  }
+  if (freshness !== undefined) {
+    freshnessHours = Number(freshness);
+    isFreshnessDisabled = freshnessHours <= 0;
+    maxDaysOld = isFreshnessDisabled ? 365 : Math.max(1, Math.ceil(freshnessHours / 24));
+  }
+  if (radius !== undefined) {
+    commuteRadiusKm = Number(radius);
+  }
 }
 
 function getSearchContext() {
@@ -142,7 +158,13 @@ function getSearchContext() {
     countryScope,
     country,
     activeLocations,
-    activeTitles
+    locations: activeLocations,
+    activeTitles,
+    titles: activeTitles,
+    candidateWorkType,
+    workType: candidateWorkType,
+    freshnessHours,
+    boardsEnabled
   };
 }
 
@@ -169,17 +191,23 @@ async function fetchAdzuna() {
   let searchWhere = isExplicitRemote ? '' : currentLoc;
   try {
     const resolvedLoc = getSearchLocationQuery(currentLoc);
-    if (resolvedLoc && searchWhere && searchWhere.toLowerCase() !== 'remote') searchWhere = resolvedLoc.split(',')[0].trim();
+    if (resolvedLoc && searchWhere && searchWhere.toLowerCase() !== 'remote') {
+      const parts = resolvedLoc.split(',');
+      searchWhere = parts.length >= 2 ? `${parts[0].trim()} ${parts[1].trim()}`.trim() : parts[0].trim();
+    }
   } catch (err) {}
 
-  for (let page = 1; page <= 2; page++) {
+  const targetCountry = (ADZUNA_CODE_MAP[countryScope] || (process.env.ADZUNA_COUNTRY || 'us')).toLowerCase().trim();
+
+  for (let page = 1; page <= 3; page++) {
     try {
-      const whereParam = searchWhere ? `&where=${encodeURIComponent(searchWhere)}` : '';
-      const adzunaDays = Math.max(7, maxDaysOld);
+      const radius = Math.max(15, commuteRadiusKm || 25);
+      const whereParam = searchWhere ? `&where=${encodeURIComponent(searchWhere)}&distance=${radius}` : '';
+      const adzunaDays = Math.max(14, maxDaysOld);
       const cleanRole = currentRole.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || currentRole;
       const adzunaRoleQuery = cleanRole;
       
-      const url = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?app_id=${adzunaAppId}&app_key=${adzunaAppKey}&what=${encodeURIComponent(adzunaRoleQuery)}${whereParam}&sort_by=date&max_days_old=${adzunaDays}&results_per_page=20`;
+      const url = `https://api.adzuna.com/v1/api/jobs/${targetCountry}/search/${page}?app_id=${adzunaAppId}&app_key=${adzunaAppKey}&what=${encodeURIComponent(adzunaRoleQuery)}${whereParam}&sort_by=date&max_days_old=${adzunaDays}&results_per_page=50`;
       
       const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (!res.ok) {
@@ -191,13 +219,26 @@ async function fetchAdzuna() {
       if (!data || !Array.isArray(data.results)) break;
 
       for (const item of data.results) {
-        const rawLoc = (item.location && item.location.display_name) || (isExplicitRemote ? 'Canada (Remote)' : currentLoc);
+        const rawLoc = (item.location && item.location.display_name) || (isExplicitRemote ? 'Remote' : currentLoc);
         const rawTitle = item.title ? item.title.replace(/<\/?[^>]+(>|$)/g, "").trim() : currentRole;
         const rawDesc = item.description ? item.description.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
         
-        const isRemoteAdzuna = isExplicitRemote || /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(`${rawTitle} ${rawDesc} ${rawLoc}`);
+        const negRemote = isExplicitlyNegativeRemote(`${rawTitle} ${rawDesc} ${rawLoc}`);
+        const isHybridAdzuna = /\b(hybrid|hybride)\b/i.test(rawLoc) ||
+          /\b(hybrid|hybride)\b/i.test(rawTitle) ||
+          /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(rawDesc);
+
+        const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(rawLoc) ||
+          /\b(remote|wfh|telecommute|virtual)\b/i.test(rawTitle) ||
+          /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(rawLoc) ||
+          /\(remote\)|-\s*remote/i.test(rawTitle);
+
+        const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(rawDesc);
+
+        const isRemoteAdzuna = !negRemote && (isExplicitRemote || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridAdzuna;
+        
         // Filter jobs based on profile match
-        if (!isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteAdzuna)) continue;
+        if (!isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteAdzuna, rawDesc)) continue;
         if (!isJobRoleRelevant(rawTitle, activeTitles)) continue;
         if (typeof isJobWorkplaceEligible === 'function' && !isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemoteAdzuna)) continue;
         
@@ -295,16 +336,26 @@ async function fetchCanadaJobBank() {
       const cleanPostingId = postingIdRaw.replace(/^.*\/jobsearch\/jobposting\//, '').replace(/;.*$/, '').replace(/^\//, '');
       const rawLink = cleanPostingId ? `https://www.jobbank.gc.ca/jobsearch/jobposting/${cleanPostingId}` : '';
       const rawComp = compMatch ? compMatch[1].replace(/<\/?[^>]+(>|$)/g, "").trim() : 'Gov of Canada Employer';
-      const rawLoc = locMatch ? locMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^Location\s*/i, '').trim() : currentLoc;
+      const rawLoc = locMatch
+        ? locMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^(Location|Lieu)\s*[:\-]?\s*/i, '').trim()
+        : currentLoc;
       const rawSalary = salMatch ? salMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^Salary\s*/i, '').trim() : '';
       const rawSource = srcMatch ? srcMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').trim() : '';
-      const isJbRemote = /telework|remote|virtual|distance/i.test(article);
-      
-      let baseDesc = `${rawTitle} at ${rawComp} in ${rawLoc || currentLoc}${isJbRemote ? ' (Remote)' : ''}`;
+
+      // Extract work arrangement pill from Canada Job Bank (<span class="telework">...</span>)
+      // "Telework" / "Télétravail" = 100% Remote nationwide
+      // "Hybrid" / "Hybride" = Local Hybrid (requires candidate to live in rawLoc)
+      // "On site" / "Sur place" = Local On-site (requires candidate to live in rawLoc)
+      const teleMatch = article.match(/<span class="telework">([\s\S]*?)<\/span>/i);
+      const teleText = teleMatch ? teleMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+      const isJbRemote = /^(telework|télétravail|virtual|à distance)$/i.test(teleText);
+      const isJbHybrid = /^(hybrid|hybride)$/i.test(teleText);
+
+      let baseDesc = `${rawTitle} at ${rawComp} in ${rawLoc || currentLoc}${isJbRemote ? ' (Remote)' : (isJbHybrid ? ' (Hybrid)' : '')}`;
       if (rawSalary) baseDesc += ` | Salary: ${rawSalary}`;
       if (rawSource) baseDesc += ` | Source: ${rawSource}`;
 
-      if (rawTitle && rawLink && isJobLocationEligible(rawLoc, activeLocations, countryScope, isJbRemote) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, baseDesc, rawTitle, candidateWorkType, isJbRemote)) {
+      if (rawTitle && rawLink && isJobLocationEligible(rawLoc, activeLocations, countryScope, isJbRemote, baseDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, baseDesc, rawTitle, candidateWorkType, isJbRemote)) {
         const jbId = cleanPostingId || crypto.createHash('md5').update(rawLink).digest('hex').slice(0, 10);
         candidates.push({ jbId, cleanPostingId, rawTitle, rawComp, rawLoc, rawLink, baseDesc });
       }
@@ -373,10 +424,26 @@ async function fetchLinkedIn() {
   let searchLoc = getSearchLocationQuery(currentLoc);
   const isExplicitRemote = candidateWorkType.toLowerCase().includes('remote') || currentLoc.toLowerCase() === 'remote';
 
+  const LINKEDIN_COUNTRY_NAMES = {
+    'US': 'United States',
+    'CA': 'Canada',
+    'GB': 'United Kingdom',
+    'UK': 'United Kingdom',
+    'DE': 'Germany',
+    'FR': 'France',
+    'IN': 'India',
+    'AU': 'Australia',
+    'SG': 'Singapore',
+    'NL': 'Netherlands',
+    'BR': 'Brazil',
+    'JP': 'Japan',
+    'AE': 'United Arab Emirates'
+  };
+
   let f_wt = '';
   if (isExplicitRemote) {
     f_wt = '&f_WT=2';
-    searchLoc = countryScope === 'CA' ? 'Canada' : (countryScope === 'US' ? 'United States' : (searchLoc || 'Canada'));
+    searchLoc = LINKEDIN_COUNTRY_NAMES[countryScope] || searchLoc || 'Canada';
   } else if (candidateWorkType.toLowerCase().includes('hybrid')) {
     f_wt = '&f_WT=3';
   } else if (candidateWorkType.toLowerCase().includes('onsite') || candidateWorkType.toLowerCase().includes('on-site')) {
@@ -417,10 +484,20 @@ async function fetchLinkedIn() {
           const rawUrl = linkM[1].split('?')[0];
           const rawDate = dateM ? dateM[1] : new Date().toISOString();
 
-          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, `${rawTitle} at ${rawComp}`, rawTitle, candidateWorkType, isExplicitRemote)) {
+          const isNeg = isExplicitlyNegativeRemote(`${rawTitle} ${rawLoc}`);
+          const isHybridLi = /\b(hybrid|hybride)\b/i.test(rawLoc) ||
+            /\b(hybrid|hybride)\b/i.test(rawTitle);
+          const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(rawLoc) ||
+            /\b(remote|wfh|telecommute|virtual)\b/i.test(rawTitle) ||
+            /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(rawLoc) ||
+            /\(remote\)|-\s*remote/i.test(rawTitle);
+
+          const isRemoteLi = !isNeg && (isExplicitRemote || isExplicitTitleOrLocRemote) && !isHybridLi;
+
+          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteLi) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, `${rawTitle} at ${rawComp}`, rawTitle, candidateWorkType, isRemoteLi)) {
             const numId = (rawUrl.match(/-([0-9]{5,})/i) || rawUrl.match(/\/([0-9]{5,})/i) || [])[1];
             const cleanLiId = numId ? `li_${numId}` : `li_${crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`;
-            candidates.push({ cleanLiId, numId, rawTitle, rawComp, rawLoc, rawUrl, rawDate });
+            candidates.push({ cleanLiId, numId, rawTitle, rawComp, rawLoc, rawUrl, rawDate, isRemoteLi });
           }
         }
       }
@@ -432,6 +509,19 @@ async function fetchLinkedIn() {
           // Polite throttle between individual detail calls to prevent 429 rate limiting
           await new Promise(r => setTimeout(r, 120));
         }
+
+        const isHybridAfterDesc = /\b(hybrid|hybride)\b/i.test(c.rawLoc) ||
+          /\b(hybrid|hybride)\b/i.test(c.rawTitle) ||
+          /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(fullDesc);
+
+        const isExplicitRemoteAfterDesc = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(fullDesc);
+
+        const isRemoteFinal = (c.isRemoteLi || isExplicitRemoteAfterDesc) && !isHybridAfterDesc;
+
+        if (!isJobLocationEligible(c.rawLoc, activeLocations, countryScope, isRemoteFinal, fullDesc)) {
+          continue;
+        }
+
         allFetchedJobs.push({
           id: c.cleanLiId,
           title: c.rawTitle,
@@ -779,7 +869,8 @@ async function fetchIndeed() {
 
         const rawDesc = descM ? descM[1].replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim() : `${rawTitle} at ${rawComp}`;
         const rawLoc = isExplicitRemote ? 'Remote' : (currentLoc || 'National');
-        const isRemoteIndeed = isExplicitRemote || /remote|telecommute|work from home/i.test(`${rawTitle} ${rawDesc}`);
+        const negIndeed = isExplicitlyNegativeRemote(`${rawTitle} ${rawDesc}`);
+        const isRemoteIndeed = !negIndeed && (isExplicitRemote || /remote|telecommute|work from home/i.test(`${rawTitle} ${rawDesc}`));
 
         if (isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteIndeed) &&
             isJobRoleRelevant(rawTitle, activeTitles) &&
@@ -984,7 +1075,11 @@ async function fetchReedUK() {
   let count = 0;
   try {
     const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const url = `https://www.reed.co.uk/jobs/${roleSlug}-jobs?format=rss`;
+    const cleanCity = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc.split(',')[0].trim() : '';
+    const locSlug = cleanCity ? cleanCity.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : '';
+    const url = locSlug
+      ? `https://www.reed.co.uk/jobs/${roleSlug}-jobs-in-${locSlug}?format=rss`
+      : `https://www.reed.co.uk/jobs/${roleSlug}-jobs?format=rss`;
     
     const res = await fetch(url, {
       headers: {
@@ -1013,7 +1108,8 @@ async function fetchReedUK() {
           const rawComp = item.employerName || 'UK Employer (Reed.co.uk)';
           const rawLoc = item.locationName || currentLoc || 'London, UK';
           const rawDesc = item.jobDescription || `${rawTitle} at ${rawComp} in ${rawLoc}`;
-          const isRemote = /remote|work from home|hybrid/i.test(`${rawTitle} ${rawDesc}`);
+          const isNeg = isExplicitlyNegativeRemote(`${rawTitle} ${rawDesc}`);
+          const isRemote = !isNeg && /remote|work from home|hybrid/i.test(`${rawTitle} ${rawDesc}`);
 
           if (isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemote) &&
               isJobRoleRelevant(rawTitle, activeTitles) &&
@@ -1145,7 +1241,9 @@ async function fetchWTTJ() {
 
   let count = 0;
   try {
-    const url = `https://api.welcometothejungle.com/api/v1/organizations/jobs?query=${encodeURIComponent(currentRole)}&aroundRadius=50000`;
+    const cleanCity = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc.split(',')[0].trim() : '';
+    const locParam = cleanCity ? `&aroundQuery=${encodeURIComponent(cleanCity)}` : '';
+    const url = `https://api.welcometothejungle.com/api/v1/organizations/jobs?query=${encodeURIComponent(currentRole)}${locParam}&aroundRadius=50000`;
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -1198,7 +1296,10 @@ async function fetchNaukri() {
   let count = 0;
   try {
     const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const url = `https://www.naukri.com/${roleSlug}-jobs`;
+    const cleanCity = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc.split(',')[0].trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+    const url = cleanCity
+      ? `https://www.naukri.com/${roleSlug}-jobs-in-${cleanCity}`
+      : `https://www.naukri.com/${roleSlug}-jobs`;
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -1221,7 +1322,8 @@ async function fetchNaukri() {
           const rawTitle = titleM[2].replace(/<\/?[^>]+(>|$)/g, '').trim();
           const rawComp = compM ? compM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Indian Corporate Employer';
           const rawLoc = locM ? locM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Bangalore, India';
-          const isRemote = /remote|work from home/i.test(`${rawTitle} ${rawLoc}`);
+          const isNeg = isExplicitlyNegativeRemote(`${rawTitle} ${rawLoc}`);
+          const isRemote = !isNeg && /remote|work from home/i.test(`${rawTitle} ${rawLoc}`);
           const rawDesc = `${rawTitle} at ${rawComp} in ${rawLoc}. Verified Corporate Post on Naukri.com.`;
 
           if (isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemote) &&
@@ -1258,7 +1360,9 @@ async function fetchDaijobJP() {
 
   let count = 0;
   try {
-    const url = `https://jobs.gaijinpot.com/job/index/lang/en?keywords=${encodeURIComponent(currentRole)}`;
+    const cleanCity = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc.split(',')[0].trim() : '';
+    const locParam = cleanCity ? `&location=${encodeURIComponent(cleanCity)}` : '';
+    const url = `https://jobs.gaijinpot.com/job/index/lang/en?keywords=${encodeURIComponent(currentRole)}${locParam}`;
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -1280,7 +1384,8 @@ async function fetchDaijobJP() {
           const rawTitle = titleM[2].replace(/<\/?[^>]+(>|$)/g, '').trim();
           const rawComp = compM ? compM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Tokyo / Japan Employer';
           const rawLoc = locM ? locM[1].replace(/<\/?[^>]+(>|$)/g, '').trim() : 'Tokyo, Japan';
-          const isRemote = /remote|work from home/i.test(`${rawTitle} ${rawLoc}`);
+          const isNeg = isExplicitlyNegativeRemote(`${rawTitle} ${rawLoc}`);
+          const isRemote = !isNeg && /remote|work from home/i.test(`${rawTitle} ${rawLoc}`);
           const rawDesc = `${rawTitle} at ${rawComp} in ${rawLoc}. Verified Bilingual & Global Career in Japan.`;
 
           if (isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemote) &&
@@ -1318,7 +1423,9 @@ async function fetchVagasBR() {
   let count = 0;
   try {
     const roleSlug = currentRole.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const url = `https://www.vagas.com.br/vagas-de-${roleSlug}`;
+    const cleanCity = currentLoc && currentLoc.toLowerCase() !== 'remote' ? currentLoc.split(',')[0].trim() : '';
+    const locParam = cleanCity ? `?onde=${encodeURIComponent(cleanCity)}` : '';
+    const url = `https://www.vagas.com.br/vagas-de-${roleSlug}${locParam}`;
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -1377,16 +1484,19 @@ function deduplicateJobList(jobs) {
   for (const job of jobs) {
     if (!job) continue;
     const cleanId = String(job.id || '').trim();
-    const cleanUrl = String(job.redirect_url || job.url || '').split('?')[0].trim().toLowerCase();
-    const cleanKey = `${(job.title || '').toLowerCase().trim()}:::${(job.company || '').toLowerCase().trim()}`;
+    const rawUrl = String(job.redirect_url || job.job_url || job.url || '');
+    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
+    const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanKey = (compClean && titClean) ? `${titClean}:::${compClean}` : '';
 
     if (cleanId && seenIds.has(cleanId)) continue;
-    if (cleanUrl && seenUrls.has(cleanUrl)) continue;
-    if (cleanKey && cleanKey !== ':::' && seenKeys.has(cleanKey)) continue;
+    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search') && seenUrls.has(cleanUrl)) continue;
+    if (cleanKey && seenKeys.has(cleanKey)) continue;
 
     if (cleanId) seenIds.add(cleanId);
-    if (cleanUrl) seenUrls.add(cleanUrl);
-    if (cleanKey && cleanKey !== ':::') seenKeys.add(cleanKey);
+    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search')) seenUrls.add(cleanUrl);
+    if (cleanKey) seenKeys.add(cleanKey);
 
     const src = job.source || 'Other';
     if (!bySource[src]) bySource[src] = [];
@@ -1416,37 +1526,58 @@ function deduplicateJobList(jobs) {
 // ── Step 5: Main Execution ──────────────────────────────────────────────────
 /**
  * Executes all enabled fetchers in parallel and returns the aggregated list.
+ * Supports dynamic runtime options from API triggers, cron scheduler, or CLI.
  */
-async function fetchAllJobs() {
+async function fetchAllJobs(options = {}) {
   allFetchedJobs.length = 0; // Reset array
-  
-  console.error(`[Multi-Board Ingestion] Executing full sweep across all ${targetTitles.length} target roles for location: ${currentLoc}`);
 
-  for (let i = 0; i < targetTitles.length; i++) {
-    currentRole = targetTitles[i];
-    console.error(`\n>>> Sweeping Role [${i + 1}/${targetTitles.length}]: "${currentRole}" <<<`);
-    
-    // Run all fetchers concurrently for this specific role
-    await Promise.allSettled([
-      fetchAdzuna(),
-      fetchCanadaJobBank(),
-      fetchUSAJobs(),
-      fetchGlobalRemoteFeeds(),
-      fetchLinkedIn(),
-      fetchIndeed(),
-      fetchArbeitsagentur(),
-      fetchMyCareersFuture(),
-      fetchSeek(),
-      fetchReedUK(),
-      fetchBayt(),
-      fetchWTTJ(),
-      fetchNaukri(),
-      fetchDaijobJP(),
-      fetchVagasBR()
-    ]);
-    
-    if (i < targetTitles.length - 1) {
-      await new Promise(res => setTimeout(res, 1500));
+  if (options && typeof options === 'object') {
+    setSearchContext({
+      role: options.targetRole || (Array.isArray(options.targetTitles) ? options.targetTitles[0] : undefined),
+      location: options.targetLocation || (Array.isArray(options.targetLocations) ? options.targetLocations[0] : undefined),
+      titles: options.targetTitles,
+      locations: options.targetLocations,
+      scope: options.countryScope,
+      workType: options.candidateWorkType || options.work_type,
+      boards: options.boardsEnabled,
+      freshness: options.freshnessHours,
+      radius: options.commuteRadiusKm || options.commute_radius_km
+    });
+  }
+
+  const sweepTitles = (targetTitles && targetTitles.length > 0) ? targetTitles : ['Data Analyst'];
+  const sweepLocs = (targetLocations && targetLocations.length > 0) ? targetLocations : [currentLoc || ''];
+
+  console.error(`[Multi-Board Ingestion] Executing sweep across ${sweepTitles.length} roles and ${sweepLocs.length} locations (Scope: ${countryScope}).`);
+
+  for (let l = 0; l < sweepLocs.length; l++) {
+    currentLoc = sweepLocs[l];
+    for (let i = 0; i < sweepTitles.length; i++) {
+      currentRole = sweepTitles[i];
+      console.error(`\n>>> Sweeping Role [${i + 1}/${sweepTitles.length}]: "${currentRole}" | Loc [${l + 1}/${sweepLocs.length}]: "${currentLoc}" <<<`);
+      
+      // Run all fetchers concurrently for this role/loc pair
+      await Promise.allSettled([
+        fetchAdzuna(),
+        fetchCanadaJobBank(),
+        fetchUSAJobs(),
+        fetchGlobalRemoteFeeds(),
+        fetchLinkedIn(),
+        fetchIndeed(),
+        fetchArbeitsagentur(),
+        fetchMyCareersFuture(),
+        fetchSeek(),
+        fetchReedUK(),
+        fetchBayt(),
+        fetchWTTJ(),
+        fetchNaukri(),
+        fetchDaijobJP(),
+        fetchVagasBR()
+      ]);
+      
+      if (i < sweepTitles.length - 1 || l < sweepLocs.length - 1) {
+        await new Promise(res => setTimeout(res, 800));
+      }
     }
   }
 

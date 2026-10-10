@@ -139,11 +139,12 @@ function runDedupFilter(items, seenIds) {
 }
 
 function runGeoFilter(items, profileObj = null) {
-  let isJobLocationEligible, detectTargetCountryScope;
+  let isJobLocationEligible, detectTargetCountryScope, isJobWorkplaceEligible;
   try {
     const gh = require('../core/geo-helper');
     isJobLocationEligible = gh.isJobLocationEligible;
     detectTargetCountryScope = gh.detectTargetCountryScope;
+    isJobWorkplaceEligible = gh.isJobWorkplaceEligible;
   } catch (_) {
     return items; // Fallback if geo-helper is missing
   }
@@ -153,10 +154,37 @@ function runGeoFilter(items, profileObj = null) {
   const countryScope = (profileObj && profileObj.country_scope && profileObj.country_scope !== 'AUTO')
     ? profileObj.country_scope
     : (detectTargetCountryScope ? detectTargetCountryScope(locations) : 'GLOBAL');
+  const workType = profile.work_type || 'Open to All';
 
   return items.filter(item => {
-    const loc = (item.json || item).location || '';
-    return isJobLocationEligible(loc, locations, countryScope);
+    const job = item.json || item;
+    const loc = job.location || '';
+    const title = job.title || '';
+    const desc = job.description || job.snippet || '';
+
+    // Check if the job requires local hybrid attendance
+    const isHybridJob = /\b(hybrid|hybride)\b/i.test(loc) ||
+      /\b(hybrid|hybride)\b/i.test(title) ||
+      /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(desc);
+
+    // Explicit nationwide remote indicators
+    const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(loc) ||
+      /\b(remote|wfh|telecommute|virtual)\b/i.test(title) ||
+      /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(loc) ||
+      /\(remote\)|-\s*remote/i.test(title);
+
+    const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(desc);
+
+    // A job is only treated as remote if explicitly indicated and NOT requiring hybrid attendance in an external city
+    const isRemote = (job.remote === true || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridJob;
+
+    if (!isJobLocationEligible(loc, locations, countryScope, isRemote, desc)) {
+      return false;
+    }
+    if (typeof isJobWorkplaceEligible === 'function' && !isJobWorkplaceEligible(loc, desc, title, workType, isRemote)) {
+      return false;
+    }
+    return true;
   });
 }
 
@@ -181,18 +209,42 @@ function getMasterProfile() {
   return {};
 }
 
-function computeHeuristicScore(job, profileObj = null) {
+function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
+  if (!job) job = {};
   const desc = (job.description || '').toLowerCase();
   const title = (job.title || '').toLowerCase();
   const fullText = `${title} ${desc}`;
 
   const profile = profileObj || getMasterProfile();
-  const candidateSkills = (profile.skills || job.profile_skills || []).map(s => String(s).toLowerCase());
-  const targetTitles = profile.target_titles || [];
+  const settings = settingsObj || {};
+
+  // Extract skills from profile / resume object or job.profile_skills
+  let rawSkills = profile.skills || job.profile_skills || [];
+  let flatSkillsList = [];
+  if (Array.isArray(rawSkills)) {
+    flatSkillsList = rawSkills.flatMap(s => typeof s === 'string' ? s : (s && s.name ? s.name : (s && s.skills ? s.skills : [])));
+  } else if (rawSkills && typeof rawSkills === 'object') {
+    flatSkillsList = Object.values(rawSkills).flatMap(v => Array.isArray(v) ? v : (typeof v === 'string' ? [v] : []));
+  }
+  const candidateSkills = flatSkillsList.map(s => String(s).toLowerCase()).filter(Boolean);
+
+  const targetTitles = profile.target_titles || settings.target_roles || (profile.basics?.title ? [profile.basics.title] : []);
+  const locations = profile.locations || settings.target_locations || (profile.basics?.location ? [profile.basics.location] : []);
+  const countryScope = profile.country_scope || settings.target_country || 'GLOBAL';
+  const workType = profile.work_type || settings.work_type || 'Open to All';
+
   let skillsScore = 70;
   let matchedSkills = [];
+  let skillsUnstated = false;
 
-  if (candidateSkills.length > 0) {
+  // Check if job description mentions no specific skills (edge case: discussion on phone screen)
+  const hasSkillKeywords = /\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools|knowledge of)\b/i.test(desc) ||
+    candidateSkills.some(s => s.length > 2 && fullText.includes(s));
+
+  if (!hasSkillKeywords || desc.trim().length < 150) {
+    skillsScore = 90;
+    skillsUnstated = true;
+  } else if (candidateSkills.length > 0) {
     matchedSkills = candidateSkills.filter(s => s.length > 2 && fullText.includes(s));
     skillsScore = matchedSkills.length > 0
       ? Math.min(100, Math.round(60 + (matchedSkills.length / Math.min(candidateSkills.length, 5)) * 40))
@@ -226,28 +278,71 @@ function computeHeuristicScore(job, profileObj = null) {
     disqs.push('Role is an entry-level/junior position; candidate is seeking management or executive roles.');
   }
 
-  const workplaceScore = 80;
-  const domainScore = 75;
-  
-  // Skills: 60%, Seniority: 25%, Workplace: 15%
-  let overall = Math.round((skillsScore * 0.60) + (seniorityScore * 0.25) + (workplaceScore * 0.15));
-  if (disqs.length > 0) overall = Math.min(overall, 45);
+  // Location Fit Score
+  let locationScore = 85;
+  try {
+    const { calculateLocationFitScore } = require('../core/geo-helper');
+    const jobLoc = job.location || '';
+    const isHybridJob = /\b(hybrid|hybride)\b/i.test(jobLoc) ||
+      /\b(hybrid|hybride)\b/i.test(title) ||
+      /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(desc);
 
-  const minThreshold = (typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60;
-  const isQualified = overall > minThreshold && disqs.length === 0;
+    const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(jobLoc) ||
+      /\b(remote|wfh|telecommute|virtual)\b/i.test(title) ||
+      /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(jobLoc) ||
+      /\(remote\)|-\s*remote/i.test(title);
+
+    const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(desc);
+
+    const isRemote = (job.remote === true || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridJob;
+    const commuteRadius = (settings && settings.commute_radius_km !== undefined)
+      ? Number(settings.commute_radius_km)
+      : ((profile && profile.commute_radius_km !== undefined) ? Number(profile.commute_radius_km) : 25);
+    locationScore = calculateLocationFitScore(jobLoc, locations, countryScope, isRemote, workType, commuteRadius, desc);
+  } catch (_) {}
+
+  if (locationScore < 40) {
+    disqs.push('Job location is outside candidate commuting area and is not a 100% remote nationwide role.');
+  }
+
+  // 3-Pillar Weighted Score: Skills 40%, Seniority 30%, Location 30%
+  let overall = Math.round((skillsScore * 0.40) + (seniorityScore * 0.30) + (locationScore * 0.30));
+  if (disqs.length > 0 || locationScore < 40 || seniorityScore < 40) {
+    overall = Math.min(overall, 45);
+  }
+
+  const minThreshold = (settings.score_threshold !== undefined)
+    ? Number(settings.score_threshold)
+    : ((typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60);
+  const isQualified = overall >= minThreshold && disqs.length === 0;
 
   return {
     ...job,
     score: overall,
-    breakdown: { skills_fit_score: skillsScore, seniority_fit_score: seniorityScore, workplace_fit_score: workplaceScore, domain_fit_score: domainScore },
+    overall_score: overall,
     should_apply: isQualified,
-    company_tier: 'Enterprise / Product',
-    priority_level: overall >= 85 ? 'High' : overall > minThreshold ? 'Medium' : 'Low',
+    skills_edge_case: skillsUnstated,
+    scoring_pillars: {
+      formula: '40% skills + 30% seniority + 30% location',
+      skills_fit_score: skillsScore,
+      seniority_fit_score: seniorityScore,
+      location_fit_score: locationScore,
+      matched_skills: matchedSkills,
+      unstated_skills_default: skillsUnstated
+    },
+    breakdown: {
+      skills_fit_score: skillsScore,
+      seniority_fit_score: seniorityScore,
+      location_fit_score: locationScore,
+      title_fit_score: seniorityScore
+    },
+    disqualification_reasons: disqs,
+    priority_level: overall >= 85 ? 'High' : overall >= minThreshold ? 'Medium' : 'Low',
     key_matched_skills: matchedSkills.slice(0, 10).map(s => s.toUpperCase()),
     missing_skills: [],
-    disqualification_reasons: disqs,
-    reasoning: disqs.length > 0 ? disqs[0] : `Heuristic Scorer Evaluated core skills (${skillsScore}%) and seniority fit (${seniorityScore}%).`,
-    why_this_fits: disqs.length > 0 ? 'Seniority / level mismatch' : `Strong skills match (${skillsScore}%)`,
+    notes_concerns: skillsUnstated ? 'Skills not specified in posting — 90% default applied for recruiter call screening.' : '',
+    reasoning: disqs.length > 0 ? disqs[0] : (skillsUnstated ? 'Skills not specified in posting (90% applied). Location and seniority match verified.' : `Evaluated core skills (${skillsScore}%), seniority (${seniorityScore}%), and location (${locationScore}%).`),
+    why_this_fits: disqs.length > 0 ? 'Seniority / level mismatch' : `Alignment across skills (${skillsScore}%) and location (${locationScore}%)`,
     parse_error: false
   };
 }
@@ -314,17 +409,34 @@ function runAtsCoverage(item) {
 // ── LLM Parse Score ─────────────────────────────────────────────────────────
 const { extractLLMResponseText, parseLLMJsonResponse } = require('./llm-provider');
 
-function runParseScore(item, profileObj = null) {
+function runParseScore(item, profileObj = null, settingsObj = null) {
+  let prof = profileObj;
+  let sett = settingsObj;
+
+  // Support invocation both as runParseScore(n8nItem, profile) and runParseScore(rawLlmText, job, profile, settings)
+  if (typeof item === 'string') {
+    const rawText = item;
+    const jobData = (typeof profileObj === 'object' && profileObj && (profileObj.title || profileObj.description || profileObj.id)) ? profileObj : {};
+    prof = (typeof settingsObj === 'object' && settingsObj && (settingsObj.skills || settingsObj.target_titles || settingsObj.basics)) ? settingsObj : (arguments[2] || null);
+    sett = arguments[3] || null;
+    item = { json: { ...jobData, rawText } };
+  } else if (!item || !item.json) {
+    item = { json: (item && typeof item === 'object') ? item : {} };
+  }
+
   if (item.json?.disqualified_deterministic) {
-    Object.assign(item.json, {
+    const res = {
       score: 0,
       overall_score: 0,
-      breakdown: { title_fit_score: 0, skills_fit_score: 0, seniority_fit_score: 0, domain_fit_score: 0 },
+      breakdown: { title_fit_score: 0, skills_fit_score: 0, seniority_fit_score: 0, location_fit_score: 0 },
+      scoring_pillars: { formula: '40% skills + 30% seniority + 30% location', skills_fit_score: 0, seniority_fit_score: 0, location_fit_score: 0 },
       should_apply: false,
       priority_level: 'Low',
       reasoning: item.json.deterministic_reasoning,
       parse_error: false
-    });
+    };
+    Object.assign(item.json, res);
+    Object.assign(item, res);
     return item;
   }
 
@@ -338,20 +450,41 @@ function runParseScore(item, profileObj = null) {
 
   // 2. Fallback: If LLM failed or response unparseable
   if (item.json?.llm_failed === true || !parsed) {
-    item.json = { ...item.json, ...computeHeuristicScore(item.json, profileObj), scored_by: 'Heuristic' };
+    const heuristic = computeHeuristicScore(item.json, prof, sett);
+    item.json = { ...item.json, ...heuristic, scored_by: 'Heuristic' };
     item.json.reasoning = item.json.reasoning || "Heuristic Scorer evaluated this job because LLM was offline.";
+    Object.assign(item, item.json);
     return item;
   }
 
   // 3. Deterministic Code Node Computation:
+  const profile = prof || getMasterProfile();
+  const settings = sett || {};
   const b = parsed.breakdown || {};
-  const titleFit = typeof b.title_fit_score === 'number' ? b.title_fit_score : 80;
-  const skillsFit = typeof b.skills_fit_score === 'number' ? b.skills_fit_score : 70;
-  const seniorityFit = typeof b.seniority_fit_score === 'number' ? b.seniority_fit_score : 75;
-  const domainFit = typeof b.domain_fit_score === 'number' ? b.domain_fit_score : 70;
+  const descText = String(item.json.description || item.json.snippet || item.json.details || '').trim();
 
-  const prof = profileObj || getMasterProfile();
-  const targetTitles = prof.target_titles || [];
+  // Pillar 1: Skills Match (40% Weight) with 90% Edge Case
+  let skillsFit = typeof b.skills_fit_score === 'number'
+    ? b.skills_fit_score
+    : (typeof parsed.skills_fit_score === 'number' ? parsed.skills_fit_score : 70);
+  
+  const hasNoSkillsListed = parsed.skills_edge_case === true ||
+    (b.skills_fit_score === 90 && /skills not specified/i.test(parsed.notes_concerns || '')) ||
+    (descText.length < 300 && !/\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools)\b/i.test(descText)) ||
+    (Array.isArray(parsed.missing_skills) && parsed.missing_skills.length === 0 && Array.isArray(parsed.key_matched_skills) && parsed.key_matched_skills.length === 0 && !/\b(sql|python|excel|power bi|aws|azure|gcp|react|java|javascript|c\+\+|c#|docker|kubernetes|tableau)\b/i.test(descText));
+
+  if (hasNoSkillsListed && skillsFit < 90) {
+    skillsFit = 90;
+    parsed.skills_edge_case = true;
+    parsed.skills_unstated_default = true;
+    parsed.notes_concerns = parsed.notes_concerns ? `${parsed.notes_concerns} (Skills not specified in posting — 90% default applied for recruiter call screening.)` : 'Skills not specified in posting — 90% default applied for recruiter call screening.';
+  }
+
+  // Pillar 2: Seniority Match (30% Weight)
+  let seniorityFit = typeof b.seniority_fit_score === 'number'
+    ? b.seniority_fit_score
+    : (typeof parsed.seniority_fit_score === 'number' ? parsed.seniority_fit_score : 75);
+  const targetTitles = profile.target_titles || settings.target_roles || (profile.basics?.title ? [profile.basics.title] : []);
   const wantsExec = targetTitles.some(t => /\b(director|vp|vice president|head of|chief|svp|avp)\b/i.test(t));
   const wantsManager = wantsExec || targetTitles.some(t => /\b(manager|management)\b/i.test(t));
   const wantsLead = targetTitles.some(t => /\b(lead|principal|staff|architect)\b/i.test(t));
@@ -365,25 +498,70 @@ function runParseScore(item, profileObj = null) {
   const disqs = Array.isArray(parsed.disqualification_reasons) ? [...parsed.disqualification_reasons] : [];
 
   if (isExecTitle && !wantsExec) {
+    seniorityFit = Math.min(seniorityFit, 20);
     disqs.push('Role is an Executive/Director position; candidate targets individual contributor roles.');
   } else if (isManagerTitle && !wantsManager) {
+    seniorityFit = Math.min(seniorityFit, 25);
     disqs.push('Role is a Manager/Executive level position; candidate targets individual contributor roles.');
   } else if (isLeadTitle && !wantsLead) {
+    seniorityFit = Math.min(seniorityFit, 35);
     disqs.push('Role is a Lead/Principal position requiring higher seniority than candidate target.');
   } else if ((wantsExec || wantsManager) && isJuniorTitle) {
+    seniorityFit = Math.min(seniorityFit, 20);
     disqs.push('Role is an entry-level/junior position; candidate is seeking management or executive roles.');
   }
 
-  // Code node arithmetic:
-  let overall = Math.round(titleFit * 0.40 + skillsFit * 0.35 + seniorityFit * 0.15 + domainFit * 0.10);
-  if (titleFit < 50 || disqs.length > 0) overall = Math.min(overall, 45);
+  // Pillar 3: Location Match (30% Weight) with User's Commute Radius Settings
+  const commuteRadius = (settings && settings.commute_radius_km !== undefined)
+    ? Number(settings.commute_radius_km)
+    : ((profile && profile.commute_radius_km !== undefined) ? Number(profile.commute_radius_km) : 25);
 
-  const minThreshold = (typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60;
-  const shouldApply = overall > minThreshold && titleFit >= 50 && disqs.length === 0;
+  const jobLoc = item.json.location || '';
+  const isHybridJob = /\b(hybrid|hybride)\b/i.test(jobLoc) ||
+    /\b(hybrid|hybride)\b/i.test(jobTitle) ||
+    /\b(hybrid\s+work|hybrid\s+role|hybrid\s+model|hybrid\s+environment|in-office\s+and\s+remote|in\s+office\s+and\s+remote)\b/i.test(descText);
+
+  const isExplicitTitleOrLocRemote = /\b(remote|wfh|telecommute|virtual)\b/i.test(jobLoc) ||
+    /\b(remote|wfh|telecommute|virtual)\b/i.test(jobTitle) ||
+    /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote/i.test(jobLoc) ||
+    /\(remote\)|-\s*remote/i.test(jobTitle);
+
+  const isExplicitDescRemote = /\b(100%\s*remote|fully\s*remote|fully-remote|permanent\s*remote|remote\s*across\s*canada|remote\s*anywhere\s*in\s*canada|work\s*from\s*home\s*anywhere)\b/i.test(descText);
+
+  const isRemote = (item.json.remote === true || isExplicitTitleOrLocRemote || isExplicitDescRemote) && !isHybridJob;
+
+  let deterministicGeoScore = null;
+  try {
+    const { calculateLocationFitScore } = require('../core/geo-helper');
+    const locations = profile.locations || settings.target_locations || (profile.basics?.location ? [profile.basics.location] : []);
+    const countryScope = profile.country_scope || settings.target_country || 'GLOBAL';
+    const workType = profile.work_type || settings.work_type || 'Open to All';
+    deterministicGeoScore = calculateLocationFitScore(jobLoc, locations, countryScope, isRemote, workType, commuteRadius, descText);
+  } catch (_) {}
+
+  // 100% Deterministic: Location Fit is derived directly from geographic calculation, never LLM hallucination
+  let locationFit = deterministicGeoScore !== null ? deterministicGeoScore : (typeof b.location_fit_score === 'number' ? b.location_fit_score : 85);
+
+  if (locationFit < 40) {
+    disqs.push('Job location is outside candidate commuting area and is not a 100% remote nationwide role.');
+  }
+
+  const titleFit = typeof b.title_fit_score === 'number' ? b.title_fit_score : 80;
+
+  // Code node arithmetic: 40% Skills, 30% Seniority, 30% Location
+  let overall = Math.round(skillsFit * 0.40 + seniorityFit * 0.30 + locationFit * 0.30);
+  if (disqs.length > 0 || locationFit < 40 || seniorityFit < 40) {
+    overall = Math.min(overall, 45);
+  }
+
+  const minThreshold = (settings.score_threshold !== undefined)
+    ? Number(settings.score_threshold)
+    : ((typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60);
+  const shouldApply = overall >= minThreshold && disqs.length === 0 && locationFit >= 40;
   const priorityLevel = overall >= 80 ? 'High' : overall >= 65 ? 'Medium' : 'Low';
   const safetyTier = overall >= 80 ? 'Strongest Application' : overall >= 65 ? 'Safe Opportunity' : 'Stretch Opportunity';
 
-  Object.assign(item.json, {
+  const merged = {
     ...parsed,
     score: overall,
     overall_score: overall,
@@ -391,14 +569,25 @@ function runParseScore(item, profileObj = null) {
     priority_level: priorityLevel,
     safety_tier: safetyTier,
     disqualification_reasons: disqs,
-    breakdown: {
-      title_fit_score: titleFit,
+    skills_edge_case: parsed.skills_edge_case || parsed.skills_unstated_default || false,
+    scoring_pillars: {
+      formula: '40% skills + 30% seniority + 30% location',
       skills_fit_score: skillsFit,
       seniority_fit_score: seniorityFit,
-      domain_fit_score: domainFit
+      location_fit_score: locationFit,
+      unstated_skills_default: Boolean(parsed.skills_edge_case || parsed.skills_unstated_default)
+    },
+    breakdown: {
+      skills_fit_score: skillsFit,
+      seniority_fit_score: seniorityFit,
+      location_fit_score: locationFit,
+      title_fit_score: titleFit
     },
     parse_error: false
-  });
+  };
+
+  Object.assign(item.json, merged);
+  Object.assign(item, merged);
 
   return item;
 }

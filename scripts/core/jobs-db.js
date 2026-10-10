@@ -695,6 +695,39 @@ function getRecruiterLogs(limit = 100) {
   }
 }
 
+function clearPendingJobs() {
+  try {
+    const db = getDb();
+    db.prepare('DELETE FROM pending_jobs').run();
+    return true;
+  } catch (err) {
+    console.error('Error clearing pending jobs in SQLite:', err.message);
+    return false;
+  }
+}
+
+function clearSeenJobs() {
+  try {
+    const db = getDb();
+    db.prepare('DELETE FROM seen_jobs').run();
+    return true;
+  } catch (err) {
+    console.error('Error clearing seen jobs in SQLite:', err.message);
+    return false;
+  }
+}
+
+function clearRejectedJobs() {
+  try {
+    const db = getDb();
+    db.prepare('DELETE FROM rejected_jobs').run();
+    return true;
+  } catch (err) {
+    console.error('Error clearing rejected jobs in SQLite:', err.message);
+    return false;
+  }
+}
+
 function clearPipelineData() {
   try {
     const db = getDb();
@@ -750,6 +783,9 @@ module.exports = {
   saveTailoredResume,
   getTailoredResume,
   getTailoredResumes,
+  clearPendingJobs,
+  clearSeenJobs,
+  clearRejectedJobs,
   clearPipelineData,
   clearAllTrackingData
 };

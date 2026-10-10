@@ -191,6 +191,117 @@ router.post('/', (req, res) => {
   }
 });
 
+// POST /api/settings/reset
+router.post('/reset', async (req, res) => {
+  try {
+    const action = req.body?.action || 'clear_and_rescan';
+    const jobsDb = require('../../scripts/core/jobs-db');
+    let message = '';
+    let updatedSettings = null;
+
+    if (action === 'clear_queue' || action === 'clear_opportunities') {
+      // 1. Purge pending jobs & seen jobs without initiating background scan
+      jobsDb.clearPendingJobs();
+      jobsDb.clearSeenJobs();
+      message = 'Opportunities queue cleared. You can now run a manual scan when ready.';
+    } else if (action === 'clear_and_rescan') {
+      // Purge pending jobs & seen jobs so live boards can re-feed current criteria
+      jobsDb.clearPendingJobs();
+      jobsDb.clearSeenJobs();
+      message = 'Opportunities cleared. Fresh job boards scan initiated in background.';
+
+      // Run scan in background
+      try {
+        const { executePipelineScan } = require('./pipeline');
+        executePipelineScan({ source: 'reset_rescan' }).catch(err => {
+          console.warn('[Settings Reset] Background rescan error:', err.message);
+        });
+      } catch (_) {}
+    } else if (action === 'reset_preferences') {
+      // 2. Restore default settings (preserve user's titles/locations)
+      const current = settingsHelper.getSettings();
+      const defaultPrefs = {
+        score_threshold: 70,
+        commute_radius_km: 25,
+        freshness_hours: 24,
+        work_type: 'Open to All',
+        country_scope: current.country_scope || 'AUTO',
+        boards_enabled: {
+          linkedin: true,
+          indeed: true,
+          canada_job_bank: true,
+          adzuna: true,
+          usajobs: true,
+          arbeitsagentur: true,
+          mycareersfuture: true,
+          seek: true,
+          reed: true,
+          naukri: true,
+          bayt: true,
+          wttj: true,
+          daijob: true,
+          vagas: true,
+          jobicy: true,
+          remotive: true,
+          arbeitnow: true,
+          himalayas: true,
+        }
+      };
+      updatedSettings = settingsHelper.updateSettings(defaultPrefs);
+      message = 'Preferences reset to defaults (70% score, 25 km radius, 24h freshness, all boards enabled).';
+    } else if (action === 'fresh_start') {
+      // 3. Full factory reset
+      jobsDb.clearPipelineData();
+      const defaultPrefs = {
+        score_threshold: 70,
+        commute_radius_km: 25,
+        freshness_hours: 24,
+        work_type: 'Open to All',
+        boards_enabled: {
+          linkedin: true,
+          indeed: true,
+          canada_job_bank: true,
+          adzuna: true,
+          usajobs: true,
+          arbeitsagentur: true,
+          mycareersfuture: true,
+          seek: true,
+          reed: true,
+          naukri: true,
+          bayt: true,
+          wttj: true,
+          daijob: true,
+          vagas: true,
+          jobicy: true,
+          remotive: true,
+          arbeitnow: true,
+          himalayas: true,
+        }
+      };
+      updatedSettings = settingsHelper.updateSettings(defaultPrefs);
+      message = 'All job tracking data purged and settings reset to defaults. Clean scan running.';
+
+      try {
+        const { executePipelineScan } = require('./pipeline');
+        executePipelineScan({ source: 'fresh_start' }).catch(err => {
+          console.warn('[Settings Reset] Background fresh start error:', err.message);
+        });
+      } catch (_) {}
+    } else {
+      return res.status(400).json({ error: `Unknown reset action: ${action}` });
+    }
+
+    res.json({
+      success: true,
+      action,
+      message,
+      settings: updatedSettings || settingsHelper.getSettings()
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/env
 router.get('/env', (req, res) => {
   try {
