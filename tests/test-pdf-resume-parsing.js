@@ -308,6 +308,7 @@ async function runPdfTests() {
     title: 'Senior Power BI & SQL Data Analyst',
     company: 'Capital Energy Markets',
     location: 'Toronto, ON (Hybrid)',
+    url: 'https://ca.linkedin.com/jobs/view/senior-power-bi-sql-data-analyst-capital-energy-markets-9988776655',
     description: 'Looking for a Data Analyst with 4+ years experience in SQL, Power BI dashboards, DAX measures, data profiling, and star schema modeling for energy and trading datasets.'
   });
   assert.strictEqual(evalRes.status, 200);

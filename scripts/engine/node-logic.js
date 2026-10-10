@@ -31,7 +31,14 @@ function normalizeJob(rawJob, defaultSource = 'unknown') {
   const company = typeof rawJob.company === 'string' ? rawJob.company : rawJob.company?.display_name || rawJob.companyName || 'Unknown Company';
   const location = typeof rawJob.location === 'string' ? rawJob.location : rawJob.location?.display_name || 'Remote / Unspecified';
   const created = rawJob.created || rawJob.publishedAt || rawJob.postedTime || new Date().toISOString();
-  const targetUrl = rawJob.redirect_url || rawJob.jobUrl || rawJob.applyUrl || rawJob.url || rawJob.link || '';
+  let targetUrl = (rawJob.redirect_url || rawJob.job_url || rawJob.apply_url || rawJob.jobUrl || rawJob.applyUrl || rawJob.url || rawJob.link || '').trim();
+  if (!targetUrl) {
+    if (source === 'linkedin' || source === 'linkedin_jobs') {
+      targetUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(title + ' ' + company)}`;
+    } else {
+      targetUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + company + ' job')}`;
+    }
+  }
 
   return {
     id: cleanId,

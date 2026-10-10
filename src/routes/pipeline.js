@@ -167,13 +167,20 @@ router.post('/evaluate-custom', async (req, res) => {
     }
 
     const profile = getMasterProfile();
+    const trimmedTitle = title.trim();
+    const trimmedCompany = (company || 'Employer').trim();
+    const providedUrl = (url || '').trim();
+    const canonicalUrl = providedUrl || `https://www.google.com/search?q=${encodeURIComponent(trimmedTitle + ' ' + trimmedCompany + ' job')}`;
+
     const rawJob = {
       id: `manual_${Date.now()}`,
-      title: title.trim(),
-      company: (company || 'Employer').trim(),
+      title: trimmedTitle,
+      company: trimmedCompany,
       location: (location || 'Remote').trim(),
       description: description.trim(),
-      job_url: (url || '').trim(),
+      job_url: canonicalUrl,
+      redirect_url: canonicalUrl,
+      apply_url: canonicalUrl,
       source: source || 'Manual Entry',
       created: new Date().toISOString()
     };
