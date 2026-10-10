@@ -144,12 +144,12 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 17.4: Applications Page Card Space Optimization & Embedded Recruiter Intelligence](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/17/17.4-PLAN.md)
 
 ### Phase 18: Card Layout Space Optimization & Job Board URL Guarantee Engine
-**Status:** 🔄 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Resolve why certain jobs in Applications had search fallbacks instead of direct URLs; audit all 16 job board adapters in `fetch-all-boards.js` to guarantee valid canonical posting URLs; enrich manual/custom evaluations with realistic links; redesign application cards into a compact SaaS card layout with balanced multi-row action toolbars and reduced vertical height.
 
 **Plans:**
-- [ ] [Plan 18.1: Job Board URL Audit, Ingestion Link Guarantees & Link Enrichment](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/18/18.1-PLAN.md)
-- [ ] [Plan 18.2: Compact Multi-Row Application Card Redesign & Space-Efficient Toolbar](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/18/18.2-PLAN.md)
+- [x] [Plan 18.1: Job Board URL Audit, Ingestion Link Guarantees & Link Enrichment](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/18/18.1-PLAN.md)
+- [x] [Plan 18.2: Compact Multi-Row Application Card Redesign & Space-Efficient Toolbar](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/18/18.2-PLAN.md)
 
 ---
 
@@ -171,7 +171,7 @@ updated: 2026-10-08T17:36:00Z
 | 15 | ✅ | 4/4 | 100% (v1.2) |
 | 16 | ✅ | 3/3 | 100% (v1.2) |
 | 17 | ✅ | 4/4 | 100% (v1.2) |
-| 18 | 🔄 | 0/2 | 0% (v1.2) |
+| 18 | ✅ | 2/2 | 100% (v1.2) |
 
 
 
