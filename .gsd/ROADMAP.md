@@ -229,13 +229,13 @@ updated: 2026-10-08T17:36:00Z
 ---
 
 ### Phase 28: Profile vs Settings Decoupling & Uncapped High-Performance Concurrent Scoring
-**Status:** 📋 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Decouple candidate profile from search settings: Master Profile only stores the candidate's singular current working role and resident city, while resume-discovered target roles (4-10) and locations route exclusively into Search Settings. Additionally, eliminate artificial job scoring limits (remove 30-job cap) and upgrade pipeline execution to high-throughput, non-blocking concurrent processing.
 
 **Plans:**
-- [ ] [Plan 28.1: Profile vs Search Preferences Decoupling (Single Current Role & Resident City in Profile, Multi-Target Roles in Settings)](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/28/28.1-PLAN.md)
-- [ ] [Plan 28.2: Pure Settings-Driven Job Scan & Pipeline Execution](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/28/28.2-PLAN.md)
-- [ ] [Plan 28.3: Uncapped High-Performance Concurrent Ingestion & Non-Blocking Scoring Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/28/28.3-PLAN.md)
+- [x] [Plan 28.1: Profile vs Search Preferences Decoupling (Single Current Role & Resident City in Profile, Multi-Target Roles in Settings)](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/28/28.1-PLAN.md)
+- [x] [Plan 28.2: Pure Settings-Driven Job Scan & Pipeline Execution](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/28/28.2-PLAN.md)
+- [x] [Plan 28.3: Uncapped High-Performance Concurrent Ingestion & Non-Blocking Scoring Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/28/28.3-PLAN.md)
 
 ---
 
@@ -267,7 +267,7 @@ updated: 2026-10-08T17:36:00Z
 | 25 | ✅ | 3/3 | 100% (v1.2) |
 | 26 | ✅ | 3/3 | 100% (v1.2) |
 | 27 | ✅ | 2/2 | 100% (v1.2) |
-| 28 | 📋 | 3/3 | Planned (v1.2) |
+| 28 | ✅ | 3/3 | 100% (v1.2) |
 
 
 
