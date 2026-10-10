@@ -119,6 +119,7 @@ let wizardRolesList = [];
 let wizardLocationsList = [];
 let wizardSchedulePreset = 'daily9am';
 let wizardCountryCode = 'CA';
+let isWizardParsingResume = false;
 
 function openWelcomeWizard() {
   wizardCurrentStep = 1;
@@ -197,6 +198,13 @@ function skipWelcomeWizard() {
 }
 
 function goToWizardStep(stepNum) {
+  if (isWizardParsingResume && stepNum > 1) {
+    if (typeof showToast === 'function') {
+      showToast('⏳ Please wait for resume parsing to complete before proceeding.', 'warning');
+    }
+    return;
+  }
+
   wizardCurrentStep = stepNum;
 
   // Update progress bar
@@ -263,19 +271,89 @@ function triggerResumeUploadFromWizard() {
   const fileInput = document.getElementById('resume-file-input');
   if (!fileInput) return;
 
-  // One-time listener to update status in wizard
+  // One-time listener to handle wizard UI state when file is chosen
   fileInput.addEventListener('change', function onUpload(e) {
     const file = e.target.files && e.target.files[0];
-    const statusEl = document.getElementById('wizard-resume-status');
-    if (statusEl && file) {
-      statusEl.className = 'text-xs text-emerald-400 font-semibold flex items-center gap-1';
-      statusEl.innerHTML = `✓ ${escapeHtml(file.name)} loaded!`;
+    if (file) {
+      isWizardParsingResume = true;
+
+      // Disable Next button
+      const nextBtn = document.getElementById('wizard-btn-next');
+      if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+
+      // Disable Upload button
+      const uploadBtn = document.getElementById('wizard-btn-upload');
+      if (uploadBtn) {
+        uploadBtn.disabled = true;
+        uploadBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+
+      // Display animated spinner and waiting message
+      const statusEl = document.getElementById('wizard-resume-status');
+      if (statusEl) {
+        statusEl.className = 'text-xs text-amber-400 font-semibold flex items-center gap-2';
+        statusEl.innerHTML = `
+          <svg class="w-3.5 h-3.5 animate-spin text-[#D9A441] shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>⏳ Please wait, analyzing &amp; parsing resume...</span>
+        `;
+      }
     }
     fileInput.removeEventListener('change', onUpload);
   }, { once: true });
 
   fileInput.click();
 }
+
+// Synchronize Wizard state when resume parsing completes
+window.addEventListener('resume-parse-complete', (e) => {
+  const detail = e.detail || {};
+  isWizardParsingResume = false;
+
+  // Re-enable Next button
+  const nextBtn = document.getElementById('wizard-btn-next');
+  if (nextBtn) {
+    nextBtn.disabled = false;
+    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+  }
+
+  // Re-enable Upload button
+  const uploadBtn = document.getElementById('wizard-btn-upload');
+  if (uploadBtn) {
+    uploadBtn.disabled = false;
+    uploadBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+  }
+
+  const statusEl = document.getElementById('wizard-resume-status');
+  if (!statusEl) return;
+
+  if (detail.success) {
+    const roles = Array.isArray(detail.targetRoles) && detail.targetRoles.length ? detail.targetRoles : [];
+    const locs = Array.isArray(detail.targetLocs) && detail.targetLocs.length ? detail.targetLocs : [];
+
+    statusEl.className = 'text-xs text-emerald-400 font-semibold flex items-center gap-1.5';
+    const countText = roles.length ? ` Discovered ${roles.length} market roles.` : '';
+    statusEl.innerHTML = `<span>✓</span><span>Resume parsed!${countText}</span>`;
+
+    // Hydrate wizard roles and locations so Step 2 reflects them immediately
+    if (roles.length) {
+      wizardRolesList = [...roles];
+      renderWizardRoles();
+    }
+    if (locs.length) {
+      wizardLocationsList = [...locs];
+      renderWizardLocations();
+    }
+  } else {
+    statusEl.className = 'text-xs text-rose-400 font-semibold flex items-center gap-1.5';
+    statusEl.innerHTML = `<span>⚠</span><span>${escapeHtml(detail.error || 'Parsing failed. Please verify format.')}</span>`;
+  }
+});
 
 function setupWizardInputListeners() {
   const roleInput = document.getElementById('wizard-role-input');

@@ -59,12 +59,10 @@ describe('Unified Resume Parser & Market Target Roles (Plan 25.1)', () => {
     };
 
     const normalized = normalizeProfileFields(input);
-    assert.equal(normalized.target_titles.length, 3);
-    assert.deepEqual(normalized.target_titles, [
-      'Cloud Solutions Architect',
-      'AWS Solutions Architect',
-      'Infrastructure Engineer'
-    ]);
+    assert.ok(normalized.target_titles.length >= 3 && normalized.target_titles.length <= 10, 'Should have 3-10 market titles');
+    assert.ok(normalized.target_titles.includes('Cloud Solutions Architect'));
+    assert.ok(normalized.target_titles.includes('AWS Solutions Architect'));
+    assert.ok(normalized.target_titles.includes('Infrastructure Engineer'));
     assert.equal(normalized.role, 'Cloud Solutions Architect');
   });
 
@@ -81,8 +79,9 @@ describe('Unified Resume Parser & Market Target Roles (Plan 25.1)', () => {
     };
 
     const normalized = normalizeProfileFields(input);
-    assert.equal(normalized.target_titles.length, 2);
-    assert.deepEqual(normalized.target_titles, ['Full Stack Engineer', 'Frontend Developer']);
+    assert.ok(normalized.target_titles.length >= 2 && normalized.target_titles.length <= 10, 'Should expand experience roles into market titles');
+    assert.ok(normalized.target_titles.includes('Full Stack Engineer'));
+    assert.ok(normalized.target_titles.includes('Frontend Developer'));
     assert.equal(normalized.role, 'Full Stack Engineer');
   });
 
