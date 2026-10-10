@@ -50,7 +50,15 @@ function applyStatusData(data) {
   }
 
   const modelElem = document.getElementById('metric-model');
-  if (modelElem) modelElem.innerText = data.llm?.model || 'gemini-3.8-flash';
+  if (modelElem) {
+    const activeModel = data.llm?.active_model || data.llm?.model || 'gemini-3.8-flash';
+    if (data.llm?.is_cooling_down && data.llm?.revisit_in_seconds > 0) {
+      const topName = data.llm.top_model || 'gemini-3.8-flash';
+      modelElem.innerHTML = `<span class="text-amber-400 font-semibold">${escapeHtml(activeModel)}</span> <span class="text-[10px] text-slate-400 font-sans font-normal">(revisiting ${escapeHtml(topName)} in ${data.llm.revisit_in_seconds}s)</span>`;
+    } else {
+      modelElem.innerText = activeModel;
+    }
+  }
 
   if (data.integrations?.bridgeRunning) {
     const badge = document.getElementById('tab-tg-status');

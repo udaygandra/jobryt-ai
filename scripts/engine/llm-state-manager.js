@@ -3,13 +3,15 @@
  *
  * Implements sliding-window RPM (requests per minute) and Pacific-midnight RPD
  * (requests per day) quota tracking across the Gemini & Gemma model waterfall.
+ * Ensures gemini-3.8-flash is the top priority model with smart auto-revisit logic
+ * as soon as cooldown windows expire.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// ── User-Specified Waterfall Configuration ───────────────────────────────────
-const WATERFALL = [
+// ── User-Specified Waterfall Configuration (Ordered by Power & Priority) ─────
+const BASE_WATERFALL = [
   { id: 'gemini-3.8-flash',      rpm: 5,  rpd: 20,    max_tokens: 250000 },
   { id: 'gemini-3.7-flash',      rpm: 5,  rpd: 20,    max_tokens: 250000 },
   { id: 'gemini-3.6-flash',      rpm: 5,  rpd: 20,    max_tokens: 250000 },
@@ -21,6 +23,8 @@ const WATERFALL = [
   { id: 'gemma-4-31b',           rpm: 30, rpd: 14400, max_tokens: 16000 },
   { id: 'gemma-4-26b',           rpm: 30, rpd: 14400, max_tokens: 16000 }
 ];
+
+const WATERFALL = [...BASE_WATERFALL];
 
 function resolveStateFilePath() {
   const dataDir = (process.env.DATA_DIR || (fs.existsSync('/data') ? '/data' : path.join(__dirname, '../../data'))).replace(/\\/g, '/');
@@ -50,6 +54,8 @@ function getLLMState() {
   }
 
   const today = getPacificDateStr();
+  const nowSec = Date.now() / 1000;
+
   for (const m of WATERFALL) {
     if (!state[m.id]) {
       state[m.id] = { calls_today: 0, minute: [], blocked_until: 0.0, day: today, blacklisted: false };
@@ -58,6 +64,15 @@ function getLLMState() {
     if (state[m.id].day !== today) {
       state[m.id].day = today;
       state[m.id].calls_today = 0;
+      state[m.id].blocked_until = 0;
+    }
+    // Cooldown auto-revisit check: if cooldown expired, clear block
+    if (state[m.id].blocked_until && state[m.id].blocked_until <= nowSec) {
+      state[m.id].blocked_until = 0;
+    }
+    // Prune expired sliding minute requests
+    if (Array.isArray(state[m.id].minute)) {
+      state[m.id].minute = state[m.id].minute.filter(t => nowSec - t < 60);
     }
   }
   return state;
@@ -81,9 +96,15 @@ function isModelAvailable(m, state, estTokens = 0) {
   if (s.day !== today) {
     s.day = today;
     s.calls_today = 0;
+    s.blocked_until = 0;
   }
 
   const nowSec = Date.now() / 1000;
+  // If cooldown passed, clear blocked_until
+  if (s.blocked_until && s.blocked_until <= nowSec) {
+    s.blocked_until = 0;
+  }
+
   s.minute = (s.minute || []).filter(t => nowSec - t < 60);
 
   return (
@@ -91,6 +112,14 @@ function isModelAvailable(m, state, estTokens = 0) {
     s.calls_today < m.rpd &&
     s.minute.length < m.rpm
   );
+}
+
+/**
+ * Returns list of currently available models sorted by priority.
+ */
+function getAvailableWaterfallModels(estTokens = 0) {
+  const state = getLLMState();
+  return WATERFALL.filter(m => isModelAvailable(m, state, estTokens));
 }
 
 /**
@@ -165,12 +194,44 @@ function recordModelError(modelId, error) {
   saveLLMState(state);
 }
 
+/**
+ * Returns comprehensive live model state for API status endpoints and UI badges.
+ */
+function getActiveModelInfo() {
+  const state = getLLMState();
+  const next = getNextWaterfallModel();
+  const preferredModelId = process.env.LLM_MODEL || 'gemini-3.8-flash';
+  const topModel = WATERFALL.find(m => m.id === preferredModelId) || WATERFALL[0];
+  const topState = state[topModel.id] || {};
+  const nowSec = Date.now() / 1000;
+
+  const revisitInSec = (topState.blocked_until && topState.blocked_until > nowSec)
+    ? Math.ceil(topState.blocked_until - nowSec)
+    : 0;
+
+  const activeModelId = next.model ? next.model.id : topModel.id;
+  const activeState = state[activeModelId] || {};
+
+  return {
+    provider: process.env.LLM_PROVIDER || 'gemini',
+    top_model: topModel.id,
+    active_model: activeModelId,
+    revisit_in_seconds: revisitInSec,
+    wait_ms: next.waitMs,
+    calls_today: activeState.calls_today || 0,
+    rpd_limit: next.model?.rpd || 20,
+    is_cooling_down: revisitInSec > 0
+  };
+}
+
 module.exports = {
   WATERFALL,
   getLLMState,
   saveLLMState,
   getNextWaterfallModel,
+  getAvailableWaterfallModels,
   isModelAvailable,
   recordModelCall,
-  recordModelError
+  recordModelError,
+  getActiveModelInfo
 };

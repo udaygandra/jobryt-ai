@@ -14,14 +14,16 @@
 const { loadPrompt } = require('../core/prompt-loader');
 const {
   getNextWaterfallModel,
+  getAvailableWaterfallModels,
+  isModelAvailable,
   recordModelCall,
   recordModelError
 } = require('./llm-state-manager');
 
 // ── Default Models Configuration ─────────────────────────────────────────────
 const DEFAULT_MODELS = {
-  gemini: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemma-4-31b', 'gemma-4-26b'],
-  google: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemma-4-31b', 'gemma-4-26b'],
+  gemini: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemma-4-31b', 'gemma-4-26b'],
+  google: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemma-4-31b', 'gemma-4-26b'],
   openai: ['gpt-4o-mini', 'gpt-4o', 'o3-mini', 'gpt-3.5-turbo'],
   claude: ['claude-3-5-haiku-20241022', 'claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'],
   anthropic: ['claude-3-5-haiku-20241022', 'claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'],
@@ -40,14 +42,21 @@ async function callLLMProvider({ prompt, systemInstruction = '', provider, model
   const selectedProvider = (provider || env.LLM_PROVIDER || 'gemini').toLowerCase().trim();
   
   let candidateModel = null;
-  if (selectedProvider === 'gemini' || selectedProvider === 'google') {
-    const nextObj = getNextWaterfallModel();
-    if (nextObj && nextObj.model) candidateModel = nextObj.model.id;
-  }
+  let modelList = [];
 
-  const modelList = candidateModel
-    ? [candidateModel, ...(DEFAULT_MODELS.gemini.filter(m => m !== candidateModel))]
-    : (model ? [model] : (DEFAULT_MODELS[selectedProvider] || DEFAULT_MODELS.gemini));
+  if (selectedProvider === 'gemini' || selectedProvider === 'google') {
+    const available = getAvailableWaterfallModels();
+    if (available.length > 0) {
+      modelList = available.map(m => m.id);
+      candidateModel = modelList[0];
+    } else {
+      const nextObj = getNextWaterfallModel();
+      candidateModel = nextObj.model ? nextObj.model.id : 'gemini-3.8-flash';
+      modelList = [candidateModel];
+    }
+  } else {
+    modelList = model ? [model] : (DEFAULT_MODELS[selectedProvider] || DEFAULT_MODELS.gemini);
+  }
 
   // Helper for making HTTP requests with automatic 429 rate limit retries
   const makeRequest = async (config) => {
@@ -114,7 +123,7 @@ async function callLLMProvider({ prompt, systemInstruction = '', provider, model
         });
         const rawText = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
         recordModelCall(currentModel);
-        return { success: true, provider: 'gemini', model: currentModel, rawText, response };
+        return { success: true, provider: 'gemini', model: currentModel, model_used: currentModel, rawText, response };
       }
 
       // 2. OpenAI / Groq / DeepSeek / OpenRouter (OpenAI-compatible APIs)
@@ -138,7 +147,7 @@ async function callLLMProvider({ prompt, systemInstruction = '', provider, model
           json: true,
         });
         const rawText = response.choices?.[0]?.message?.content || '';
-        return { success: true, provider: selectedProvider, model: currentModel, rawText, response };
+        return { success: true, provider: selectedProvider, model: currentModel, model_used: currentModel, rawText, response };
       }
 
       // 3. Anthropic (Claude)
@@ -158,7 +167,7 @@ async function callLLMProvider({ prompt, systemInstruction = '', provider, model
           json: true,
         });
         const rawText = response.content?.[0]?.text || '';
-        return { success: true, provider: 'claude', model: currentModel, rawText, response };
+        return { success: true, provider: 'claude', model: currentModel, model_used: currentModel, rawText, response };
       }
 
       // 4. Ollama (Local)
@@ -172,7 +181,7 @@ async function callLLMProvider({ prompt, systemInstruction = '', provider, model
           json: true,
         });
         const rawText = response.response || response.choices?.[0]?.message?.content || '';
-        return { success: true, provider: selectedProvider, model: currentModel, rawText, response };
+        return { success: true, provider: selectedProvider, model: currentModel, model_used: currentModel, rawText, response };
       }
 
       throw new Error(`Unsupported LLM provider: ${selectedProvider}`);

@@ -23,7 +23,7 @@ loadEnv();
 const { getDataDir } = require('./scripts/core/common-utils');
 const settingsHelper = require('./scripts/core/settings-helper');
 const jobsDb = require('./scripts/core/jobs-db');
-const { getLLMState, getNextWaterfallModel } = require('./scripts/engine/llm-state-manager');
+const { getLLMState, getNextWaterfallModel, getActiveModelInfo } = require('./scripts/engine/llm-state-manager');
 
 // 2. Modular Express Routers
 const profileRoutes = require('./src/routes/profile');
@@ -72,13 +72,18 @@ app.get('/api/status', (req, res) => {
     const appliedJobs = jobsDb.getAppliedJobs(500);
     const rejectedJobs = jobsDb.getRejectedJobs(500);
 
-    let activeModel = process.env.LLM_MODEL || 'gemini-3.8-flash';
-    let callsToday = 0;
+    let modelInfo = {
+      provider: process.env.LLM_PROVIDER || 'gemini',
+      model: process.env.LLM_MODEL || 'gemini-3.8-flash',
+      active_model: process.env.LLM_MODEL || 'gemini-3.8-flash',
+      top_model: 'gemini-3.8-flash',
+      revisit_in_seconds: 0,
+      is_cooling_down: false,
+      calls_today: 0,
+      rpd_limit: 20
+    };
     try {
-      const next = getNextWaterfallModel();
-      if (next && next.model) activeModel = next.model.id;
-      const state = getLLMState();
-      if (state && state[activeModel]) callsToday = state[activeModel].calls_today || 0;
+      modelInfo = getActiveModelInfo();
     } catch (_) {}
 
     const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
@@ -101,10 +106,15 @@ app.get('/api/status', (req, res) => {
       },
       settings,
       llm: {
-        provider: process.env.LLM_PROVIDER || 'gemini',
-        model: activeModel,
+        provider: modelInfo.provider,
+        model: modelInfo.active_model,
+        active_model: modelInfo.active_model,
+        top_model: modelInfo.top_model,
+        revisit_in_seconds: modelInfo.revisit_in_seconds,
+        is_cooling_down: modelInfo.is_cooling_down,
         hasKey: hasGeminiKey,
-        callsToday
+        callsToday: modelInfo.calls_today,
+        rpdLimit: modelInfo.rpd_limit
       },
       integrations: {
         standalone: true,
