@@ -350,3 +350,32 @@ a:active {
   border: 1px solid rgba(95, 168, 160, 0.25);
 }
 
+/* ── Full-Screen Resume Upload Loader Animations ───────────────────────────── */
+@keyframes orbital-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes parse-progress-indeterminate {
+  0% { transform: translateX(-100%); width: 40%; }
+  50% { transform: translateX(100%); width: 65%; }
+  100% { transform: translateX(250%); width: 40%; }
+}
+
+.animate-orbital-spin {
+  animation: orbital-spin 4s linear infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.resume-parse-progress-bar {
+  animation: parse-progress-indeterminate 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
