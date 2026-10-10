@@ -219,12 +219,12 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 26.3: UI/API Dynamic Hydration, Hot Reloading & Multi-Skillset Regression Verification](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/26/26.3-PLAN.md)
 
 ### Phase 27: Resume Upload Full-Screen Animated Loader & Setup Wizard Guardrails
-**Status:** 📋 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Add a branded full-screen blocking loader with Jobryt AI logo, website branding, and modern animations for resume uploads in "My Resume & Profile", and implement disabled "Next" button guardrails with status messaging in the Setup Wizard popup until parsing finishes.
 
 **Plans:**
-- [ ] [Plan 27.1: Full-Screen Blocking Loader with Jobryt AI Brand, Logo & Scanning Animation](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/27/27.1-PLAN.md)
-- [ ] [Plan 27.2: Setup Wizard Upload State Management & Disabled "Next" Button Guardrails](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/27/27.2-PLAN.md)
+- [x] [Plan 27.1: Full-Screen Blocking Loader with Jobryt AI Brand, Logo & Scanning Animation](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/27/27.1-PLAN.md)
+- [x] [Plan 27.2: Setup Wizard Upload State Management & Disabled "Next" Button Guardrails](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/27/27.2-PLAN.md)
 
 ---
 
@@ -255,7 +255,7 @@ updated: 2026-10-08T17:36:00Z
 | 24 | ✅ | 3/3 | 100% (v1.2) |
 | 25 | ✅ | 3/3 | 100% (v1.2) |
 | 26 | ✅ | 3/3 | 100% (v1.2) |
-| 27 | 📋 | 2/2 | Planned (v1.2) |
+| 27 | ✅ | 2/2 | 100% (v1.2) |
 
 
 
