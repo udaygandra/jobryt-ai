@@ -19,6 +19,14 @@ const fs = require('fs');
 const path = require('path');
 const { getDataDir } = require('./common-utils');
 
+function getSystemTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch (_) {
+    return 'UTC';
+  }
+}
+
 // ── 1. Caching & Setup ──────────────────────────────────────────────────────
 let cachedGeo = null;
 let cachedGeoMtime = 0;
@@ -210,8 +218,9 @@ function detectTargetCountryScope(locations) {
 }
 
 function detectCandidateTimezone(profileObj) {
+  const defaultFallback = process.env.TIMEZONE || getSystemTimezone();
   if (!profileObj || typeof profileObj !== 'object') {
-    return process.env.TIMEZONE || 'America/Toronto';
+    return defaultFallback;
   }
 
   // 1. Explicit timezone property in master-profile.json
@@ -230,7 +239,7 @@ function detectCandidateTimezone(profileObj) {
 
   const locText = locList.join(' ').toLowerCase();
   if (!locText) {
-    return process.env.TIMEZONE || 'America/Toronto';
+    return defaultFallback;
   }
 
   // Newfoundland (NST/NDT: UTC-3:30)
@@ -263,12 +272,23 @@ function detectCandidateTimezone(profileObj) {
     return (locText.includes('canada') || /\b(on|ontario|toronto|ottawa|qc|quebec|montreal)\b/i.test(locText)) ? 'America/Toronto' : 'America/New_York';
   }
 
+  // Germany & Central Europe (CET/CEST)
+  if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg|france|paris|amsterdam|netherlands|spain|madrid|italy|rome)\b/i.test(locText)) {
+    return 'Europe/Berlin';
+  }
+
   // International checks
   if (/\b(uk|united kingdom|london|england|great britain)\b/i.test(locText)) {
     return 'Europe/London';
   }
   if (/\b(india|delhi|mumbai|bangalore|hyderabad|bengaluru|pune|chennai|warangal)\b/i.test(locText)) {
     return 'Asia/Kolkata';
+  }
+  if (/\b(singapore|tokyo|japan|hong kong|seoul|korea)\b/i.test(locText)) {
+    return /\b(tokyo|japan|seoul|korea)\b/i.test(locText) ? 'Asia/Tokyo' : 'Asia/Singapore';
+  }
+  if (/\b(uae|dubai|abu dhabi|qatar|doha|saudi|riyadh)\b/i.test(locText)) {
+    return 'Asia/Dubai';
   }
   if (/\b(sydney|melbourne|brisbane|australia)\b/i.test(locText)) {
     return 'Australia/Sydney';
@@ -277,7 +297,8 @@ function detectCandidateTimezone(profileObj) {
   // Default fallback based on country scope
   const countryScope = detectTargetCountryScope(locList);
   if (countryScope === 'US') return 'America/New_York';
-  return process.env.TIMEZONE || 'America/Toronto';
+  if (countryScope === 'CA') return 'America/Toronto';
+  return defaultFallback;
 }
 
 function getSearchLocationQuery(targetLoc) {
@@ -951,23 +972,6 @@ function isJobRoleRelevant(jobTitle, targetTitles = []) {
   return false;
 }
 
-function getSearchLocationQuery(loc) {
-  if (!loc || typeof loc !== 'string') return 'Toronto';
-  const lower = loc.toLowerCase().trim();
-  if (lower.includes('gta') || lower.includes('greater toronto') || lower.includes('toronto')) return 'Toronto';
-  if (lower.includes('vancouver')) return 'Vancouver';
-  if (lower.includes('montreal')) return 'Montreal';
-  if (lower.includes('calgary')) return 'Calgary';
-  if (lower.includes('ottawa')) return 'Ottawa';
-  if (lower.includes('edmonton')) return 'Edmonton';
-  if (lower.includes('new york') || lower.includes('nyc')) return 'New York';
-  if (lower.includes('austin')) return 'Austin';
-  if (lower.includes('san francisco') || lower.includes('bay area')) return 'San Francisco';
-  if (lower.includes('chicago')) return 'Chicago';
-  if (lower.includes('seattle')) return 'Seattle';
-  if (lower === 'remote' || lower.includes('remote') || lower.includes('worldwide')) return 'Remote';
-  return loc.replace(/\s*\([^)]*\)/g, '').trim();
-}
 
 // ── 4. Utilities for Analytics ──────────────────────────────────────────────
 function calculateExperienceYears(profile) {

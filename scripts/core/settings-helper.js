@@ -18,6 +18,14 @@
 const path = require('path');
 const { getDataDir, readJsonFile, writeJsonFile } = require('./common-utils');
 
+function getSystemTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch (_) {
+    return 'UTC';
+  }
+}
+
 // ── Default Settings ────────────────────────────────────────────────────────
 // These values are used when settings.json is missing or has incomplete data.
 // They define a sensible starting configuration for a new user.
@@ -29,7 +37,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   work_type: 'Open to All',      // Remote, Hybrid, Onsite, or all
   commute_radius_km: 25,         // Commute radius in kilometers (0-100, default 25)
   country_scope: 'AUTO',         // CA, US, US_CA, GLOBAL, or AUTO-detect
-  timezone: 'America/Toronto',   // Candidate timezone for scheduling
+  timezone: getSystemTimezone(), // Candidate timezone for scheduling (dynamically detected)
   boards_enabled: {
     linkedin: true,
     indeed: true,
@@ -79,10 +87,10 @@ const WORK_MODES = Object.freeze({
 function sanitizeSettings(raw, masterProfile = null) {
   if (!raw || typeof raw !== 'object') raw = {};
 
-  let candidateTz = 'America/Toronto';
+  let candidateTz = getSystemTimezone();
   try {
     const { detectCandidateTimezone } = require('./geo-helper');
-    candidateTz = detectCandidateTimezone(masterProfile || {});
+    candidateTz = detectCandidateTimezone(masterProfile || {}) || getSystemTimezone();
   } catch (_) {}
 
   // Merge user values on top of defaults
@@ -242,7 +250,7 @@ function renderSettingsDashboard(settings, masterProfile = {}) {
     `🏢 <b>Work Mode:</b> ${settings.work_type || 'Open to All'}\n\n` +
     `🕒 <b>Freshness Window:</b> <code>${settings.freshness_hours === 0 ? 'Disabled (Any Time)' : settings.freshness_hours + ' hours'}</code>\n` +
     `🎯 <b>Min Match Score:</b> <code>${settings.score_threshold}/100</code>\n` +
-    `⏰ <b>Automation Schedule:</b> ${settings.cron_description || settings.cron_schedule} (<code>${settings.timezone || 'America/Toronto'}</code>)\n\n` +
+    `⏰ <b>Automation Schedule:</b> ${settings.cron_description || settings.cron_schedule} (<code>${settings.timezone || getSystemTimezone()}</code>)\n\n` +
     `📋 <b>Active Job Boards:</b>\n${boardList}\n\n` +
     `<i>Tap a button below to update any preference instantly:</i>`;
 
@@ -351,7 +359,7 @@ function renderSubMenu(menuKey, settings, masterProfile = {}) {
       text:
         `⏰ <b>Configure Automation Schedule</b>\n\n` +
         `Current Setting: <b>${settings.cron_description || settings.cron_schedule}</b>\n` +
-        `🕒 <b>Candidate Timezone:</b> <code>${settings.timezone || 'America/Toronto'}</code> <i>(Synced from master-profile.json)</i>\n\n` +
+        `🕒 <b>Candidate Timezone:</b> <code>${settings.timezone || getSystemTimezone()}</code> <i>(Synced from master-profile.json)</i>\n\n` +
         `Select automated execution frequency:`,
       reply_markup: {
         inline_keyboard: [
