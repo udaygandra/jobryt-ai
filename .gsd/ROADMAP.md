@@ -198,13 +198,13 @@ updated: 2026-10-08T17:36:00Z
 ---
 
 ### Phase 25: Unified Resume-to-Profile Extraction, Market Target Roles & Settings Sync
-**Status:** 📋 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Enhance the single resume parser prompt to extract all Master Profile UI fields and simultaneously identify up to 10 accurate, market-calibrated target roles (calibrated to seniority, industry, and location without padding), standardized location, and country code, directly synchronizing them into `settings.target_roles` upon resume upload in "My Resume and Profile".
 
 **Plans:**
-- [ ] [Plan 25.1: Unified Resume-to-Profile & Market Target Roles Prompt Engineering](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
-- [ ] [Plan 25.2: Automatic Settings Sync Engine & Profile Upload Route Integration](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
-- [ ] [Plan 25.3: UI Presentation in "My Resume & Profile", Tag Cloud Sync & Regression Verification](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
+- [x] [Plan 25.1: Unified Resume-to-Profile & Market Target Roles Prompt Engineering](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
+- [x] [Plan 25.2: Automatic Settings Sync Engine & Profile Upload Route Integration](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
+- [x] [Plan 25.3: UI Presentation in "My Resume & Profile", Tag Cloud Sync & Regression Verification](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
 
 ---
 
@@ -233,7 +233,7 @@ updated: 2026-10-08T17:36:00Z
 | 22 | ✅ | 1/1 | 100% (v1.2) |
 | 23 | ✅ | 2/2 | 100% (v1.2) |
 | 24 | ✅ | 3/3 | 100% (v1.2) |
-| 25 | 📋 | 3/3 | Planned (v1.2) |
+| 25 | ✅ | 3/3 | 100% (v1.2) |
 
 
 

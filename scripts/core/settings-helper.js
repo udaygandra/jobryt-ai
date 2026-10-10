@@ -465,6 +465,92 @@ function handleSettingCallback(data, masterProfile = {}) {
   return renderSettingsDashboard(settings, masterProfile);
 }
 
+
+// ── Synchronize Master Profile to Settings ──────────────────────────────────
+// Automatically populates target_roles, target_locations, and country_scope in settings.json
+function syncProfileToSettings(profile) {
+  if (!profile || typeof profile !== 'object') {
+    return getSettings();
+  }
+
+  const bannedTitleRegex = /\b(?:ninja|guru|rockstar|wizard)\b|^(?:employee|professional|staff|worker|confidential)$/i;
+  const rawRoles = Array.isArray(profile.target_titles) && profile.target_titles.length > 0
+    ? profile.target_titles
+    : (Array.isArray(profile.target_roles) && profile.target_roles.length > 0
+      ? profile.target_roles
+      : (profile.role ? [profile.role] : []));
+
+  const seenRoles = new Set();
+  const cleanRoles = [];
+  for (const r of rawRoles) {
+    if (!r || typeof r !== 'string') continue;
+    const cleaned = r
+      .replace(/^[\s•*·\-–—\d.)\]]+\s*/, '')
+      .replace(/[\s•*·\-–—]+$/, '')
+      .trim();
+    if (!cleaned || cleaned.length < 3 || cleaned.length > 60) continue;
+    if (bannedTitleRegex.test(cleaned)) continue;
+    const lower = cleaned.toLowerCase();
+    if (!seenRoles.has(lower)) {
+      seenRoles.add(lower);
+      cleanRoles.push(cleaned);
+    }
+    if (cleanRoles.length >= 10) break;
+  }
+
+  if (cleanRoles.length === 0 && Array.isArray(profile.experience)) {
+    for (const exp of profile.experience) {
+      if (exp && exp.role) {
+        const cleaned = exp.role.trim();
+        const lower = cleaned.toLowerCase();
+        if (cleaned && !seenRoles.has(lower) && !bannedTitleRegex.test(cleaned)) {
+          seenRoles.add(lower);
+          cleanRoles.push(cleaned);
+        }
+      }
+      if (cleanRoles.length >= 5) break;
+    }
+  }
+
+  const rawLocs = Array.isArray(profile.locations) && profile.locations.length > 0
+    ? profile.locations
+    : (profile.contact?.location ? [profile.contact.location] : []);
+
+  const seenLocs = new Set();
+  const cleanLocs = [];
+  for (const loc of rawLocs) {
+    if (!loc || typeof loc !== 'string') continue;
+    const cleaned = loc.trim();
+    if (!cleaned) continue;
+    const lower = cleaned.toLowerCase();
+    if (!seenLocs.has(lower)) {
+      seenLocs.add(lower);
+      cleanLocs.push(cleaned);
+    }
+    if (cleanLocs.length >= 5) break;
+  }
+
+  const updates = {};
+  if (cleanRoles.length > 0) {
+    updates.target_roles = cleanRoles;
+    updates.target_titles = cleanRoles;
+  }
+  if (cleanLocs.length > 0) {
+    updates.target_locations = cleanLocs;
+    updates.locations = cleanLocs;
+  }
+
+  const countryCode = profile.country_code || profile.contact?.country_code;
+  if (countryCode && typeof countryCode === 'string') {
+    const code = countryCode.trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(code) && code !== 'GLOBAL') {
+      updates.country_scope = code;
+    }
+  }
+
+  return updateSettings(updates, profile);
+}
+
 module.exports = {
   DEFAULT_SETTINGS,
   SCHEDULE_PRESETS,
@@ -475,4 +561,5 @@ module.exports = {
   renderSettingsDashboard,
   renderSubMenu,
   handleSettingCallback,
+  syncProfileToSettings,
 };

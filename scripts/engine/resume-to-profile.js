@@ -45,7 +45,7 @@ Respond ONLY with valid JSON in this schema:
   "name": "Full Name",
   "target_titles": ["Title 1", "Title 2"],
   "locations": ["City, Region"],
-  "contact": { "email": "", "phone": "", "location": "", "linkedin": "" },
+  "contact": { "email": "", "phone": "", "location": "", "country_code": "", "linkedin": "" },
   "summary": "Professional summary verbatim",
   "skills": ["Skill 1", "Skill 2"],
   "experience": [
@@ -416,7 +416,10 @@ function normalizeProfileFields(parsedProfile) {
     parsedProfile.locations = c.location ? [c.location] : ['Remote'];
   }
 
-  // Country Code Inference
+  // Country Code Inference & Sync
+  if (!parsedProfile.country_code && c.country_code && typeof c.country_code === 'string') {
+    parsedProfile.country_code = c.country_code.trim().toUpperCase();
+  }
   if (!parsedProfile.country_code) {
     try {
       const { detectTargetCountryScope } = require('../core/geo-helper');
@@ -429,6 +432,9 @@ function normalizeProfileFields(parsedProfile) {
         parsedProfile.country_code = detected;
       }
     } catch (_) {}
+  }
+  if (parsedProfile.country_code && !c.country_code) {
+    c.country_code = parsedProfile.country_code;
   }
 
   // Skills
@@ -531,15 +537,54 @@ function normalizeProfileFields(parsedProfile) {
     parsedProfile.experience = [];
   }
 
-  // Target titles & role synchronization
-  if (!Array.isArray(parsedProfile.target_titles) || parsedProfile.target_titles.length === 0) {
-    const titles = [];
-    for (const exp of parsedProfile.experience) {
-      if (exp.role && !titles.includes(exp.role)) titles.push(exp.role);
-    }
-    parsedProfile.target_titles = titles.length > 0 ? titles.slice(0, 3) : ['Data Analyst'];
+  // Target titles & role synchronization (up to 10 roles, market-validated, deduplicated, no padding)
+  let rawTitles = [];
+  if (Array.isArray(parsedProfile.target_titles)) {
+    rawTitles = parsedProfile.target_titles;
+  } else if (typeof parsedProfile.target_titles === 'string') {
+    rawTitles = parsedProfile.target_titles.split(/[,;\n]+/).map(t => t.trim());
   }
-  parsedProfile.target_roles = parsedProfile.target_titles;
+
+  const seen = new Set();
+  const cleanTitles = [];
+  const bannedTitleRegex = /\b(?:ninja|guru|rockstar|wizard)\b|^(?:employee|professional|staff|worker|confidential)$/i;
+
+  for (const t of rawTitles) {
+    if (!t || typeof t !== 'string') continue;
+    const cleaned = cleanDocxAndMarkdownArtifacts(t)
+      .replace(/^[\s•*·\-–—\d.)\]]+\s*/, '')
+      .replace(/[\s•*·\-–—]+$/, '')
+      .trim();
+    if (!cleaned || cleaned.length < 3 || cleaned.length > 60) continue;
+    if (bannedTitleRegex.test(cleaned)) continue;
+    const lowerKey = cleaned.toLowerCase();
+    if (!seen.has(lowerKey)) {
+      seen.add(lowerKey);
+      cleanTitles.push(cleaned);
+    }
+    if (cleanTitles.length >= 10) break;
+  }
+
+  if (cleanTitles.length === 0) {
+    for (const exp of parsedProfile.experience) {
+      if (exp.role) {
+        const cleanedExpRole = cleanDocxAndMarkdownArtifacts(exp.role).trim();
+        const lowerKey = cleanedExpRole.toLowerCase();
+        if (cleanedExpRole && !seen.has(lowerKey) && !bannedTitleRegex.test(cleanedExpRole)) {
+          seen.add(lowerKey);
+          cleanTitles.push(cleanedExpRole);
+        }
+      }
+      if (cleanTitles.length >= 5) break;
+    }
+  }
+
+  if (cleanTitles.length === 0) {
+    cleanTitles.push('Professional');
+  }
+
+  parsedProfile.target_titles = cleanTitles.slice(0, 10);
+  parsedProfile.target_roles = [...parsedProfile.target_titles];
   parsedProfile.role = parsedProfile.target_titles[0] || (parsedProfile.experience[0] && parsedProfile.experience[0].role) || 'Professional';
   parsedProfile.title = parsedProfile.role;
 

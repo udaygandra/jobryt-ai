@@ -799,9 +799,40 @@ function extractResumeLocallyFromText(rawText) {
   profile.projects = projectList;
 
   // Synchronize top-level role, title, and target roles
-  profile.target_roles = profile.target_titles;
+  if (!Array.isArray(profile.target_titles) || profile.target_titles.length === 0) {
+    const seenTitles = new Set();
+    const derivedTitles = [];
+    for (const exp of profile.experience) {
+      if (exp.role) {
+        const cleaned = cleanDocxAndMarkdownArtifacts(exp.role).trim();
+        const lower = cleaned.toLowerCase();
+        if (cleaned && !seenTitles.has(lower)) {
+          seenTitles.add(lower);
+          derivedTitles.push(cleaned);
+        }
+      }
+      if (derivedTitles.length >= 10) break;
+    }
+    profile.target_titles = derivedTitles.length > 0 ? derivedTitles : ['Professional'];
+  }
+  profile.target_roles = [...profile.target_titles];
   profile.role = profile.target_titles[0] || (profile.experience[0] && profile.experience[0].role) || 'Professional';
   profile.title = profile.role;
+
+  // Infer country code if missing
+  if (!profile.contact.country_code) {
+    try {
+      const { detectTargetCountryScope } = require('../core/geo-helper');
+      const detected = detectTargetCountryScope([
+        profile.contact.location,
+        ...(Array.isArray(profile.locations) ? profile.locations : [])
+      ].filter(Boolean));
+      if (detected && detected !== 'GLOBAL') {
+        profile.contact.country_code = detected;
+        profile.country_code = detected;
+      }
+    } catch (_) {}
+  }
 
   return profile;
 }

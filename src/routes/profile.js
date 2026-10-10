@@ -200,10 +200,26 @@ router.post('/upload-resume', async (req, res) => {
       });
     }
 
+    // Automatically synchronize parsed target titles, location, and country to settings
+    let syncedSettings = null;
+    try {
+      const { syncProfileToSettings } = require('../../scripts/core/settings-helper');
+      syncedSettings = syncProfileToSettings(parsed);
+    } catch (syncErr) {
+      console.warn('⚠️ Failed to sync profile to settings:', syncErr.message);
+    }
+
     res.json({
       success: true,
       message: 'Resume parsed into detailed master profile successfully.',
-      profile: parsed
+      profile: parsed,
+      synced_settings: syncedSettings ? {
+        target_roles: syncedSettings.target_roles || [],
+        target_titles: syncedSettings.target_titles || [],
+        target_locations: syncedSettings.target_locations || [],
+        locations: syncedSettings.locations || [],
+        country_scope: syncedSettings.country_scope || 'AUTO'
+      } : null
     });
   } catch (err) {
     if (fs.existsSync(tempPath)) {

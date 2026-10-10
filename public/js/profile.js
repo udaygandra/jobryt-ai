@@ -828,7 +828,29 @@ async function handleResumeFileSelected(event) {
       hideResumeValidationPrompt();
       currentProfile = data.profile;
       populateProfileForm(currentProfile);
-      showToast('📄 Resume parsed into detailed Master Profile! Click "Save Profile" to commit.');
+
+      const targetRoles = (Array.isArray(data.profile.target_titles) && data.profile.target_titles.length)
+        ? data.profile.target_titles
+        : ((data.synced_settings && Array.isArray(data.synced_settings.target_roles) && data.synced_settings.target_roles.length)
+          ? data.synced_settings.target_roles
+          : (currentProfile.role ? [currentProfile.role] : []));
+
+      window.targetRolesList = [...targetRoles];
+      if (typeof renderRoleTags === 'function') renderRoleTags();
+      else if (typeof window.renderRoleTags === 'function') window.renderRoleTags();
+
+      const targetLocs = (Array.isArray(data.profile.locations) && data.profile.locations.length)
+        ? data.profile.locations
+        : ((data.synced_settings && Array.isArray(data.synced_settings.target_locations) && data.synced_settings.target_locations.length)
+          ? data.synced_settings.target_locations
+          : (data.profile.contact?.location ? [data.profile.contact.location] : []));
+      if (targetLocs.length) {
+        window.targetLocationsList = [...targetLocs];
+        if (typeof renderLocationTags === 'function') renderLocationTags();
+        else if (typeof window.renderLocationTags === 'function') window.renderLocationTags();
+      }
+
+      showToast(`🎯 Discovered ${targetRoles.length} market target roles and synced with Search Settings! Click "Save Profile" to commit.`);
 
       // Auto-synchronize country scope & unlock city search
       const candidateLocText = [
