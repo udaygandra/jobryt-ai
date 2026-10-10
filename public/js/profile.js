@@ -758,6 +758,54 @@ function closeResumeValidationModal(scrollToForm = false) {
   }
 }
 
+let resumeLoaderInterval = null;
+const RESUME_PARSER_STAGES = [
+  'Analyzing document structure & credentials...',
+  'Extracting verified career achievements & tech stack...',
+  'Calibrating 4–10 market-validated target roles...',
+  'Synchronizing master profile & search settings...'
+];
+
+function showResumeUploadLoader() {
+  const overlay = document.getElementById('resume-upload-blocking-overlay');
+  if (!overlay) return;
+
+  const statusText = document.getElementById('resume-upload-status-text');
+  let stageIdx = 0;
+  if (statusText) {
+    statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-[#D9A441] animate-ping shrink-0"></span><span>${RESUME_PARSER_STAGES[0]}</span>`;
+  }
+
+  if (resumeLoaderInterval) clearInterval(resumeLoaderInterval);
+  resumeLoaderInterval = setInterval(() => {
+    stageIdx = (stageIdx + 1) % RESUME_PARSER_STAGES.length;
+    if (statusText) {
+      statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-[#D9A441] animate-ping shrink-0"></span><span>${RESUME_PARSER_STAGES[stageIdx]}</span>`;
+    }
+  }, 2200);
+
+  overlay.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    overlay.classList.remove('opacity-0');
+    overlay.classList.add('opacity-100');
+  });
+}
+
+function hideResumeUploadLoader() {
+  if (resumeLoaderInterval) {
+    clearInterval(resumeLoaderInterval);
+    resumeLoaderInterval = null;
+  }
+  const overlay = document.getElementById('resume-upload-blocking-overlay');
+  if (!overlay) return;
+
+  overlay.classList.remove('opacity-100');
+  overlay.classList.add('opacity-0');
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+  }, 300);
+}
+
 async function handleResumeFileSelected(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
@@ -768,6 +816,14 @@ async function handleResumeFileSelected(event) {
 
   if (btnLabel) btnLabel.innerText = 'Parsing Resume...';
   if (btn) btn.disabled = true;
+
+  const wizardModal = document.getElementById('welcome-wizard-modal');
+  const isWizardOpen = wizardModal && !wizardModal.classList.contains('hidden');
+
+  // Show full-screen blocking loader when uploading from My Resume & Profile
+  if (!isWizardOpen) {
+    showResumeUploadLoader();
+  }
 
   try {
     const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
@@ -780,12 +836,18 @@ async function handleResumeFileSelected(event) {
         parsed = JSON.parse(text);
       } catch (e) {
         showResumeValidationPrompt('Invalid JSON file format. Format or resume is not correct please fill the below master profile from UI.');
+        window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+          detail: { success: false, error: 'Invalid JSON file format.', filename: file.name }
+        }));
         return;
       }
       const hasExp = parsed && Array.isArray(parsed.experience) && parsed.experience.length > 0;
       const hasSkills = parsed && Array.isArray(parsed.skills) && parsed.skills.length > 0;
       if (!parsed || (!hasExp && !hasSkills && !parsed.name)) {
         showResumeValidationPrompt('The JSON does not contain valid resume info or work experience. Format or resume is not correct please fill the below master profile from UI.');
+        window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+          detail: { success: false, error: 'JSON does not contain valid resume info.', filename: file.name }
+        }));
         return;
       }
       hideResumeValidationPrompt();
@@ -793,6 +855,15 @@ async function handleResumeFileSelected(event) {
       populateProfileForm(currentProfile);
       syncFormToJson();
       showToast('📄 Resume JSON loaded into Master Profile! Click "Save Profile" to commit.');
+      window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+        detail: {
+          success: true,
+          profile: currentProfile,
+          targetRoles: Array.isArray(currentProfile.target_titles) ? currentProfile.target_titles : (currentProfile.role ? [currentProfile.role] : []),
+          targetLocs: Array.isArray(currentProfile.locations) ? currentProfile.locations : (currentProfile.contact?.location ? [currentProfile.contact.location] : []),
+          filename: file.name
+        }
+      }));
       return;
     }
 
@@ -852,6 +923,18 @@ async function handleResumeFileSelected(event) {
 
       showToast(`🎯 Discovered ${targetRoles.length} market target roles and synced with Search Settings! Click "Save Profile" to commit.`);
 
+      // Notify wizard or listeners about successful parse completion
+      window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+        detail: {
+          success: true,
+          profile: data.profile,
+          synced_settings: data.synced_settings,
+          targetRoles: targetRoles,
+          targetLocs: targetLocs,
+          filename: file.name
+        }
+      }));
+
       // Auto-synchronize country scope & unlock city search
       const candidateLocText = [
         data.profile.country_code,
@@ -904,10 +987,17 @@ async function handleResumeFileSelected(event) {
     } else {
       const errDetail = data.message || data.error || 'Format or resume is not correct please fill the below master profile from UI.';
       showResumeValidationPrompt(errDetail);
+      window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+        detail: { success: false, error: errDetail, filename: file.name }
+      }));
     }
   } catch (err) {
     showResumeValidationPrompt('Failed to process resume: ' + err.message);
+    window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+      detail: { success: false, error: err.message, filename: file.name }
+    }));
   } finally {
+    hideResumeUploadLoader();
     event.target.value = '';
     if (btnLabel) btnLabel.innerText = originalLabel;
     if (btn) btn.disabled = false;
