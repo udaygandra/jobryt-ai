@@ -405,34 +405,48 @@ router.post('/stop', (req, res) => {
 router.get('/status', (req, res) => {
   try {
     if (activeScanState && activeScanState.status === 'running') {
+      const stateObj = {
+        scanId: activeScanState.scanId,
+        status: activeScanState.status,
+        step: activeScanState.step,
+        progress: activeScanState.progress,
+        startedAt: activeScanState.startedAt,
+        durationMs: Date.now() - new Date(activeScanState.startedAt).getTime(),
+        logs: activeScanState.logs.slice(-35),
+        boardBreakdown: activeScanState.boardBreakdown,
+        stats: activeScanState.stats
+      };
       return res.json({
         success: true,
         isRunning: true,
-        state: {
-          scanId: activeScanState.scanId,
-          status: activeScanState.status,
-          step: activeScanState.step,
-          progress: activeScanState.progress,
-          startedAt: activeScanState.startedAt,
-          durationMs: Date.now() - new Date(activeScanState.startedAt).getTime(),
-          logs: activeScanState.logs.slice(-35),
-          boardBreakdown: activeScanState.boardBreakdown,
-          stats: activeScanState.stats
-        }
+        status: activeScanState.status,
+        currentStep: activeScanState.step,
+        logs: stateObj.logs,
+        boardBreakdown: stateObj.boardBreakdown,
+        stats: stateObj.stats,
+        lastScanTimestamp: activeScanState.startedAt,
+        state: stateObj
       });
     }
 
     const last = getLastScanResult();
+    const fallback = last || {
+      status: 'idle',
+      step: 'idle',
+      logs: [],
+      boardBreakdown: {},
+      stats: { totalFetched: 0, freshCount: 0, unseenCount: 0, scoredCount: 0, qualifiedCount: 0, rejectedCount: 0 }
+    };
     return res.json({
       success: true,
       isRunning: false,
-      state: last || {
-        status: 'idle',
-        step: 'idle',
-        logs: [],
-        boardBreakdown: {},
-        stats: { totalFetched: 0, freshCount: 0, unseenCount: 0, scoredCount: 0, qualifiedCount: 0, rejectedCount: 0 }
-      }
+      status: fallback.status || 'idle',
+      currentStep: fallback.step || 'idle',
+      logs: fallback.logs || [],
+      boardBreakdown: fallback.boardBreakdown || {},
+      stats: fallback.stats || {},
+      lastScanTimestamp: fallback.completedAt || fallback.startedAt || null,
+      state: fallback
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

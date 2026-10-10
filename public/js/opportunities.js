@@ -141,6 +141,9 @@ function renderPendingSkeletons(container) {
 
 function removeJobFromLocalCache(jobId) {
   try {
+    if (window.allLoadedPendingJobs) {
+      window.allLoadedPendingJobs = window.allLoadedPendingJobs.filter(j => String(j.id) !== String(jobId));
+    }
     const raw = localStorage.getItem('jobryt_cached_pending_jobs');
     if (!raw) return;
     const jobs = JSON.parse(raw);
@@ -162,7 +165,8 @@ function hydrateFromCachedJobs() {
     if (!raw) return false;
     const jobs = JSON.parse(raw);
     if (Array.isArray(jobs) && jobs.length > 0) {
-      renderPendingJobs(jobs);
+      window.allLoadedPendingJobs = jobs;
+      filterOpportunities();
       return true;
     }
   } catch (e) {
@@ -171,20 +175,41 @@ function hydrateFromCachedJobs() {
   return false;
 }
 
-function renderPendingJobs(jobs) {
+function renderPendingJobs(jobs, isFilterZero = false) {
   const container = document.getElementById('pending-jobs-list');
   if (!container) return;
 
   try {
     const jobList = Array.isArray(jobs) ? jobs : [];
-    updatePendingBadges(jobList.length);
+    updatePendingBadges(window.allLoadedPendingJobs ? window.allLoadedPendingJobs.length : jobList.length);
     if (typeof JobrytStore !== 'undefined') {
-      JobrytStore.setState({ pendingJobs: jobList });
+      JobrytStore.setState({ pendingJobs: window.allLoadedPendingJobs || jobList });
+    }
+
+    if (isFilterZero) {
+      container.innerHTML = `
+        <div class="glass-card rounded-2xl p-8 sm:p-10 text-center max-w-xl mx-auto space-y-4 my-4 border border-[#2B3036] shadow-xl">
+          <div class="w-12 h-12 rounded-xl bg-[#242830] border border-[#2B3036] flex items-center justify-center mx-auto text-[#9AA0A6]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-base font-bold text-[#E8E6E1]">No opportunities match your current filter</h3>
+            <p class="text-xs text-[#9AA0A6]">Try adjusting your search query, score threshold, or workplace mode filter.</p>
+          </div>
+          <button onclick="resetOppFilters()"
+            class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-95 cursor-pointer">
+            Reset Filters
+          </button>
+        </div>
+      `;
+      return;
     }
 
     if (jobList.length === 0) {
       const activeTitles = (window.targetRolesList && window.targetRolesList.length)
-        ? window.targetRolesList.slice(0, 3).join(', ')
+        ? window.targetRolesList.slice(0, 4).join(', ')
         : 'Configured in Settings';
       const activeLocs = (window.targetLocationsList && window.targetLocationsList.length)
         ? window.targetLocationsList.slice(0, 3).join(', ')
@@ -200,10 +225,10 @@ function renderPendingJobs(jobs) {
           
           <div class="space-y-2">
             <h3 class="text-lg sm:text-xl font-bold text-[#E8E6E1] tracking-tight">
-              Ready to Discover High-Match Roles
+              Ready to Discover High-Match Opportunities
             </h3>
             <p class="text-xs sm:text-sm text-[#9AA0A6] max-w-md mx-auto leading-relaxed">
-              Your profile is synchronized with autonomous crawler adapters. Trigger a scan to discover, score, and rank opportunities in real time.
+              Your profile is synchronized with autonomous crawler adapters across 16 major job boards. Click Run Scan to ingest, score, and rank opportunities in real time.
             </p>
           </div>
 
@@ -227,14 +252,11 @@ function renderPendingJobs(jobs) {
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span>Run First Discovery Scan</span>
+              <span>Run Discovery Scan</span>
             </button>
-            <button onclick="selectNavTab('custom')"
+            <button onclick="openScanModal()"
               class="px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-2 active:scale-95 cursor-pointer">
-              <svg class="w-4 h-4 text-[#5FA8A0] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-              <span>Tailor Any Job Link</span>
+              <span>View Scan Insights</span>
             </button>
           </div>
 
@@ -242,12 +264,12 @@ function renderPendingJobs(jobs) {
           <div class="pt-2 border-t border-[#2B3036]/60 flex items-center justify-center gap-4 text-[11px] text-[#9AA0A6] flex-wrap font-mono">
             <span class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span>Automated Multi-Board Ingestion Active</span>
+              <span>Autonomous Multi-Board Ingestion Active</span>
             </span>
             <span class="hidden sm:inline text-[#3D444D]">•</span>
             <span class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              <span>Scoring Threshold: 60+ Match</span>
+              <span>Scoring Threshold: 70+ Match</span>
             </span>
           </div>
         </div>
@@ -452,6 +474,8 @@ async function loadPendingJobs() {
     const data = await res.json();
     const jobs = data.jobs || [];
 
+    window.allLoadedPendingJobs = jobs;
+
     // Cache updated jobs
     try {
       if (jobs.length > 0) {
@@ -461,9 +485,285 @@ async function loadPendingJobs() {
       }
     } catch (_) {}
 
-    renderPendingJobs(jobs);
+    filterOpportunities();
   } catch (e) {
     console.error('loadPendingJobs error:', e);
+  }
+}
+
+// ── Search & Filter State & Handlers ───────────────────────────────────────────
+window.currentScoreFilter = 'all';
+window.currentWorktypeFilter = 'all';
+
+function setScoreFilter(score) {
+  window.currentScoreFilter = score;
+  document.querySelectorAll('.opp-score-btn').forEach(btn => {
+    const isMatch = btn.getAttribute('data-score') === String(score);
+    btn.className = isMatch
+      ? 'opp-score-btn px-2.5 py-1 rounded text-[11px] font-medium bg-[#242830] text-[#E8E6E1] transition-all'
+      : 'opp-score-btn px-2.5 py-1 rounded text-[11px] font-medium text-[#9AA0A6] hover:text-[#E8E6E1] transition-all';
+  });
+  filterOpportunities();
+}
+
+function setWorktypeFilter(mode) {
+  window.currentWorktypeFilter = mode;
+  document.querySelectorAll('.opp-work-btn').forEach(btn => {
+    const isMatch = btn.getAttribute('data-worktype') === String(mode);
+    btn.className = isMatch
+      ? 'opp-work-btn px-2 py-1 rounded text-[11px] font-medium bg-[#242830] text-[#E8E6E1] transition-all'
+      : 'opp-work-btn px-2 py-1 rounded text-[11px] font-medium text-[#9AA0A6] hover:text-[#E8E6E1] transition-all';
+  });
+  filterOpportunities();
+}
+
+function resetOppFilters() {
+  const input = document.getElementById('opp-search-input');
+  if (input) input.value = '';
+  setScoreFilter('all');
+  setWorktypeFilter('all');
+}
+
+function filterOpportunities() {
+  const jobs = window.allLoadedPendingJobs || [];
+  const searchInput = document.getElementById('opp-search-input');
+  const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+  const scoreMin = window.currentScoreFilter === 'all' ? 0 : Number(window.currentScoreFilter);
+  const worktype = window.currentWorktypeFilter || 'all';
+
+  const filtered = jobs.filter(job => {
+    // Search query match
+    if (query) {
+      const title = (job.title || '').toLowerCase();
+      const company = (job.company || '').toLowerCase();
+      const location = (job.location || '').toLowerCase();
+      const skills = Array.isArray(job.matched_skills) ? job.matched_skills.join(' ').toLowerCase() : '';
+      if (!title.includes(query) && !company.includes(query) && !location.includes(query) && !skills.includes(query)) {
+        return false;
+      }
+    }
+    // Score threshold match
+    const score = Number(job.match_score) || 0;
+    if (score < scoreMin) return false;
+
+    // Worktype filter match
+    if (worktype !== 'all') {
+      const mode = (job.workplace_type || job.remote_status || '').toLowerCase();
+      if (worktype === 'remote') {
+        if (!mode.includes('remote') && !job.is_remote) return false;
+      } else if (worktype === 'hybrid') {
+        if (!mode.includes('hybrid')) return false;
+      }
+    }
+
+    return true;
+  });
+
+  const badge = document.getElementById('opp-filtered-count');
+  if (badge) {
+    if (query || scoreMin > 0 || worktype !== 'all') {
+      badge.textContent = `Showing ${filtered.length} of ${jobs.length}`;
+    } else {
+      badge.textContent = `Showing all (${jobs.length})`;
+    }
+  }
+
+  const isFilterZero = filtered.length === 0 && jobs.length > 0;
+  renderPendingJobs(filtered, isFilterZero);
+}
+
+// ── Scan Diagnostics & Polling Controller ──────────────────────────────────────
+let scanPollTimer = null;
+
+function openScanModal() {
+  const modal = document.getElementById('scan-modal');
+  if (modal) modal.classList.remove('hidden');
+  checkScanStatus();
+}
+
+function closeScanModal() {
+  const modal = document.getElementById('scan-modal');
+  if (modal) modal.classList.add('hidden');
+  if (scanPollTimer) {
+    clearTimeout(scanPollTimer);
+    scanPollTimer = null;
+  }
+}
+
+async function stopScan() {
+  const btn = document.getElementById('btn-stop-scan');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Stopping...</span>`;
+  }
+  try {
+    await fetch('/api/pipeline/stop', { method: 'POST' });
+    await checkScanStatus();
+  } catch (e) {
+    console.error('stopScan error:', e);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function checkScanStatus() {
+  try {
+    const res = await fetch('/api/pipeline/status');
+    const data = await res.json();
+    renderScanDiagnostics(data);
+
+    if (data.status === 'running') {
+      if (scanPollTimer) clearTimeout(scanPollTimer);
+      scanPollTimer = setTimeout(checkScanStatus, 1500);
+    }
+  } catch (e) {
+    console.error('checkScanStatus error:', e);
+  }
+}
+
+function renderScanDiagnostics(data) {
+  const isRunning = data.status === 'running';
+  const badge = document.getElementById('scan-modal-status-badge');
+  const stepEl = document.getElementById('scan-modal-step');
+  const spinner = document.getElementById('scan-modal-spinner');
+  const doneIcon = document.getElementById('scan-modal-done-icon');
+  const stopBtn = document.getElementById('btn-stop-scan');
+  const logsEl = document.getElementById('scan-logs');
+  const breakdownEl = document.getElementById('scan-board-breakdown');
+  const totalExaminedEl = document.getElementById('scan-total-examined');
+  const footerMeta = document.getElementById('scan-footer-meta');
+  const navDot = document.getElementById('scan-status-dot');
+  const navText = document.getElementById('scan-insights-btn-text');
+
+  // Nav indicator
+  if (navDot) {
+    navDot.className = isRunning
+      ? 'w-2 h-2 rounded-full bg-amber-400 animate-ping'
+      : 'w-2 h-2 rounded-full bg-emerald-400';
+  }
+  if (navText) {
+    navText.textContent = isRunning ? 'Scanning Feeds (Live)...' : 'Scan Insights & Logs';
+  }
+
+  // Modal header status badge
+  if (badge) {
+    if (isRunning) {
+      badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      badge.textContent = 'Scanning Live';
+    } else if (data.status === 'aborted') {
+      badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-rose-500/10 text-rose-400 border border-rose-500/20';
+      badge.textContent = 'Stopped';
+    } else {
+      badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      badge.textContent = 'Idle / Ready';
+    }
+  }
+
+  if (stepEl) {
+    stepEl.textContent = data.currentStep || (isRunning ? 'Processing job feeds...' : 'Scan idle. Last scan details available.');
+  }
+
+  if (spinner && doneIcon) {
+    if (isRunning) {
+      spinner.classList.remove('hidden');
+      doneIcon.classList.add('hidden');
+    } else {
+      spinner.classList.add('hidden');
+      doneIcon.classList.remove('hidden');
+    }
+  }
+
+  if (stopBtn) {
+    if (isRunning) {
+      stopBtn.classList.remove('hidden');
+      stopBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> <span>Stop Scan</span>`;
+    } else {
+      stopBtn.classList.add('hidden');
+    }
+  }
+
+  // Stepper / Funnel highlights
+  const stats = data.stats || {};
+  const stepSub1 = document.getElementById('step-sub-1');
+  const stepSub2 = document.getElementById('step-sub-2');
+  const stepSub3 = document.getElementById('step-sub-3');
+  const stepSub4 = document.getElementById('step-sub-4');
+  if (stepSub1) stepSub1.textContent = stats.totalFetched ? `${stats.totalFetched} listings` : '16 Boards';
+  if (stepSub2) stepSub2.textContent = stats.freshCount ? `${stats.freshCount} passed` : 'Geo & Fresh';
+  if (stepSub3) stepSub3.textContent = stats.scoredCount ? `${stats.scoredCount} evaluated` : 'AI & Heuristic';
+  if (stepSub4) stepSub4.textContent = stats.qualifiedCount ? `${stats.qualifiedCount} qualified` : 'Yield';
+
+  // Board breakdown badges
+  const breakdown = data.boardBreakdown || {};
+  const boardNames = Object.keys(breakdown);
+  if (breakdownEl) {
+    if (boardNames.length > 0) {
+      breakdownEl.innerHTML = boardNames.map(board => `
+        <span class="px-2 py-0.5 text-[11px] font-mono rounded bg-[#181B20] text-[#CBD5E1] border border-[#2B3036] flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>${escapeHtml(board)}:</span>
+          <strong class="text-white">${breakdown[board]}</strong>
+        </span>
+      `).join('');
+    } else {
+      breakdownEl.innerHTML = `<span class="text-xs text-[#5F6B76] italic">No board data available</span>`;
+    }
+  }
+
+  if (totalExaminedEl) {
+    totalExaminedEl.textContent = stats.totalFetched ? `${stats.totalFetched} listings examined` : '0 listings';
+  }
+
+  // Live or persisted logs
+  if (logsEl && Array.isArray(data.logs)) {
+    logsEl.innerHTML = data.logs.map(log => {
+      let colorClass = 'text-[#CBD5E1]';
+      if (log.includes('complete') || log.includes('qualified') || log.includes('passed') || log.includes('finished')) colorClass = 'text-emerald-400';
+      else if (log.includes('Stop') || log.includes('aborted') || log.includes('failed')) colorClass = 'text-rose-400';
+      else if (log.includes('Scanning') || log.includes('Evaluating') || log.includes('Scoring')) colorClass = 'text-blue-300';
+      else if (log.includes('Initializing') || log.includes('Ingestion')) colorClass = 'text-[#D9A441]';
+      return `<div class="${colorClass}">${escapeHtml(log)}</div>`;
+    }).join('');
+    logsEl.scrollTop = logsEl.scrollHeight;
+  }
+
+  if (footerMeta) {
+    if (data.lastScanTimestamp) {
+      const d = new Date(data.lastScanTimestamp);
+      footerMeta.textContent = `Last scan: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      footerMeta.textContent = isRunning ? 'Scan in progress...' : 'Ready';
+    }
+  }
+}
+
+async function triggerPipelineScan() {
+  openScanModal();
+
+  try {
+    const res = await fetch('/api/pipeline/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+
+    if (res.status === 409 || data.status === 'already_running') {
+      // Scan already running concurrently - attach to stream
+      checkScanStatus();
+      return;
+    }
+
+    if (data.success) {
+      await checkScanStatus();
+      await loadStatus();
+      await loadPendingJobs();
+    } else {
+      await checkScanStatus();
+    }
+  } catch (e) {
+    console.error('triggerPipelineScan error:', e);
+    await checkScanStatus();
   }
 }
 
@@ -570,38 +870,9 @@ async function rejectJob(jobId) {
   }
 }
 
-async function triggerPipelineScan() {
-  const modal = document.getElementById('scan-modal');
-  const logs = document.getElementById('scan-logs');
-  if (modal) modal.classList.remove('hidden');
-  if (logs) {
-    logs.innerHTML = `
-      <div class="text-blue-400">> Initializing Jobryt AI autonomous agent pipeline...</div>
-      <div class="text-slate-400">> Fetching multi-board job feeds (Adzuna, Canada Job Bank, USAJobs, Remotive, LinkedIn)...</div>
-    `;
-  }
-
-  try {
-    const res = await fetch('/api/pipeline/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-    const data = await res.json();
-    if (data.success && logs) {
-      logs.innerHTML += `
-        <div class="text-emerald-400">> Multi-board ingestion complete: ${data.stats.totalFetched} listings examined.</div>
-        <div class="text-emerald-400">> Freshness & Geo filtering passed: ${data.stats.freshCount} jobs.</div>
-        <div class="text-blue-300">> Deduplication check passed: ${data.stats.unseenCount} new listings.</div>
-        <div class="text-purple-300">> LLM & Heuristic scoring: ${data.stats.scoredCount} evaluated.</div>
-        <div class="text-emerald-400 font-bold">> Scan finished: ${data.stats.qualifiedCount} qualified opportunities added to approval queue!</div>
-      `;
-      const stepElem = document.getElementById('scan-modal-step');
-      if (stepElem) stepElem.innerText = 'Scan Complete!';
-      await loadStatus();
-      await loadPendingJobs();
-    } else if (logs) {
-      logs.innerHTML += `<div class="text-rose-400">> Scan failed: ${data.error}</div>`;
-    }
-  } catch (e) {
-    if (logs) logs.innerHTML += `<div class="text-rose-400">> Network error: ${e.message}</div>`;
-  }
+// Background status check on startup to set header dot/meta
+if (typeof window !== 'undefined') {
+  setTimeout(() => { checkScanStatus(); }, 1000);
 }
 
 // Window exports
@@ -611,3 +882,12 @@ window.loadPendingJobs = loadPendingJobs;
 window.rejectJob = rejectJob;
 window.applyToJob = applyToJob;
 window.triggerPipelineScan = triggerPipelineScan;
+window.filterOpportunities = filterOpportunities;
+window.setScoreFilter = setScoreFilter;
+window.setWorktypeFilter = setWorktypeFilter;
+window.resetOppFilters = resetOppFilters;
+window.openScanModal = openScanModal;
+window.closeScanModal = closeScanModal;
+window.stopScan = stopScan;
+window.checkScanStatus = checkScanStatus;
+window.renderScanDiagnostics = renderScanDiagnostics;

@@ -799,16 +799,46 @@
             </svg>
             <span>Refresh</span>
           </button>
-          <button onclick="triggerPipelineScan()"
-            class="px-3.5 py-1.5 text-xs font-semibold rounded-md bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] flex items-center gap-1.5 active:scale-[0.98]">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Scan Feeds</span>
+          <button id="btn-scan-insights" onclick="openScanModal()"
+            class="px-3.5 py-1.5 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center gap-2 active:scale-[0.98] cursor-pointer">
+            <span id="scan-status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="scan-insights-btn-text">Scan Insights & Logs</span>
           </button>
+        </div>
+      </div>
+
+      <!-- Opportunities Search & Filter Toolbar -->
+      <div id="opp-filter-bar" class="p-3 rounded-xl bg-[#16191E] border border-[#2B3036] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <svg class="w-3.5 h-3.5 text-[#5F6B76] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" id="opp-search-input" oninput="filterOpportunities()"
+            placeholder="Search opportunities by title, company, skills..."
+            class="w-full pl-8 pr-3 py-1.5 rounded-lg bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none">
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex items-center gap-2 flex-wrap shrink-0">
+          <!-- Score Filter -->
+          <div class="flex items-center gap-1 bg-[#111317] p-1 rounded-lg border border-[#2B3036]" id="opp-score-filter">
+            <button type="button" onclick="setScoreFilter('all')" data-score="all" class="opp-score-btn px-2.5 py-1 rounded text-[11px] font-medium bg-[#242830] text-[#E8E6E1] transition-all">All</button>
+            <button type="button" onclick="setScoreFilter(85)" data-score="85" class="opp-score-btn px-2.5 py-1 rounded text-[11px] font-medium text-[#9AA0A6] hover:text-[#E8E6E1] transition-all">85%+ Top</button>
+            <button type="button" onclick="setScoreFilter(75)" data-score="75" class="opp-score-btn px-2.5 py-1 rounded text-[11px] font-medium text-[#9AA0A6] hover:text-[#E8E6E1] transition-all">75%+ Strong</button>
+          </div>
+
+          <!-- Workplace Mode Filter -->
+          <div class="flex items-center gap-1 bg-[#111317] p-1 rounded-lg border border-[#2B3036]" id="opp-worktype-filter">
+            <button type="button" onclick="setWorktypeFilter('all')" data-worktype="all" class="opp-work-btn px-2 py-1 rounded text-[11px] font-medium bg-[#242830] text-[#E8E6E1] transition-all">Any</button>
+            <button type="button" onclick="setWorktypeFilter('remote')" data-worktype="remote" class="opp-work-btn px-2 py-1 rounded text-[11px] font-medium text-[#9AA0A6] hover:text-[#E8E6E1] transition-all">Remote</button>
+            <button type="button" onclick="setWorktypeFilter('hybrid')" data-worktype="hybrid" class="opp-work-btn px-2 py-1 rounded text-[11px] font-medium text-[#9AA0A6] hover:text-[#E8E6E1] transition-all">Hybrid</button>
+          </div>
+
+          <!-- Filtered Count Badge -->
+          <span id="opp-filtered-count" class="px-2 py-1 rounded text-[11px] font-mono bg-[#111317] border border-[#2B3036] text-[#9AA0A6]">
+            Showing all
+          </span>
         </div>
       </div>
 
@@ -2071,32 +2101,91 @@
     </div>
   </div>
 
-  <!-- Live Scan Progress Modal -->
-  <div id="scan-modal" class="fixed inset-0 z-50 bg-[#14161A]/95 hidden flex items-center justify-center p-4">
-    <div class="app-card max-w-lg w-full p-6 space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-md bg-[#242830] border border-[#2B3036] flex items-center justify-center shrink-0">
-          <svg class="w-4 h-4 text-[#D9A441] animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+  <!-- Live Scan Progress & Diagnostics Modal -->
+  <div id="scan-modal" class="fixed inset-0 z-50 bg-[#14161A]/95 hidden flex items-center justify-center p-4 backdrop-blur-xs">
+    <div class="app-card max-w-xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col shadow-2xl border border-[#2B3036]">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-[#2B3036] pb-3 shrink-0">
+        <div class="flex items-center gap-3">
+          <div id="scan-modal-icon-container" class="w-9 h-9 rounded-lg bg-[#242830] border border-[#2B3036] flex items-center justify-center shrink-0">
+            <svg id="scan-modal-spinner" class="w-4 h-4 text-[#D9A441] animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <svg id="scan-modal-done-icon" class="w-4 h-4 text-emerald-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-[#E8E6E1] text-base tracking-tight">Discovery Scan Diagnostics</h3>
+              <span id="scan-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Idle</span>
+            </div>
+            <p class="text-xs text-[#9AA0A6]" id="scan-modal-step">Ingesting feeds across active job boards...</p>
+          </div>
+        </div>
+        <button id="btn-close-scan-x" onclick="closeScanModal()" class="text-[#9AA0A6] hover:text-[#E8E6E1] p-1.5 rounded-md hover:bg-[#242830]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </div>
-        <div>
-          <h3 class="font-bold text-[#E8E6E1] text-sm sm:text-base tracking-tight">Running Job Pipeline Scan...</h3>
-          <p class="text-xs text-[#9AA0A6]" id="scan-modal-step">Ingesting feeds across active job boards...</p>
-        </div>
-      </div>
-      <div
-        class="bg-[#111317] p-4 rounded-md border border-[#2B3036] font-mono text-[11px] text-[#E8E6E1] space-y-1.5 h-44 overflow-y-auto tabular-nums"
-        id="scan-logs">
-        <div class="text-[#D9A441]">> Initializing Jobryt autonomous agent pipeline...</div>
-      </div>
-      <div class="flex justify-end">
-        <button id="btn-close-scan" onclick="document.getElementById('scan-modal').classList.add('hidden')"
-          class="px-4 py-2 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-[0.98]">
-          Dismiss
         </button>
       </div>
+
+      <!-- Stepper / Funnel Bar -->
+      <div class="grid grid-cols-4 gap-2 text-center text-[10px] font-medium shrink-0 pt-1">
+        <div id="step-pill-1" class="p-2 rounded-md bg-[#181B20] border border-[#2B3036] text-[#9AA0A6]">
+          <div class="font-bold">1. Ingest</div>
+          <div id="step-sub-1" class="truncate text-[9px] text-[#5F6B76]">16 Boards</div>
+        </div>
+        <div id="step-pill-2" class="p-2 rounded-md bg-[#181B20] border border-[#2B3036] text-[#9AA0A6]">
+          <div class="font-bold">2. Filter</div>
+          <div id="step-sub-2" class="truncate text-[9px] text-[#5F6B76]">Geo & Scope</div>
+        </div>
+        <div id="step-pill-3" class="p-2 rounded-md bg-[#181B20] border border-[#2B3036] text-[#9AA0A6]">
+          <div class="font-bold">3. Score</div>
+          <div id="step-sub-3" class="truncate text-[9px] text-[#5F6B76]">AI & Match</div>
+        </div>
+        <div id="step-pill-4" class="p-2 rounded-md bg-[#181B20] border border-[#2B3036] text-[#9AA0A6]">
+          <div class="font-bold">4. Yield</div>
+          <div id="step-sub-4" class="truncate text-[9px] text-[#5F6B76]">Qualified</div>
+        </div>
+      </div>
+
+      <!-- Job Board Yield Breakdown Cards -->
+      <div class="shrink-0 space-y-1.5">
+        <div class="flex items-center justify-between text-xs text-[#9AA0A6]">
+          <span class="font-semibold uppercase tracking-wider text-[10px]">Board Ingestion Breakdown</span>
+          <span id="scan-total-examined" class="font-mono text-emerald-400 font-medium">0 listings</span>
+        </div>
+        <div id="scan-board-breakdown" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 rounded-lg bg-[#111317] border border-[#2B3036]">
+          <span class="text-xs text-[#5F6B76] italic">No board data loaded yet</span>
+        </div>
+      </div>
+
+      <!-- Terminal Log Stream -->
+      <div class="flex-1 min-h-[140px] max-h-48 bg-[#0D0F12] p-3.5 rounded-lg border border-[#2B3036] font-mono text-[11px] text-[#CBD5E1] space-y-1 overflow-y-auto select-all" id="scan-logs">
+        <div class="text-[#D9A441]">> Initializing Jobryt autonomous agent pipeline...</div>
+      </div>
+
+      <!-- Action Footer with Stop Button and Close Button -->
+      <div class="flex items-center justify-between pt-2 border-t border-[#2B3036] shrink-0">
+        <div class="text-[11px] text-[#9AA0A6] font-mono truncate max-w-[260px]" id="scan-footer-meta">
+          Ready
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-stop-scan" onclick="stopScan()"
+            class="hidden px-3.5 py-1.5 rounded-md text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 flex items-center gap-1.5 active:scale-95 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <span>Stop Scan</span>
+          </button>
+          <button id="btn-close-scan" onclick="closeScanModal()"
+            class="px-4 py-1.5 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-[0.98] cursor-pointer">
+            Dismiss
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 

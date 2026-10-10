@@ -45,19 +45,28 @@ test('Plan 28.1 - Profile vs Search Preferences Decoupling Verification', async 
 
   await t.test('syncProfileToSettings routes 4-10 discovered roles to settings without altering candidate profile baseline', () => {
     const { syncProfileToSettings } = require('../scripts/core/settings-helper');
-    const candidateProfile = {
-      name: 'Taylor Developer',
-      role: 'Full Stack Developer',
-      contact: { location: 'Toronto, ON, Canada' },
-      skills: ['JavaScript', 'TypeScript', 'Node.js', 'React', 'Docker', 'PostgreSQL'],
-      experience: [
-        { role: 'Full Stack Developer', company: 'TechWorks Inc.', dates: '2021 - Present' }
-      ]
-    };
+    const settingsPath = path.join(__dirname, '..', 'data', 'config', 'settings.json');
+    const originalSettings = fs.existsSync(settingsPath) ? fs.readFileSync(settingsPath, 'utf8') : null;
 
-    const synced = syncProfileToSettings(candidateProfile);
-    assert.ok(Array.isArray(synced.target_roles), 'synced settings must contain target_roles array');
-    assert.ok(synced.target_roles.length >= 4 && synced.target_roles.length <= 10, 'Must have 4-10 discovered market target roles');
-    assert.ok(synced.target_roles.some(r => r.toLowerCase().includes('full stack') || r.toLowerCase().includes('software')), 'Must match candidate domain');
+    try {
+      const candidateProfile = {
+        name: 'Taylor Developer',
+        role: 'Full Stack Developer',
+        contact: { location: 'Toronto, ON, Canada' },
+        skills: ['JavaScript', 'TypeScript', 'Node.js', 'React', 'Docker', 'PostgreSQL'],
+        experience: [
+          { role: 'Full Stack Developer', company: 'TechWorks Inc.', dates: '2021 - Present' }
+        ]
+      };
+
+      const synced = syncProfileToSettings(candidateProfile);
+      assert.ok(Array.isArray(synced.target_roles), 'synced settings must contain target_roles array');
+      assert.ok(synced.target_roles.length >= 4 && synced.target_roles.length <= 10, 'Must have 4-10 discovered market target roles');
+      assert.ok(synced.target_roles.some(r => r.toLowerCase().includes('full stack') || r.toLowerCase().includes('software')), 'Must match candidate domain');
+    } finally {
+      if (originalSettings) {
+        fs.writeFileSync(settingsPath, originalSettings, 'utf8');
+      }
+    }
   });
 });
