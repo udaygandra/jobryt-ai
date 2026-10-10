@@ -28,13 +28,23 @@ async function executePipelineScan(overrides = {}) {
   const profile = getMasterProfile();
   const settings = settingsHelper.getSettings();
 
+  // Target titles: solely from overrides or settings (fallback to profile.role only if settings empty)
   const targetTitles = (overrides.targetTitles && overrides.targetTitles.length > 0)
     ? overrides.targetTitles
-    : (settings.target_titles && settings.target_titles.length > 0 ? settings.target_titles : (profile.target_titles || ['Target Role']));
+    : ((settings.target_titles && settings.target_titles.length > 0)
+      ? settings.target_titles
+      : ((settings.target_roles && settings.target_roles.length > 0)
+        ? settings.target_roles
+        : (profile.role ? [profile.role] : ['Target Role'])));
 
+  // Target locations: solely from overrides or settings (fallback to profile resident location only if settings empty)
   const targetLocations = (overrides.targetLocations && overrides.targetLocations.length > 0)
     ? overrides.targetLocations
-    : (settings.locations && settings.locations.length > 0 ? settings.locations : (profile.locations || ['Remote']));
+    : ((settings.locations && settings.locations.length > 0)
+      ? settings.locations
+      : ((settings.target_locations && settings.target_locations.length > 0)
+        ? settings.target_locations
+        : (profile.contact?.location ? [profile.contact.location] : ['Remote'])));
 
   const minThreshold = overrides.minScore !== undefined
     ? Number(overrides.minScore)
