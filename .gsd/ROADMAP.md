@@ -125,13 +125,13 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 15.4: Forward-Deployed AI Prompt Engineering & Efficiency Optimization](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/15/15.4-PLAN.md)
 
 ### Phase 16: Workday-Style Skills Tag Manager, Experience Rounding, Navigation Fluidity & Profile Decluttering
-**Status:** 🔄 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Remove redundant job sources card from My Resume & Profile; consolidate skills inputs into one large Workday-style interactive tag manager with fast add/delete; replace text experience input with a decimal stepper applying 0.5 rounding rules (2.25 rounds to 2, 2.3 rounds to 2.5); ensure fluid responsive navigation so "Run Scan" never overflows the container; enlarge the menu logo and synchronize the Chrome tab favicon.
 
 **Plans:**
-- [ ] [Plan 16.1: Profile Decluttering & Workday-Style Unified Skills Tag Manager](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.1-PLAN.md)
-- [ ] [Plan 16.2: Clean Decimal Experience Stepper (0.5 Rounding Engine) & Contact Fields Standard Check](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.2-PLAN.md)
-- [ ] [Plan 16.3: Responsive Fluid Navigation, Overflow Guardrails & Chrome Tab Favicon Match](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.3-PLAN.md)
+- [x] [Plan 16.1: Profile Decluttering & Workday-Style Unified Skills Tag Manager](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.1-PLAN.md)
+- [x] [Plan 16.2: Clean Decimal Experience Stepper (0.5 Rounding Engine) & Contact Fields Standard Check](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.2-PLAN.md)
+- [x] [Plan 16.3: Responsive Fluid Navigation, Overflow Guardrails & Chrome Tab Favicon Match](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/16/16.3-PLAN.md)
 
 ---
 
@@ -151,7 +151,7 @@ updated: 2026-10-08T17:36:00Z
 | 13 | ✅ | 3/3 | 100% (v1.2) |
 | 14 | ✅ | 4/4 | 100% (v1.2) |
 | 15 | ✅ | 4/4 | 100% (v1.2) |
-| 16 | 🔄 | 0/3 | 0% (v1.2) |
+| 16 | ✅ | 3/3 | 100% (v1.2) |
 
 
 

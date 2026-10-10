@@ -5,8 +5,8 @@
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
 - **Phase**: 16 - Workday-Style Skills Tag Manager, Experience Rounding, Navigation Fluidity & Profile Decluttering
-- **Task**: Planning complete (Plans 16.1, 16.2, 16.3)
-- **Status**: Ready for execution
+- **Task**: Execution & Verification complete (Plans 16.1, 16.2, 16.3)
+- **Status**: ✅ Phase 16 Complete
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -21,6 +21,7 @@
 - [x] **Phase 13: Live Geocoding City Search, Google Maps-Grade Hybrid Combobox & Resume-Driven Country Unlocking** (Milestone v1.2)
 - [x] **Phase 14: UX Guardrails, City Formatting Consistency, Role & City Quotas, and Settings Layout Refinement** (Milestone v1.2)
 - [x] **Phase 15: UX Breathing Room, ATS Resume Editor Overhaul, Smart City Resets, Button Validations & Prompt Engineering** (Milestone v1.2)
+- [x] **Phase 16: Workday-Style Skills Tag Manager, Experience Rounding, Navigation Fluidity & Profile Decluttering** (Milestone v1.2)
 
 ## Next Recommended Action
-Execute Phase 16 via `/execute 16`.
+Audit and complete milestone v1.2 via `/audit-milestone v1.2` or `/complete-milestone`.
