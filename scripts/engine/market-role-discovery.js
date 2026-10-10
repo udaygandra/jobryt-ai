@@ -144,11 +144,26 @@ function discoverMarketRoles(existingTitles = [], profile = {}) {
     addTitle('Data Platform Engineer');
   }
 
-  // ── Archetype 3: Software Engineering / Full Stack ─────────────────────────────
+  // ── Archetype 3: Mobile Engineering ───────────────────────────────────────────
+  const isMobile = /\b(mobile|ios|android|swift|flutter|react native|kotlin)\b/i.test(primaryRole) ||
+    (hasSkill('ios') || hasSkill('android') || hasSkill('swift') || hasSkill('kotlin') || hasSkill('flutter') || hasSkill('react native'));
+
+  if (isMobile) {
+    addTitle('Mobile Application Developer');
+    addTitle('Mobile Software Engineer');
+    if (hasSkill('ios') || hasSkill('swift') || /ios/i.test(primaryRole)) addTitle('iOS Developer');
+    if (hasSkill('android') || hasSkill('kotlin') || /android/i.test(primaryRole)) addTitle('Android Developer');
+    if (hasSkill('react native')) addTitle('React Native Developer');
+    if (hasSkill('flutter')) addTitle('Flutter Developer');
+    if (isSenior) addTitle('Senior Mobile Developer');
+    addTitle('Mobile App Engineer');
+  }
+
+  // ── Archetype 4: Software Engineering / Full Stack ─────────────────────────────
   const isSoftwareEngineer = /\b(software engineer|developer|programmer|full\s*stack|frontend|front-end|backend|back-end|web\s*developer|react|node|javascript|typescript)\b/i.test(primaryRole) ||
     (hasSkill('javascript') || hasSkill('typescript') || hasSkill('react') || hasSkill('node') || hasSkill('full stack') || hasSkill('python') || hasSkill('java') || hasSkill('c#') || hasSkill('golang'));
 
-  if (isSoftwareEngineer && !isDataAnalyst) {
+  if (isSoftwareEngineer && !isDataAnalyst && !isMobile) {
     addTitle('Software Engineer');
     addTitle('Full Stack Developer');
     if (hasSkill('react') || hasSkill('angular') || hasSkill('vue') || hasSkill('frontend') || hasSkill('html') || hasSkill('javascript')) {
@@ -173,21 +188,6 @@ function discoverMarketRoles(existingTitles = [], profile = {}) {
     }
     if (hasSkill('typescript')) addTitle('TypeScript Developer');
     addTitle('Web Application Developer');
-  }
-
-  // ── Archetype 4: Mobile Engineering ───────────────────────────────────────────
-  const isMobile = /\b(mobile|ios|android|swift|flutter|react native|kotlin)\b/i.test(primaryRole) ||
-    (hasSkill('ios') || hasSkill('android') || hasSkill('swift') || hasSkill('kotlin') || hasSkill('flutter') || hasSkill('react native'));
-
-  if (isMobile) {
-    addTitle('Mobile Application Developer');
-    addTitle('Mobile Software Engineer');
-    if (hasSkill('ios') || hasSkill('swift')) addTitle('iOS Developer');
-    if (hasSkill('android') || hasSkill('kotlin')) addTitle('Android Developer');
-    if (hasSkill('react native')) addTitle('React Native Developer');
-    if (hasSkill('flutter')) addTitle('Flutter Developer');
-    if (isSenior) addTitle('Senior Mobile Developer');
-    addTitle('Mobile App Engineer');
   }
 
   // ── Archetype 5: DevOps / Cloud / Platform ─────────────────────────────────────
