@@ -4,8 +4,8 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 20 - Floating Toast Theme Adaptability & Eye-Friendly Light Palette Redesign
-- **Task**: Planning complete (Plans 20.1, 20.2)
+- **Phase**: 20 - Floating Toast Theme Adaptability, Eye-Friendly Light Palette & Container EROFS Fix
+- **Task**: Planning complete (Plans 20.1, 20.2, 20.3)
 - **Status**: Ready for execution
 
 ## Completed Plans & Phases
