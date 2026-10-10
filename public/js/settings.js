@@ -1107,10 +1107,12 @@ async function loadSettings() {
       const profData = await profRes.json();
       window.targetRolesList = Array.isArray(profData.target_titles) && profData.target_titles.length
         ? [...profData.target_titles]
-        : (Array.isArray(profData.target_roles) && profData.target_roles.length ? [...profData.target_roles] : ['Data Analyst']);
+        : (Array.isArray(profData.target_roles) && profData.target_roles.length
+          ? [...profData.target_roles]
+          : (profData.headline ? [profData.headline] : []));
       window.targetLocationsList = Array.isArray(profData.locations) && profData.locations.length
         ? [...profData.locations]
-        : ['Remote', 'Toronto, ON'];
+        : (profData.contact?.location ? [profData.contact.location, 'Remote'] : ['Remote']);
       renderRoleTags();
       renderLocationTags();
 

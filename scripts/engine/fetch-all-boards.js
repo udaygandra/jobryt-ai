@@ -314,7 +314,7 @@ async function fetchCanadaJobBank() {
   try {
     const isExplicitRemote = candidateWorkType.toLowerCase().includes('remote') || CTX.loc.toLowerCase() === 'remote';
     const rawSearchLoc = getSearchLocationQuery(CTX.loc);
-    const jobBankLoc = isExplicitRemote ? 'Canada' : (rawSearchLoc.split(',')[0].trim() || 'Toronto');
+    const jobBankLoc = isExplicitRemote ? 'Canada' : (rawSearchLoc.split(',')[0].trim() || 'Canada');
     const cleanSearchRole = CTX.role.replace(/\s+(II|III|IV|I)\b/i, '').trim() || CTX.role;
     const url = `https://www.jobbank.gc.ca/jobsearch/jobsearch?searchstring=${encodeURIComponent(cleanSearchRole)}&locationstring=${encodeURIComponent(jobBankLoc)}&sort=D`;
     
@@ -1564,7 +1564,7 @@ async function fetchAllJobsInner(options = {}) {
     });
   }
 
-  const sweepTitles = (targetTitles && targetTitles.length > 0) ? targetTitles : ['Data Analyst'];
+  const sweepTitles = (targetTitles && targetTitles.length > 0) ? targetTitles : (currentRole ? [currentRole] : []);
   const sweepLocs = (targetLocations && targetLocations.length > 0) ? targetLocations : [currentLoc || ''];
 
   console.error(`[Multi-Board Ingestion] Executing concurrent sweep across ${sweepTitles.length} roles and ${sweepLocs.length} locations (Scope: ${countryScope}).`);
