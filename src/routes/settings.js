@@ -245,8 +245,13 @@ router.post('/env', (req, res) => {
       }
     }
 
-    fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
-    res.json({ success: true, message: 'Configuration saved to .env and loaded into memory' });
+    try {
+      fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      res.json({ success: true, message: 'Configuration saved to .env and loaded into memory' });
+    } catch (writeErr) {
+      console.warn(`[Settings] Notice: Could not persist to ${envPath} (${writeErr.message}), configuration active in runtime memory.`);
+      res.json({ success: true, message: 'Configuration loaded into runtime memory (Note: .env file is read-only)' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -278,26 +283,32 @@ router.post('/validate-key', async (req, res) => {
         return res.status(400).json({ success: false, error: `Could not verify Adzuna credentials: ${probeErr.message}` });
       }
 
-      // Save to process.env and .env
+      // Save to process.env
       process.env.ADZUNA_APP_ID = appId;
       process.env.ADZUNA_APP_KEY = appKey;
       
       const envPath = path.join(rootDir, '.env');
-      let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
-      ['ADZUNA_APP_ID', 'ADZUNA_APP_KEY'].forEach(k => {
-        const v = credentials[k];
-        let found = false;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
-        }
-        if (!found) lines.push(`${k}=${v}`);
-      });
-      fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      try {
+        let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
+        ['ADZUNA_APP_ID', 'ADZUNA_APP_KEY'].forEach(k => {
+          const v = credentials[k];
+          let found = false;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
+          }
+          if (!found) lines.push(`${k}=${v}`);
+        });
+        fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      } catch (writeErr) {
+        console.warn(`[Settings] Notice: Could not persist to ${envPath} (${writeErr.message}), credentials preserved in memory and settings database.`);
+      }
 
-      // Enable board
+      // Enable board and persist credentials to settings.json
       const currSettings = settingsHelper.getSettings();
       currSettings.boards_enabled = currSettings.boards_enabled || {};
       currSettings.boards_enabled.adzuna = true;
+      currSettings.api_keys = currSettings.api_keys || {};
+      currSettings.api_keys.adzuna = { ADZUNA_APP_ID: appId, ADZUNA_APP_KEY: appKey };
       settingsHelper.updateSettings(currSettings);
 
       return res.json({ success: true, message: 'Adzuna API credentials verified and activated!', board: 'adzuna' });
@@ -327,19 +338,25 @@ router.post('/validate-key', async (req, res) => {
       if (userAgent) process.env.USAJOBS_USER_AGENT = userAgent;
 
       const envPath = path.join(rootDir, '.env');
-      let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
-      [['USAJOBS_API_KEY', apiKey], ['USAJOBS_USER_AGENT', userAgent]].forEach(([k, v]) => {
-        let found = false;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
-        }
-        if (!found) lines.push(`${k}=${v}`);
-      });
-      fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      try {
+        let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
+        [['USAJOBS_API_KEY', apiKey], ['USAJOBS_USER_AGENT', userAgent]].forEach(([k, v]) => {
+          let found = false;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
+          }
+          if (!found) lines.push(`${k}=${v}`);
+        });
+        fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      } catch (writeErr) {
+        console.warn(`[Settings] Notice: Could not persist to ${envPath} (${writeErr.message}), credentials preserved in memory and settings database.`);
+      }
 
       const currSettings = settingsHelper.getSettings();
       currSettings.boards_enabled = currSettings.boards_enabled || {};
       currSettings.boards_enabled.usajobs = true;
+      currSettings.api_keys = currSettings.api_keys || {};
+      currSettings.api_keys.usajobs = { USAJOBS_API_KEY: apiKey, USAJOBS_USER_AGENT: userAgent };
       settingsHelper.updateSettings(currSettings);
 
       return res.json({ success: true, message: 'USAJOBS API key verified and activated!', board: 'usajobs' });

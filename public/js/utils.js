@@ -46,17 +46,40 @@ function initTheme() {
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   if (!container) return;
+
+  const normalizedType = ['error', 'warning', 'info'].includes(type) ? type : 'success';
+
+  let iconSvg = '';
+  if (normalizedType === 'success') {
+    iconSvg = '<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+  } else if (normalizedType === 'error') {
+    iconSvg = '<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  } else if (normalizedType === 'warning') {
+    iconSvg = '<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+  } else {
+    iconSvg = '<svg class="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+  }
+
   const toast = document.createElement('div');
-  const bg = type === 'error' ? 'bg-rose-950/95 border-rose-700 text-rose-100' : 'bg-slate-900/95 border-slate-700 text-slate-100 shadow-blue-500/10';
-  toast.className = `px-4 py-3 rounded-xl border shadow-xl text-xs font-medium flex items-center gap-2 pointer-events-auto transition-all transform duration-300 translate-y-2 opacity-0 ${bg}`;
-  toast.innerHTML = `<span>${message}</span>`;
+  toast.className = `toast-notification toast-${normalizedType} transform transition-all duration-300 translate-y-2 opacity-0`;
+  toast.innerHTML = `${iconSvg}<span class="toast-message">${escapeHtml(message)}</span>`;
+
+  // Instant dismiss on user click
+  toast.addEventListener('click', () => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 250);
+  });
+
   container.appendChild(toast);
   requestAnimationFrame(() => {
     toast.classList.remove('translate-y-2', 'opacity-0');
   });
+
   setTimeout(() => {
-    toast.classList.add('opacity-0', 'translate-y-2');
-    setTimeout(() => toast.remove(), 300);
+    if (toast.parentElement) {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 250);
+    }
   }, 4000);
 }
 

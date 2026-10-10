@@ -25,6 +25,22 @@ const settingsHelper = require('./scripts/core/settings-helper');
 const jobsDb = require('./scripts/core/jobs-db');
 const { getLLMState, getNextWaterfallModel, getActiveModelInfo } = require('./scripts/engine/llm-state-manager');
 
+// Hydrate board API credentials from persistent settings if not present in environment
+try {
+  const currentSettings = settingsHelper.getSettings();
+  if (currentSettings && currentSettings.api_keys) {
+    for (const [, creds] of Object.entries(currentSettings.api_keys)) {
+      if (typeof creds === 'object' && creds !== null) {
+        for (const [k, v] of Object.entries(creds)) {
+          if (v && !process.env[k]) {
+            process.env[k] = String(v).trim();
+          }
+        }
+      }
+    }
+  }
+} catch (_) {}
+
 // 2. Modular Express Routers
 const profileRoutes = require('./src/routes/profile');
 const jobsRoutes = require('./src/routes/jobs');
