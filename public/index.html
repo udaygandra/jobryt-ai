@@ -1425,31 +1425,18 @@
                     placeholder="e.g. Data Analyst, Data Analyst II">
                 </div>
                 <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Total Stated
-                    Experience</label>
-                  <input type="text" id="prof-total-exp" oninput="syncFormToJson()"
-                    class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none"
-                    placeholder="e.g. around 5 years">
-                </div>
-              </div>
-
-              <!-- Country-Specific Verified Job Boards Display in Master Profile -->
-              <div id="prof-country-boards-card" class="p-4 rounded-lg bg-[#111317] border border-[#2B3036] space-y-2.5">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-[#2B3036]/60 pb-2">
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Total Experience (Years)</label>
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-[#E8E6E1]">🎯 Target Country Job Sources</span>
-                    <span id="prof-country-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#D9A441]/10 text-[#D9A441] border border-[#D9A441]/20">Auto-Detecting...</span>
+                    <button type="button" onclick="stepExperienceYears(-0.5)" aria-label="Decrease experience"
+                      class="w-9 h-9 rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#D9A441]/40 font-bold text-sm flex items-center justify-center cursor-pointer active:scale-95 transition-all">-</button>
+                    <input type="number" id="prof-total-exp" step="0.5" min="0" max="50"
+                      onchange="onExperienceInputChange()" onblur="onExperienceInputChange()" oninput="syncFormToJson()"
+                      class="w-24 px-3 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] font-mono text-center outline-none"
+                      placeholder="5.0">
+                    <button type="button" onclick="stepExperienceYears(0.5)" aria-label="Increase experience"
+                      class="w-9 h-9 rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#D9A441]/40 font-bold text-sm flex items-center justify-center cursor-pointer active:scale-95 transition-all">+</button>
+                    <span class="text-xs text-[#9AA0A6] font-medium font-mono">Years</span>
                   </div>
-                  <span class="text-[10px] text-emerald-400 font-mono font-semibold flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                    Verified Real Employers Only
-                  </span>
-                </div>
-                <p class="text-[11px] text-[#9AA0A6] leading-relaxed">
-                  Only the premier market leaders and verified free APIs for your target market are active:
-                </p>
-                <div id="prof-country-boards-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  <!-- Populated dynamically based on candidate's country -->
                 </div>
               </div>
 
@@ -1461,31 +1448,37 @@
                   placeholder="High-impact career summary describing your domain expertise..."></textarea>
               </div>
 
-              <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Verified
-                  Technical Skills (comma-separated)</label>
-                <textarea id="prof-skills" rows="3" oninput="syncFormToJson()"
-                  class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none"
-                  placeholder="e.g. SQL, Power BI, Python, DAX, BigQuery, Excel"></textarea>
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-[#9AA0A6] mb-1">Familiar /
-                  Secondary Skills</label>
-                <input type="text" id="prof-skills-familiar" oninput="syncFormToJson()"
-                  class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs text-[#E8E6E1] font-mono placeholder:text-[#5F6B76] outline-none"
-                  placeholder="e.g. Snowflake, Azure Data Factory, AWS">
-              </div>
-
-              <!-- Categorized Skills Interactive Container -->
-              <div id="prof-categorized-container" class="space-y-2 pt-2 border-t border-[#2B3036]/50">
+              <!-- Workday-Style Unified Skills Tag Manager -->
+              <div class="space-y-3 pt-3 border-t border-[#2B3036]/50">
                 <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-[#9AA0A6]">Skills Grouped by
-                    Domain</span>
-                  <span id="prof-cat-count" class="text-[10px] text-[#5F6B76] font-mono">0 categories</span>
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#E8E6E1]">Skills</label>
+                    <p class="text-[11px] text-[#9AA0A6] mt-0.5">Add and manage technical & domain skills used to match jobs and tailor resumes.</p>
+                  </div>
+                  <span id="prof-skills-count" class="text-[11px] font-mono text-[#D9A441] font-bold px-2 py-0.5 rounded bg-[#D9A441]/10 border border-[#D9A441]/20">0 skills</span>
                 </div>
-                <div id="prof-categorized-skills-preview" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                  <!-- Rendered dynamically -->
+
+                <!-- Workday-Style Inline Skill Adder -->
+                <div class="flex items-center gap-2">
+                  <div class="relative flex-1">
+                    <input type="text" id="prof-skill-input"
+                      onkeydown="handleProfileSkillKeyDown(event)"
+                      class="w-full px-3.5 py-2 rounded-md bg-[#111317] border border-[#2B3036] focus:border-[#D9A441] text-xs sm:text-sm text-[#E8E6E1] placeholder:text-[#5F6B76] outline-none"
+                      placeholder="Type a skill (e.g. Python, SQL, React) and press Enter or comma...">
+                  </div>
+                  <button type="button" id="btn-add-prof-skill" onclick="addProfileSkillFromInput()"
+                    class="px-3.5 py-2 text-xs font-semibold rounded-md bg-[#242830] hover:bg-[#2B3036] text-[#D9A441] border border-[#2B3036] hover:border-[#D9A441]/40 flex items-center gap-1.5 transition-colors cursor-pointer active:scale-[0.98]">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Add</span>
+                  </button>
+                </div>
+
+                <!-- Large Interactive Chip Container -->
+                <div id="prof-skills-tag-container"
+                  class="min-h-[100px] max-h-72 overflow-y-auto p-3 rounded-lg bg-[#111317] border border-[#2B3036] flex flex-wrap gap-2 content-start">
+                  <!-- Populated dynamically as chip pills with × remove buttons -->
                 </div>
               </div>
             </div>

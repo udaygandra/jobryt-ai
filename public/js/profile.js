@@ -23,6 +23,110 @@ async function loadProfile() {
   }
 }
 
+window.profileSkillsList = [];
+
+// Exact decimal experience rounding: 0.5 increments
+// 2.25 rounds to 2, 2.3 rounds to 2.5, 2.75 rounds to 2.5, 2.8 rounds to 3
+function roundExperienceYears(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'string') {
+    const m = val.match(/(\d+(?:\.\d+)?)/);
+    if (m) val = parseFloat(m[1]);
+    else return 0;
+  }
+  const num = parseFloat(val);
+  if (isNaN(num) || num < 0) return 0;
+  const base = Math.floor(num);
+  const dec = num - base;
+  if (dec <= 0.25) return base;
+  if (dec <= 0.75) return base + 0.5;
+  return base + 1.0;
+}
+
+function onExperienceInputChange() {
+  const input = document.getElementById('prof-total-exp');
+  if (!input) return;
+  const rounded = roundExperienceYears(input.value);
+  input.value = rounded;
+  updateExperienceBadge(rounded);
+  syncFormToJson();
+}
+
+function stepExperienceYears(delta) {
+  const input = document.getElementById('prof-total-exp');
+  if (!input) return;
+  const current = roundExperienceYears(input.value);
+  const next = Math.max(0, roundExperienceYears(current + delta));
+  input.value = next;
+  updateExperienceBadge(next);
+  syncFormToJson();
+}
+
+function updateExperienceBadge(years) {
+  const badge = document.getElementById('prof-years-badge');
+  if (badge) {
+    badge.innerText = `${years} Yrs Exp`;
+  }
+}
+
+// Workday-Style Skills Tag Manager
+function renderProfileSkillsTags() {
+  const container = document.getElementById('prof-skills-tag-container');
+  const countEl = document.getElementById('prof-skills-count');
+  if (!container) return;
+  if (countEl) countEl.innerText = `${window.profileSkillsList.length} skills`;
+
+  if (!window.profileSkillsList.length) {
+    container.innerHTML = `<span class="text-xs text-[#5F6B76] italic self-center px-1">No skills added yet. Type a skill and click Add or upload a resume.</span>`;
+    return;
+  }
+
+  container.innerHTML = window.profileSkillsList.map((skill, idx) => `
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-[#1C1F24] border border-[#2B3036] text-[#E8E6E1] hover:border-[#D9A441]/40 transition-colors">
+      <span>${escapeHtml(skill)}</span>
+      <button type="button" onclick="removeProfileSkill(${idx})" class="text-[#9AA0A6] hover:text-[#E5786D] transition-colors ml-0.5 cursor-pointer text-xs" title="Remove ${escapeHtml(skill)}">×</button>
+    </span>
+  `).join('');
+}
+
+function addProfileSkill(skill) {
+  const trimmed = (skill || '').trim();
+  if (!trimmed) return;
+  const exists = window.profileSkillsList.some(s => s.toLowerCase() === trimmed.toLowerCase());
+  if (!exists) {
+    window.profileSkillsList.push(trimmed);
+    renderProfileSkillsTags();
+    syncFormToJson();
+  }
+}
+
+function addProfileSkillFromInput() {
+  const input = document.getElementById('prof-skill-input');
+  if (!input) return;
+  const val = input.value;
+  if (!val.trim()) return;
+
+  const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+  parts.forEach(part => addProfileSkill(part));
+  input.value = '';
+  input.focus();
+}
+
+function handleProfileSkillKeyDown(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addProfileSkillFromInput();
+  }
+}
+
+function removeProfileSkill(idx) {
+  if (idx >= 0 && idx < window.profileSkillsList.length) {
+    window.profileSkillsList.splice(idx, 1);
+    renderProfileSkillsTags();
+    syncFormToJson();
+  }
+}
+
 function populateProfileForm(prof) {
   if (!prof) prof = {};
   currentProfile = prof;
@@ -38,12 +142,17 @@ function populateProfileForm(prof) {
     ? prof.target_titles
     : ((Array.isArray(prof.target_roles) && prof.target_roles.length) ? prof.target_roles : (prof.role ? [prof.role] : []));
   if (document.getElementById('prof-target-roles')) document.getElementById('prof-target-roles').value = targetRoles.join(', ');
-  if (document.getElementById('prof-total-exp')) document.getElementById('prof-total-exp').value = prof.total_experience_stated || (prof.years_of_experience ? `${prof.years_of_experience} years` : '');
-  if (document.getElementById('prof-skills')) document.getElementById('prof-skills').value = (prof.skills || []).join(', ');
-  if (document.getElementById('prof-skills-familiar')) document.getElementById('prof-skills-familiar').value = (prof.skills_familiar || []).join(', ');
-  if (document.getElementById('prof-summary')) document.getElementById('prof-summary').value = prof.summary || prof.writing_sample || '';
 
-  renderCategorizedSkillsPreview(prof.skills_categorized || []);
+  // Decimal experience rounding
+  const roundedYears = roundExperienceYears(prof.total_experience_stated || prof.years_of_experience);
+  if (document.getElementById('prof-total-exp')) document.getElementById('prof-total-exp').value = roundedYears;
+  updateExperienceBadge(roundedYears);
+
+  // Workday-Style Unified Skills List
+  window.profileSkillsList = Array.isArray(prof.skills) ? [...prof.skills] : [];
+  renderProfileSkillsTags();
+
+  if (document.getElementById('prof-summary')) document.getElementById('prof-summary').value = prof.summary || prof.writing_sample || '';
 
   const jsonEl = document.getElementById('prof-json');
   if (jsonEl) jsonEl.value = JSON.stringify(prof, null, 2);
@@ -53,7 +162,6 @@ function populateProfileForm(prof) {
   renderCertificationCards(prof.certifications || []);
   renderEducationCards(prof.education || []);
   updateProfileCounters();
-  renderProfileCountryBoards(prof);
 
   // Sync tags in Search Preferences
   window.targetRolesList = targetRoles.length ? [...targetRoles] : (window.targetRolesList || []);
@@ -66,97 +174,7 @@ function populateProfileForm(prof) {
 }
 
 async function renderProfileCountryBoards(prof = currentProfile) {
-  const container = document.getElementById('prof-country-boards-list');
-  const badge = document.getElementById('prof-country-badge');
-  if (!container) return;
-
-  const loc = (prof?.contact?.location || (prof?.locations && prof.locations[0]) || document.getElementById('prof-location')?.value || '').trim();
-  
-  let countryCode = 'GLOBAL';
-  if (/canada|toronto|vancouver|montreal|ottawa|calgary|edmonton|ontario|quebec|alberta|\bon\b|\bbc\b/i.test(loc)) countryCode = 'CA';
-  else if (/usa|united states|new york|nyc|san francisco|austin|seattle|chicago|los angeles|california|texas|\bny\b|\btx\b|\bca\b/i.test(loc)) countryCode = 'US';
-  else if (/uk|united kingdom|london|england|great britain|manchester|edinburgh/i.test(loc)) countryCode = 'GB';
-  else if (/germany|deutschland|berlin|munich|frankfurt|hamburg/i.test(loc)) countryCode = 'DE';
-  else if (/france|paris|lyon|marseille/i.test(loc)) countryCode = 'FR';
-  else if (/india|bangalore|bengaluru|hyderabad|pune|mumbai|delhi|gurgaon|noida/i.test(loc)) countryCode = 'IN';
-  else if (/australia|sydney|melbourne|brisbane|perth/i.test(loc)) countryCode = 'AU';
-  else if (/netherlands|holland|amsterdam|rotterdam|utrecht/i.test(loc)) countryCode = 'NL';
-  else if (/uae|united arab emirates|dubai|abu dhabi|sharjah|gulf/i.test(loc)) countryCode = 'AE';
-  else if (/singapore/i.test(loc)) countryCode = 'SG';
-  else if (/japan|tokyo|osaka|kyoto/i.test(loc)) countryCode = 'JP';
-  else if (/brazil|brasil|são paulo|sao paulo|rio de janeiro/i.test(loc)) countryCode = 'BR';
-
-  const FLAG_MAP = {
-    'US': '🇺🇸 USA', 'GB': '🇬🇧 United Kingdom', 'CA': '🇨🇦 Canada', 'DE': '🇩🇪 Germany',
-    'FR': '🇫🇷 France', 'IN': '🇮🇳 India', 'AU': '🇦🇺 Australia', 'NL': '🇳🇱 Netherlands',
-    'AE': '🇦🇪 UAE & Gulf', 'SG': '🇸🇬 Singapore', 'JP': '🇯🇵 Japan', 'BR': '🇧🇷 Brazil',
-    'GLOBAL': '🌐 Worldwide'
-  };
-
-  if (badge) {
-    badge.innerText = FLAG_MAP[countryCode] || `🌐 ${countryCode}`;
-  }
-
-  try {
-    const res = await fetch(`/api/settings/boards?country=${encodeURIComponent(countryCode)}`);
-    const data = await res.json();
-    if (!data.success || !Array.isArray(data.boards)) return;
-
-    const displayBoards = data.boards.slice(0, 6);
-
-    container.innerHTML = displayBoards.map(b => {
-      const isLeader = b.tier === 'primary';
-      const isGov = Boolean(b.official_gov);
-      const badgeClass = isGov
-        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-        : (isLeader ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-sky-500/10 text-sky-400 border-sky-500/20');
-      const badgeText = isGov ? 'Gov Verified' : (isLeader ? 'Market Leader' : 'Tech Specialist');
-
-      return `
-        <div class="p-2.5 rounded-md bg-[#16191E] border border-[#2B3036]/70 flex items-center justify-between gap-2">
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-xs font-semibold text-[#E8E6E1] truncate">${b.name}</span>
-              <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeClass}">${badgeText}</span>
-            </div>
-            <span class="text-[10px] text-[#9AA0A6] block truncate mt-0.5">${b.description || ''}</span>
-          </div>
-          <span class="text-[10px] font-mono text-emerald-400 shrink-0 font-semibold">Active</span>
-        </div>
-      `;
-    }).join('');
-  } catch (err) {
-    console.error('renderProfileCountryBoards error:', err);
-  }
-}
-
-function renderCategorizedSkillsPreview(categories = []) {
-  const container = document.getElementById('prof-categorized-skills-preview');
-  const countEl = document.getElementById('prof-cat-count');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!Array.isArray(categories) || categories.length === 0) {
-    if (countEl) countEl.innerText = '0 categories';
-    container.innerHTML = '<div class="text-[11px] text-[#5F6B76] italic">No skill categories extracted yet. Upload a resume to automatically detect domain groupings.</div>';
-    return;
-  }
-  if (countEl) countEl.innerText = `${categories.length} categories`;
-  categories.forEach(cat => {
-    const catBox = document.createElement('div');
-    catBox.className = 'p-2 rounded bg-[#111317] border border-[#2B3036]/80 text-xs';
-    const items = Array.isArray(cat.items) ? cat.items : (Array.isArray(cat.skills) ? cat.skills : []);
-    const badgesHtml = items.map(item => `
-      <span class="inline-block px-1.5 py-0.5 m-0.5 rounded text-[10px] bg-[#1C1F24] border border-[#2B3036] text-[#E8E6E1] font-mono">${escapeHtml(item)}</span>
-    `).join('');
-    catBox.innerHTML = `
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-[11px] font-semibold text-[#D9A441]">${escapeHtml(cat.category || 'Domain')}</span>
-        <span class="text-[9px] text-[#9AA0A6] font-mono">${items.length} skills</span>
-      </div>
-      <div class="flex flex-wrap">${badgesHtml}</div>
-    `;
-    container.appendChild(catBox);
-  });
+  // Deprecated & removed from Profile view to avoid redundancy with Settings
 }
 
 // Work Experience Cards
@@ -549,15 +567,8 @@ function updateProfileCounters() {
 
   const elYears = document.getElementById('prof-years-badge');
   if (elYears) {
-    if (currentProfile.years_of_experience) {
-      elYears.innerText = `${currentProfile.years_of_experience} Yrs Exp`;
-    } else if (currentProfile.total_experience_stated) {
-      elYears.innerText = currentProfile.total_experience_stated;
-    } else if (expCount > 0) {
-      elYears.innerText = `${expCount * 2}+ Yrs Exp`;
-    } else {
-      elYears.innerText = '0 Yrs Exp';
-    }
+    const yrs = roundExperienceYears(currentProfile.years_of_experience || currentProfile.total_experience_stated);
+    elYears.innerText = `${yrs} Yrs Exp`;
   }
 }
 
@@ -584,12 +595,10 @@ function syncFormToJson() {
   }
 
   if (document.getElementById('prof-total-exp')) {
-    const stated = (document.getElementById('prof-total-exp')?.value || '').trim();
-    if (stated) {
-      profile.total_experience_stated = stated;
-      const numMatch = stated.match(/\d+/);
-      if (numMatch) profile.years_of_experience = parseInt(numMatch[0], 10);
-    }
+    const rawVal = document.getElementById('prof-total-exp')?.value;
+    const rounded = roundExperienceYears(rawVal);
+    profile.total_experience_stated = `${rounded}`;
+    profile.years_of_experience = rounded;
   }
 
   const roles = (document.getElementById('prof-target-roles')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -600,12 +609,8 @@ function syncFormToJson() {
     profile.title = roles[0];
   }
 
-  const skills = (document.getElementById('prof-skills')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-  if (skills.length) profile.skills = skills;
-
-  if (document.getElementById('prof-skills-familiar')) {
-    profile.skills_familiar = (document.getElementById('prof-skills-familiar')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-  }
+  // Workday-style skills tag list
+  profile.skills = Array.isArray(window.profileSkillsList) ? [...window.profileSkillsList] : [];
 
   profile.summary = (document.getElementById('prof-summary')?.value || '').trim();
   profile.writing_sample = profile.summary;
