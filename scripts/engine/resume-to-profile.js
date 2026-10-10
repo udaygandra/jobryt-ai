@@ -24,7 +24,8 @@ loadEnv();
 
 const { getDataDir } = require('../core/common-utils');
 const { loadPrompt } = require('../core/prompt-loader');
-const { recordModelCall, recordModelError } = require('./llm-state-manager');
+const { recordModelCall, recordModelError, getAvailableWaterfallModels, getNextWaterfallModel } = require('./llm-state-manager');
+const { callLLMProvider } = require('./llm-provider');
 const dataDir = getDataDir();
 const profilePath = path.join(dataDir, 'profiles', 'master-profile.json');
 const backupPath = path.join(dataDir, 'profiles', 'master-profile.backup.json');
@@ -668,6 +669,7 @@ async function parseResume(inputFilePath, options = {}) {
     throw new Error(`File too large (${sizeMb} MB). Maximum allowed size is ${maxUploadMb} MB.`);
   }
 
+  const selectedProvider = (process.env.LLM_PROVIDER || 'gemini').toLowerCase().trim();
   let apiKey = process.env.GEMINI_API_KEY || process.env.LLM_API_KEY;
   if (!apiKey) {
     try {
@@ -676,135 +678,170 @@ async function parseResume(inputFilePath, options = {}) {
     } catch (_) {}
   }
 
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY or LLM_API_KEY is not configured in .env or settings.json');
-  }
-
-  // Prepare Payload
-  let requestBody;
-  if (ext === '.pdf') {
-    requestBody = {
-      contents: [{
-        parts: [
-          { text: SYSTEM_PROMPT },
-          { text: "Extract profile verbatim from this PDF resume." },
-          { inlineData: { mimeType: 'application/pdf', data: fileBuf.toString('base64') } }
-        ]
-      }],
-      generationConfig: { response_mime_type: 'application/json' }
-    };
-  } else if (ext === '.docx') {
-    const extractedText = extractDocxText(fileBuf);
-    if (!extractedText || extractedText.trim().length === 0) {
-      throw new Error('Unable to extract readable text from DOCX document. Please ensure the document contains text and is not password-protected, or convert to PDF.');
-    }
-    requestBody = {
-      contents: [{
-        parts: [
-          { text: SYSTEM_PROMPT },
-          { text: `Extract profile from this resume text:\n\n${extractedText}` }
-        ]
-      }],
-      generationConfig: { response_mime_type: 'application/json' }
-    };
-  } else {
-    requestBody = {
-      contents: [{
-        parts: [
-          { text: SYSTEM_PROMPT },
-          { text: `Extract profile from this text:\n\n${fileBuf.toString('utf8')}` }
-        ]
-      }],
-      generationConfig: { response_mime_type: 'application/json' }
-    };
-  }
-
-  // ── Waterfall Model & Fallback Hierarchy (High Power to Low Power) ──────────
-  const WATERFALL_MODELS = [
-    process.env.GEMINI_MODEL,
-    process.env.LLM_MODEL,
-    'gemini-pro-latest',
-    'gemini-3.8-flash',
-    'gemini-3.7-flash',
-    'gemini-3.6-flash',
-    'gemini-3.5-flash',
-    'gemini-3-flash-preview',
-    'gemini-flash-latest',
-    'gemini-3.5-flash-lite',
-    'gemini-3.1-flash-lite'
-  ].filter(Boolean);
-
-  const uniqueModels = [...new Set(WATERFALL_MODELS)];
   let rawText = '';
   let lastError = null;
 
-  async function executeWaterfall(payload) {
-    for (const modelName of uniqueModels) {
+  if (selectedProvider !== 'gemini' && selectedProvider !== 'google') {
+    // ── Non-Gemini Multi-Provider Execution (OpenAI, Claude, Groq, DeepSeek, Ollama) ──
+    let resumeText = '';
+    if (ext === '.pdf') {
       try {
-        console.log(`Parsing resume via Gemini Waterfall [${modelName}]...`);
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const errTxt = await res.text();
-          const err = new Error(`HTTP ${res.status}: ${errTxt}`);
-          recordModelError(modelName, err);
-          console.warn(`⚠️ Waterfall Model [${modelName}] returned HTTP ${res.status}. Falling back to next tier...`);
-          lastError = err;
-          continue;
-        }
-
-        const json = await res.json();
-        const extracted = json.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (extracted) {
-          recordModelCall(modelName);
-          console.log(`✅ Resume parsed successfully with Waterfall tier [${modelName}]`);
-          return extracted;
+        const pdfPkg = require('pdf-parse');
+        if (typeof pdfPkg === 'function') {
+          const pdfResult = await pdfPkg(fileBuf);
+          resumeText = pdfResult?.text || '';
+        } else if (pdfPkg?.PDFParse) {
+          const parser = new pdfPkg.PDFParse({ data: fileBuf });
+          await parser.load();
+          resumeText = (await parser.getText())?.text || '';
         }
       } catch (e) {
-        recordModelError(modelName, e);
-        console.warn(`⚠️ Waterfall Model [${modelName}] request failed: ${e.message}. Falling back to next tier...`);
-        lastError = e;
+        console.warn('PDF text extraction error:', e.message);
       }
+    } else if (ext === '.docx') {
+      resumeText = extractDocxText(fileBuf);
+    } else {
+      resumeText = fileBuf.toString('utf8');
     }
-    return null;
-  }
 
-  // 1. Primary pass: Multimodal (PDF inlineData or extracted DOCX text)
-  rawText = await executeWaterfall(requestBody);
+    if (!resumeText || resumeText.trim().length === 0) {
+      resumeText = fileBuf.toString('utf8');
+    }
 
-  // 2. Ultimate Fallback: If multimodal PDF failed across all models, extract text via pdf-parse and retry waterfall
-  if (!rawText && ext === '.pdf') {
-    try {
-      console.log('🔄 Multimodal PDF waterfall exhausted, attempting text-extracted fallback waterfall...');
-      const pdfPkg = require('pdf-parse');
-      let extractedPdfText = '';
-      if (typeof pdfPkg === 'function') {
-        const pdfResult = await pdfPkg(fileBuf);
-        extractedPdfText = pdfResult?.text || '';
-      } else if (pdfPkg?.PDFParse) {
-        const parser = new pdfPkg.PDFParse({ data: fileBuf });
-        await parser.load();
-        const res = await parser.getText();
-        extractedPdfText = res?.text || '';
+    console.log(`Parsing resume via [${selectedProvider.toUpperCase()}] provider...`);
+    const llmRes = await callLLMProvider({
+      prompt: `Extract candidate profile matching the master-profile schema verbatim from this resume text:\n\n${resumeText}`,
+      systemInstruction: SYSTEM_PROMPT,
+      provider: selectedProvider,
+      model: process.env.LLM_MODEL
+    });
+
+    if (llmRes.success && (llmRes.rawText || llmRes.response)) {
+      rawText = llmRes.rawText || (typeof llmRes.response === 'string' ? llmRes.response : JSON.stringify(llmRes.response));
+      console.log(`✅ Resume parsed successfully with provider [${selectedProvider}] (${llmRes.model_used || llmRes.model})`);
+    } else {
+      lastError = new Error(llmRes.error || `LLM provider ${selectedProvider} returned no response`);
+    }
+  } else {
+    // ── Google Gemini Waterfall (With Pre-Flight Cooldown Bypass) ─────────────────
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY or LLM_API_KEY is not configured in .env or settings.json');
+    }
+
+    // Prepare Payload
+    let requestBody;
+    if (ext === '.pdf') {
+      requestBody = {
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT },
+            { text: "Extract profile verbatim from this PDF resume." },
+            { inlineData: { mimeType: 'application/pdf', data: fileBuf.toString('base64') } }
+          ]
+        }],
+        generationConfig: { response_mime_type: 'application/json' }
+      };
+    } else if (ext === '.docx') {
+      const extractedText = extractDocxText(fileBuf);
+      if (!extractedText || extractedText.trim().length === 0) {
+        throw new Error('Unable to extract readable text from DOCX document. Please ensure the document contains text and is not password-protected, or convert to PDF.');
       }
-      if (extractedPdfText && extractedPdfText.trim().length > 50) {
-        const textPayload = {
-          contents: [{
-            parts: [
-              { text: SYSTEM_PROMPT },
-              { text: `Extract profile from this resume text:\n\n${extractedPdfText}` }
-            ]
-          }],
-          generationConfig: { response_mime_type: 'application/json' }
-        };
-        rawText = await executeWaterfall(textPayload);
+      requestBody = {
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT },
+            { text: `Extract profile from this resume text:\n\n${extractedText}` }
+          ]
+        }],
+        generationConfig: { response_mime_type: 'application/json' }
+      };
+    } else {
+      requestBody = {
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT },
+            { text: `Extract profile from this text:\n\n${fileBuf.toString('utf8')}` }
+          ]
+        }],
+        generationConfig: { response_mime_type: 'application/json' }
+      };
+    }
+
+    const available = getAvailableWaterfallModels();
+    let uniqueModels = available.map(m => m.id);
+    if (uniqueModels.length === 0) {
+      const fallback = getNextWaterfallModel();
+      uniqueModels = [fallback.model ? fallback.model.id : 'gemini-3.8-flash'];
+    }
+
+    async function executeWaterfall(payload) {
+      for (const modelName of uniqueModels) {
+        try {
+          console.log(`Parsing resume via Gemini Waterfall [${modelName}]...`);
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            const errTxt = await res.text();
+            const err = new Error(`HTTP ${res.status}: ${errTxt}`);
+            recordModelError(modelName, err);
+            console.warn(`⚠️ Waterfall Model [${modelName}] returned HTTP ${res.status}. Falling back to next tier...`);
+            lastError = err;
+            continue;
+          }
+
+          const json = await res.json();
+          const extracted = json.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (extracted) {
+            recordModelCall(modelName);
+            console.log(`✅ Resume parsed successfully with Waterfall tier [${modelName}]`);
+            return extracted;
+          }
+        } catch (e) {
+          recordModelError(modelName, e);
+          console.warn(`⚠️ Waterfall Model [${modelName}] request failed: ${e.message}. Falling back to next tier...`);
+          lastError = e;
+        }
       }
-    } catch (parseErr) {
-      console.warn('⚠️ Text extraction fallback error:', parseErr.message);
+      return null;
+    }
+
+    // 1. Primary pass: Multimodal (PDF inlineData or extracted DOCX text)
+    rawText = await executeWaterfall(requestBody);
+
+    // 2. Ultimate Fallback: If multimodal PDF failed across all models, extract text via pdf-parse and retry waterfall
+    if (!rawText && ext === '.pdf') {
+      try {
+        console.log('🔄 Multimodal PDF waterfall exhausted, attempting text-extracted fallback waterfall...');
+        const pdfPkg = require('pdf-parse');
+        let extractedPdfText = '';
+        if (typeof pdfPkg === 'function') {
+          const pdfResult = await pdfPkg(fileBuf);
+          extractedPdfText = pdfResult?.text || '';
+        } else if (pdfPkg?.PDFParse) {
+          const parser = new pdfPkg.PDFParse({ data: fileBuf });
+          await parser.load();
+          const res = await parser.getText();
+          extractedPdfText = res?.text || '';
+        }
+        if (extractedPdfText && extractedPdfText.trim().length > 50) {
+          const textPayload = {
+            contents: [{
+              parts: [
+                { text: SYSTEM_PROMPT },
+                { text: `Extract profile from this resume text:\n\n${extractedPdfText}` }
+              ]
+            }],
+            generationConfig: { response_mime_type: 'application/json' }
+          };
+          rawText = await executeWaterfall(textPayload);
+        }
+      } catch (parseErr) {
+        console.warn('⚠️ Text extraction fallback error:', parseErr.message);
+      }
     }
   }
 

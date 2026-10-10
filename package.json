@@ -20,6 +20,7 @@
     "audit:security": "node scripts/admin/security-audit.js",
     "test": "node tests/test-experience-calculator.js && node tests/test-llm-state.js && node tests/test-all-features-e2e.js && node tests/test-pdf-resume-parsing.js",
     "test:boards": "node --test tests/test-all-jobboards.test.js",
+    "test:llm": "node tests/test-multi-llm-providers.js",
     "test:e2e": "node tests/test-all-features-e2e.js",
     "test:benchmark": "node tests/benchmark-25-roles.js",
     "test:all": "node tests/test-experience-calculator.js && node tests/test-llm-state.js && node tests/test-all-features-e2e.js && node tests/test-pdf-resume-parsing.js && node --test tests/test-all-jobboards.test.js"
