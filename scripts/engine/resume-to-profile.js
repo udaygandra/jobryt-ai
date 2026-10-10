@@ -33,12 +33,17 @@ const backupPath = path.join(dataDir, 'profiles', 'master-profile.backup.json');
 const DEFAULT_SYSTEM_PROMPT = `You are a high-precision resume parsing engine.
 Your task is to extract all information from the provided resume and output a valid JSON object matching the exact master-profile schema.
 
-CRITICAL RULES - ZERO FABRICATION:
-1. Do NOT invent, extrapolate, or hallucinate ANY details (companies, titles, skills, dates).
-2. Copy EVERY bullet point verbatim. Do NOT condense or omit.
-3. Extract ALL skills, tools, and technologies as individual strings in an array.
-4. Extract complete contact details (email, phone, location, linkedin).
-5. CLIENT FIDELITY: If a client name is specified (e.g. "Client: Apple", "Client: Barclays"), keep the exact client name in client. NEVER replace or save it as "Highly Confidential" or "Confidential".
+CRITICAL RULES:
+1. STRICT ZERO FABRICATION (EXPERIENCE, DATES, SKILLS, COMPANIES):
+   - Copy experience bullets, companies, dates, education, and skills verbatim from the resume.
+   - Do NOT invent companies, dates, degrees, or certifications.
+2. MARKET-VALIDATED TARGET TITLES DISCOVERY:
+   - In "target_titles", you MUST discover and return 4 to 10 real, searchable job titles matching the candidate's demonstrated tools, seniority, and industry.
+   - Never return only 1 title. Include standard market equivalents, tool specializations, and domain titles.
+3. Copy EVERY bullet point verbatim. Do NOT condense or omit.
+4. Extract ALL skills, tools, and technologies as individual strings in an array.
+5. Extract complete contact details (email, phone, location, linkedin, country_code).
+6. CLIENT FIDELITY: If a client name is specified (e.g. "Client: Apple"), keep the exact client name in client.
 
 Respond ONLY with valid JSON in this schema:
 {
@@ -583,9 +588,11 @@ function normalizeProfileFields(parsedProfile) {
     cleanTitles.push('Professional');
   }
 
-  parsedProfile.target_titles = cleanTitles.slice(0, 10);
-  parsedProfile.target_roles = [...parsedProfile.target_titles];
-  parsedProfile.role = parsedProfile.target_titles[0] || (parsedProfile.experience[0] && parsedProfile.experience[0].role) || 'Professional';
+  const { discoverMarketRoles } = require('./market-role-discovery');
+  const enrichedTitles = discoverMarketRoles(cleanTitles, parsedProfile);
+  parsedProfile.target_titles = enrichedTitles;
+  parsedProfile.target_roles = [...enrichedTitles];
+  parsedProfile.role = parsedProfile.target_titles[0] || 'Professional';
   parsedProfile.title = parsedProfile.role;
 
   // Education with synchronized dates & degrees

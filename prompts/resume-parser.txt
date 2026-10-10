@@ -4,8 +4,8 @@ TASK
 Extract the candidate resume into the exact JSON schema below. Use ONLY information present in <resume>. Do not infer facts that are not stated.
 
 CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
-1. STRICT ZERO FABRICATION:
-   - Never invent, extrapolate, normalize into a stronger claim, or hallucinate any company, title, skill, technology, date, degree, certification, metric, responsibility, domain, contact detail, or work authorization status.
+1. STRICT ZERO FABRICATION (EXPERIENCE, DATES, SKILLS, COMPANIES):
+   - Never invent, extrapolate, normalize into a stronger claim, or hallucinate any company, date, degree, certification, metric, responsibility, contact detail, or work authorization status.
    - If a field is not present, use "" for missing strings and [] for missing arrays.
    - Preserve metrics, qualifiers, dates, and wording exactly as stated in the resume.
    - Remove obvious PDF/DOCX formatting artifacts such as repeated asterisks, broken bold/emphasis markers, zero-width characters, or accidental spacing. Do NOT change the underlying words.
@@ -26,13 +26,14 @@ CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
      * Extract candidate's location into `contact.location` and target locations into `locations`.
      * Always format extracted locations as standardized `City, ST, Country` (e.g. "Redwood City, CA, USA", "Toronto, ON, Canada", "Austin, TX, USA", "London, UK", "Bengaluru, KA, India"). If the resume specifies Remote, include "Remote". Avoid ambiguous single-word names.
      * Extract `contact.country_code` as the 2-letter uppercase ISO code matching the candidate's primary location/contact (e.g. "US", "CA", "GB", "IN"). If undetermined, leave as "".
-   - MARKET-VALIDATED TARGET TITLES DISCOVERY (UP TO 10 ROLES MAX):
-     * Analyze the candidate's actual responsibilities, demonstrated tool stack, industry domain, and career seniority level.
-     * Propose 3 to 10 REAL, SEARCHABLE, MARKET-VALIDATED job titles that recruiters and hiring managers actually post on job boards (e.g. LinkedIn, Indeed, Glassdoor) for someone with this exact background.
-     * ZERO SENIORITY INFLATION: Strictly calibrate seniority. If the candidate is a mid-level professional (e.g. "Data Analyst II", 3-6 years experience), generate mid-to-senior individual contributor roles ("Data Analyst", "Business Intelligence Analyst", "Power BI Developer", "Reporting Analyst"). NEVER assign "Director", "VP", "Lead", or "Principal" unless the resume proves they held that seniority.
-     * DOMAIN & TOOL SPECIFICITY: Include market titles that reflect their primary tool specialization or industry (e.g., "Tableau Developer", "Healthcare Data Analyst", "Cloud Data Engineer" if supported by work history).
-     * STRICT NON-PADDING: Only return titles that are an authentic market match. If only 4 to 6 titles fit the profile, return ONLY those. DO NOT pad with marginal, unrelated, or generic titles just to hit 10.
-     * NO SYNONYM DUPLICATES OR BUZZWORDS: Deduplicate variants (e.g. do not return both "BI Analyst" and "Business Intelligence Analyst"; use the standard full title). Never invent gimmicky titles like "Data Ninja" or "Analytics Rockstar".
+   - MARKET-VALIDATED TARGET TITLES DISCOVERY (MANDATORY 4 TO 10 ROLES):
+     * Do NOT output only 1 headline role! You MUST discover and propose 4 to 10 REAL, SEARCHABLE, MARKET-VALIDATED job titles that recruiters and hiring managers actually post on job boards (e.g. LinkedIn, Indeed, Glassdoor) for someone with this demonstrated skillset, tool stack, and experience level.
+     * Map out equivalent titles across tools (e.g., if skilled in Power BI, include "Power BI Developer"; if skilled in Tableau, include "Tableau Developer"; if skilled in SQL/Python/ETL, include "Analytics Engineer").
+     * Map out domain variants (e.g., if banking/finance work history, include "Financial Data Analyst"; if energy/utilities, include "Commercial Data Analyst").
+     * Include core title and seniority equivalents (e.g. "Data Analyst", "Senior Data Analyst", "Business Intelligence Analyst", "Reporting Analyst").
+     * ZERO SENIORITY INFLATION: Strictly calibrate seniority. If the candidate is a mid-level professional (e.g. "Data Analyst II", 3-6 years experience), generate mid-to-senior individual contributor roles ("Data Analyst", "Business Intelligence Analyst", "Power BI Developer", "Reporting Analyst", "Analytics Engineer"). NEVER assign "Director", "VP", "Lead", or "Principal" unless the resume proves they held that seniority.
+     * STRICT NON-PADDING: The `target_titles` array MUST contain between 4 and 10 titles.
+     * NO BUZZWORDS: Never invent gimmicky titles like "Data Ninja" or "Analytics Rockstar".
    - Where an experience header combines role and project/division (e.g. "Data Analyst II — Power Trading & Market Analytics"), split it into `role` ("Data Analyst II") and `project` ("Power Trading & Market Analytics").
    - CLIENT FIDELITY: If the candidate or resume mentions a client name (e.g. "Client: Apple", "Client: Barclays", "Client: Citigroup", "Client - Target"), extract the exact client name into `client`. NEVER redact, anonymize, or save it as "Highly Confidential" or "Confidential". Keep the exact client name as provided.
    - `writing_sample` must be a verbatim 2-4 sentence excerpt from the resume summary or profile section. Do NOT generate or synthesize a sample.

@@ -480,37 +480,8 @@ function syncProfileToSettings(profile) {
       ? profile.target_roles
       : (profile.role ? [profile.role] : []));
 
-  const seenRoles = new Set();
-  const cleanRoles = [];
-  for (const r of rawRoles) {
-    if (!r || typeof r !== 'string') continue;
-    const cleaned = r
-      .replace(/^[\s•*·\-–—\d.)\]]+\s*/, '')
-      .replace(/[\s•*·\-–—]+$/, '')
-      .trim();
-    if (!cleaned || cleaned.length < 3 || cleaned.length > 60) continue;
-    if (bannedTitleRegex.test(cleaned)) continue;
-    const lower = cleaned.toLowerCase();
-    if (!seenRoles.has(lower)) {
-      seenRoles.add(lower);
-      cleanRoles.push(cleaned);
-    }
-    if (cleanRoles.length >= 10) break;
-  }
-
-  if (cleanRoles.length === 0 && Array.isArray(profile.experience)) {
-    for (const exp of profile.experience) {
-      if (exp && exp.role) {
-        const cleaned = exp.role.trim();
-        const lower = cleaned.toLowerCase();
-        if (cleaned && !seenRoles.has(lower) && !bannedTitleRegex.test(cleaned)) {
-          seenRoles.add(lower);
-          cleanRoles.push(cleaned);
-        }
-      }
-      if (cleanRoles.length >= 5) break;
-    }
-  }
+  const { discoverMarketRoles } = require('../engine/market-role-discovery');
+  const cleanRoles = discoverMarketRoles(rawRoles, profile);
 
   const rawLocs = Array.isArray(profile.locations) && profile.locations.length > 0
     ? profile.locations

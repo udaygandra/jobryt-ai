@@ -798,25 +798,11 @@ function extractResumeLocallyFromText(rawText) {
   if (currentProj) projectList.push(currentProj);
   profile.projects = projectList;
 
-  // Synchronize top-level role, title, and target roles
-  if (!Array.isArray(profile.target_titles) || profile.target_titles.length === 0) {
-    const seenTitles = new Set();
-    const derivedTitles = [];
-    for (const exp of profile.experience) {
-      if (exp.role) {
-        const cleaned = cleanDocxAndMarkdownArtifacts(exp.role).trim();
-        const lower = cleaned.toLowerCase();
-        if (cleaned && !seenTitles.has(lower)) {
-          seenTitles.add(lower);
-          derivedTitles.push(cleaned);
-        }
-      }
-      if (derivedTitles.length >= 10) break;
-    }
-    profile.target_titles = derivedTitles.length > 0 ? derivedTitles : ['Professional'];
-  }
+  // Synchronize top-level role, title, and target roles via market discovery
+  const { discoverMarketRoles } = require('./market-role-discovery');
+  profile.target_titles = discoverMarketRoles(profile.target_titles, profile);
   profile.target_roles = [...profile.target_titles];
-  profile.role = profile.target_titles[0] || (profile.experience[0] && profile.experience[0].role) || 'Professional';
+  profile.role = profile.target_titles[0] || 'Professional';
   profile.title = profile.role;
 
   // Infer country code if missing
