@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 23 - Clean Board Ingestion Payloads, Reliable Multi-Board Yield & Deterministic Scoring
-- **Task**: Execution complete (Plans 23.1, 23.2)
-- **Status**: ✅ Phase 23 Complete & Verified
+- **Phase**: 24 - Concurrent Ingestion, Per-API Request Builders & Scoring v2
+- **Task**: Planning complete (Plans 24.1, 24.2, 24.3)
+- **Status**: Ready for execution (/execute 24)
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
