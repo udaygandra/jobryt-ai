@@ -197,15 +197,15 @@ updated: 2026-10-08T17:36:00Z
 
 ---
 
-### Phase 25: Market-Validated Resume-to-Job-Titles & Search Engine (Prompts A, B, C & Validation Pipeline)
+### Phase 25: Market-Validated Target Roles Discovery & Settings Sync
 **Status:** 📋 Planned (Milestone v1.2)
-**Objective:** Transform raw uploaded resumes into 5–10 real, searchable, market-validated job titles. Implements a 5-stage pipeline: code-based PII redaction and security encapsulation; Prompt A structured candidate profile extraction; Prompt B 15-candidate title generation via a 4-expert reasoning panel with strict tier taxonomy (core, adjacent, stretch); parallel job board API demand probing and composite ranking; and targeted query generation with post-filtering and optional Prompt C hiring manager reranking.
+**Objective:** When the user uploads a resume in "My Resume and Profile", automatically extract a structured candidate profile (Prompt A), propose candidate titles via a 4-expert reasoning panel (Prompt B), validate them against live job board market data (pruning thin demand <15 and noisy matches), and select only accurate market-validated roles (up to 10 roles, strictly non-padding) to populate in Profile and synchronize directly into Settings (`target_roles`).
 
 **Plans:**
-- [ ] [Plan 25.1: PII Redaction, Structured Candidate Profile Extraction (Prompt A) & Caching Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
-- [ ] [Plan 25.2: 15-Candidate Title Generation Engine (Prompt B) with Tiers, Evidence & Guardrails](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
-- [ ] [Plan 25.3: Parallel Market Validation Probing & Tier-Balanced Ranking Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
-- [ ] [Plan 25.4: Search Query Dispatch, Post-Filtering, Prompt C Re-Ranker & Profile Integration](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.4-PLAN.md)
+- [ ] [Plan 25.1: Resume Ingestion, PII Redaction & Structured Profile Extraction (Prompt A)](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
+- [ ] [Plan 25.2: 4-Expert Title Generation (Prompt B) & Parallel Market Demand Probing](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
+- [ ] [Plan 25.3: Market-Accurate Role Selection (Up to 10 Roles) & Settings Synchronization](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
+- [ ] [Plan 25.4: UI Presentation in "My Resume & Profile" & End-to-End Verification](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.4-PLAN.md)
 
 ---
 

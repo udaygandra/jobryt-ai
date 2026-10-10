@@ -4,7 +4,7 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 25 - Market-Validated Resume-to-Job-Titles & Search Engine (Prompts A, B, C & Validation Pipeline)
+- **Phase**: 25 - Market-Validated Target Roles Discovery & Settings Sync
 - **Task**: Planning complete (Plans 25.1, 25.2, 25.3, 25.4)
 - **Status**: Ready for execution (/execute 25)
 
