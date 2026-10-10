@@ -36,10 +36,10 @@ Currently, `workflows/master-workflow.json` seamlessly executes:
 While ingestion, scoring, and PDF generation are fully operational, the final "Lead-Gen & Application" loop needs to be completed.
 
 ### 1. Workflow 3: Lead-Gen & Automated Outreach
-*   **Hunter.io Integration**: Add nodes to take the `companyDomain` from qualified jobs and query the Hunter.io API to find the name and email of the hiring manager or department head.
-*   **Cold Email Drafting**: A specific LLM step to draft a 150-word outreach email referencing the candidate's tailored summary, the company name, and the specific open role.
-*   **Telegram Approval Gate**: Before sending, the bot must send an `[Approve]` or `[Reject]` button via Telegram. The email must **never** be sent automatically without human interaction.
-*   **SMTP Dispatch**: Implement the n8n Gmail/SMTP node to actually dispatch the approved email payload and update `logged_jobs.json`.
+*   **Recruiter & Hiring Lead Discovery**: Use Google X-Ray and LinkedIn People search queries for each qualified job to find the hiring manager, technical recruiter, or department head with 100% free search links.
+*   **Cold Outreach Drafting**: A specific LLM step to draft a 150-word outreach email referencing the candidate's tailored summary, the company name, and the specific open role.
+*   **Telegram Approval Gate**: Before sending, the bot sends an `[Approve]` or `[Reject]` button via Telegram. The email must **never** be sent automatically without human interaction.
+*   **SMTP Dispatch**: Use the outbound SMTP email dispatcher to send the approved message payload and update job status.
 
 ### 2. Analytics & Reporting
 *   **Daily Recap**: Build a scheduled script (perhaps via cron in the `bot/` directory) to read `tracking/logged_jobs.json` and `tracking/rejected_jobs.json` and send a daily summary to Telegram: "Analyzed 400 jobs, 12 passed the gate, 3 applications sent."

@@ -91,7 +91,6 @@ console.log('\n🔍 [3/6] Scanning workspace code & workflows for hardcoded keys
 const secretPatterns = [
   { name: 'Google Gemini API Key', regex: /AIzaSy[A-Za-z0-9_-]{33}/g },
   { name: 'Generic Private Key', regex: /-----BEGIN PRIVATE KEY-----/g },
-  { name: 'Hunter API Key (35-40 hex)', regex: /hunter[_-]?api[_-]?key\s*[:=]\s*['"][a-f0-9]{35,40}['"]/gi },
   { name: 'Adzuna App Key (32 hex)', regex: /adzuna[_-]?app[_-]?key\s*[:=]\s*['"][a-f0-9]{32}['"]/gi },
   { name: 'Hardcoded Password in plain text', regex: /password\s*[:=]\s*['"][^'"]{8,}['"]/gi }
 ];

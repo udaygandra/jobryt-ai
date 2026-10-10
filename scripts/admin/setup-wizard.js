@@ -4,9 +4,9 @@
  *
  * PURPOSE:
  *   Guides users through configuration step-by-step.
- *   Auto-generates encryption keys, provides guided steps for API tokens,
- *   writes a secure, production-ready configuration file (.env or .env.prod),
- *   and enforces 0o600 file permissions with automatic backup (.bak).
+ *   Prompts for user-specific settings: Telegram credentials, AI provider selection,
+ *   model preference (e.g. gemini-3.8-flash), API keys, and job preferences.
+ *   Writes a secure, clean configuration file (.env or .env.prod) free of dead legacy keys.
  *
  * USAGE:
  *   npm run setup
@@ -17,7 +17,6 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
-const crypto = require('crypto');
 
 // Parse CLI flags if provided
 const args = process.argv.slice(2);
@@ -81,7 +80,7 @@ async function runWizard() {
     console.log('----------------------------------------------------------------------');
     console.log('CONFIGURATION TARGET');
     console.log('1) Local Development (.env)');
-    console.log('2) Production / Cloud VPS / Oracle Cloud (.env.prod)');
+    console.log('2) Production / Cloud VPS / Server (.env.prod)');
     const envModeChoice = await ask('Select Environment Target (1 or 2)', '1');
     targetEnvFile = (envModeChoice === '2' || envModeChoice.toLowerCase().includes('prod'))
       ? '.env.prod'
@@ -92,16 +91,9 @@ async function runWizard() {
   const targetSavePath = path.resolve(rootDir, targetEnvFile);
   console.log(`\nConfiguring target file: ${targetEnvFile}\n`);
 
-  // Re-read existing file if different from default
   const activeExistingEnv = targetEnvFile !== defaultEnvPath
     ? { ...existingEnv, ...parseEnv(targetSavePath) }
     : existingEnv;
-
-  const encryptionKey = activeExistingEnv.N8N_ENCRYPTION_KEY || crypto.randomBytes(16).toString('hex');
-
-  // Normalize provider to 'gemini'
-  let rawProvider = (activeExistingEnv.LLM_PROVIDER || 'gemini').toLowerCase().trim();
-  if (rawProvider === 'google') rawProvider = 'gemini';
 
   // 2. Telegram Bot Token
   console.log('----------------------------------------------------------------------');
@@ -126,15 +118,90 @@ async function runWizard() {
   const defaultChatId = activeExistingEnv.TELEGRAM_CHAT_ID || activeExistingEnv.TELEGRAM_ALLOWED_USER_IDS || '';
   const chatId = await ask('Paste your numeric Telegram Chat ID', defaultChatId);
 
-  // 4. Google Gemini API Key
+  // 4. AI Provider Selection
   console.log('\n----------------------------------------------------------------------');
-  console.log('[Step 3 of 5] Google Gemini API Key (Required - Free Tier Available)');
-  console.log('   1. Open in your browser: https://aistudio.google.com/app/apikey');
-  console.log('   2. Sign in with any Google account.');
-  console.log('   3. Click "Create API Key" and copy the key (starts with AIza... or AQ...).');
+  console.log('[Step 3 of 5] AI / LLM Provider & Primary Model');
+  console.log('   Select your preferred AI engine:');
+  console.log('   1) Google Gemini (Default - Free Tier Available, 10-Model Waterfall)');
+  console.log('   2) OpenAI (GPT-4o, GPT-4o-mini, o3-mini)');
+  console.log('   3) Anthropic Claude (Claude 3.5 Sonnet / Haiku)');
+  console.log('   4) Groq (Ultra-Fast Inference: Llama 3.3, DeepSeek R1)');
+  console.log('   5) DeepSeek (DeepSeek-Chat, DeepSeek-Reasoner)');
+  console.log('   6) OpenRouter (Multi-Provider Gateway)');
+  console.log('   7) Ollama (Local Offline Inference)');
   console.log('----------------------------------------------------------------------');
-  const defaultGeminiKey = activeExistingEnv.GEMINI_API_KEY || '';
-  const geminiKey = await ask('Paste your Gemini API Key', defaultGeminiKey);
+  
+  const currentProvider = (activeExistingEnv.LLM_PROVIDER || 'gemini').toLowerCase();
+  let defaultProviderChoice = '1';
+  if (currentProvider === 'openai') defaultProviderChoice = '2';
+  else if (currentProvider === 'claude' || currentProvider === 'anthropic') defaultProviderChoice = '3';
+  else if (currentProvider === 'groq') defaultProviderChoice = '4';
+  else if (currentProvider === 'deepseek') defaultProviderChoice = '5';
+  else if (currentProvider === 'openrouter') defaultProviderChoice = '6';
+  else if (currentProvider === 'ollama') defaultProviderChoice = '7';
+
+  const providerChoice = await ask('Select AI Provider (1-7)', defaultProviderChoice);
+
+  let selectedProvider = 'gemini';
+  let defaultModel = 'gemini-3.8-flash';
+  let providerKeyVar = 'GEMINI_API_KEY';
+  let keyInstructions = 'Get key from https://aistudio.google.com/app/apikey';
+
+  switch (providerChoice.trim()) {
+    case '2':
+      selectedProvider = 'openai';
+      defaultModel = 'gpt-4o-mini';
+      providerKeyVar = 'OPENAI_API_KEY';
+      keyInstructions = 'Get key from https://platform.openai.com/api-keys';
+      break;
+    case '3':
+      selectedProvider = 'claude';
+      defaultModel = 'claude-3-5-haiku-20241022';
+      providerKeyVar = 'ANTHROPIC_API_KEY';
+      keyInstructions = 'Get key from https://console.anthropic.com/settings/keys';
+      break;
+    case '4':
+      selectedProvider = 'groq';
+      defaultModel = 'llama-3.3-70b-versatile';
+      providerKeyVar = 'GROQ_API_KEY';
+      keyInstructions = 'Get key from https://console.groq.com/keys';
+      break;
+    case '5':
+      selectedProvider = 'deepseek';
+      defaultModel = 'deepseek-chat';
+      providerKeyVar = 'DEEPSEEK_API_KEY';
+      keyInstructions = 'Get key from https://platform.deepseek.com/api_keys';
+      break;
+    case '6':
+      selectedProvider = 'openrouter';
+      defaultModel = 'meta-llama/llama-3.3-70b-instruct';
+      providerKeyVar = 'OPENROUTER_API_KEY';
+      keyInstructions = 'Get key from https://openrouter.ai/keys';
+      break;
+    case '7':
+      selectedProvider = 'ollama';
+      defaultModel = 'llama3.2';
+      providerKeyVar = '';
+      keyInstructions = 'Ensure Ollama is running at http://localhost:11434';
+      break;
+    default:
+      selectedProvider = 'gemini';
+      defaultModel = 'gemini-3.8-flash';
+      providerKeyVar = 'GEMINI_API_KEY';
+      keyInstructions = 'Get key from https://aistudio.google.com/app/apikey (starts with AIza... or AQ...)';
+      break;
+  }
+
+  console.log(`\nSelected Provider: ${selectedProvider.toUpperCase()}`);
+  console.log(`Instructions: ${keyInstructions}`);
+
+  let providerApiKey = '';
+  if (providerKeyVar) {
+    const existingKey = activeExistingEnv[providerKeyVar] || '';
+    providerApiKey = await ask(`Paste your ${providerKeyVar}`, existingKey);
+  }
+
+  const modelChoice = await ask(`Preferred Primary Model`, activeExistingEnv.LLM_MODEL || defaultModel);
 
   // 5. Optional Adzuna & USAJOBS API
   console.log('\n----------------------------------------------------------------------');
@@ -148,68 +215,59 @@ async function runWizard() {
   const adzunaKey = await ask('Adzuna App Key (optional)', activeExistingEnv.ADZUNA_APP_KEY || '');
   const usajobsKey = await ask('USAJOBS Federal API Key (optional)', activeExistingEnv.USAJOBS_API_KEY || '');
 
-  // 6. Recruiter Outreach Keys
+  // 6. General Preferences
   console.log('\n----------------------------------------------------------------------');
-  console.log('[Step 5 of 5] Recruiter Outreach Integrations (Optional)');
-  console.log('   Note: If omitted, the engine automatically uses 1-Tap Google X-Ray');
-  console.log('   search links with zero cost and no API keys required.');
-  console.log('   - Serper API (google.serper.dev - recruiter intelligence)');
-  console.log('   - Hunter.io (hunter.io - corporate email pattern discovery)');
-  console.log('   (Press Enter to skip if not using these services).');
+  console.log('[Step 5 of 5] General Preferences & Search Defaults');
   console.log('----------------------------------------------------------------------');
-  const serperKey = await ask('Serper API Key (optional)', activeExistingEnv.SERPER_API_KEY || '');
-  const hunterKey = await ask('Hunter API Key (optional)', activeExistingEnv.HUNTER_API_KEY || '');
-
-  // 7. General Preferences
-  console.log('\n----------------------------------------------------------------------');
-  console.log('GENERAL SETTINGS & DEFAULTS');
-  console.log('----------------------------------------------------------------------');
-  const timezone = await ask('Timezone (e.g. UTC, America/New_York, America/Toronto)', activeExistingEnv.TIMEZONE || 'UTC');
-  const searchRole = await ask('Default Search Title (e.g. Software Engineer, Data Analyst)', activeExistingEnv.ADZUNA_SEARCH_ROLE || '');
-  const searchLocation = await ask('Default Search Location (e.g. Remote, Austin, Toronto)', activeExistingEnv.ADZUNA_SEARCH_LOCATION || '');
+  const timezone = await ask('Timezone (e.g. America/Toronto, America/New_York, UTC)', activeExistingEnv.TIMEZONE || 'America/Toronto');
+  const searchRole = await ask('Default Search Title (e.g. Data Analyst, Software Engineer)', activeExistingEnv.ADZUNA_SEARCH_ROLE || 'Data Analyst');
+  const searchLocation = await ask('Default Search Location (e.g. Toronto, New York, Remote)', activeExistingEnv.ADZUNA_SEARCH_LOCATION || 'Toronto');
 
   // Build clean .env file contents
-  const envContent = `# Mandatory Runtime Configuration
+  const envContent = `# ==============================================================================
+# Jobryt AI Agent — Environment Configuration
+# Generated by Interactive Setup Wizard
+# ==============================================================================
 
-# Telegram bot credentials
+# --- 1. Telegram Bot (Mandatory for alerts & commands) ---
 TELEGRAM_BOT_TOKEN=${botToken}
 TELEGRAM_CHAT_ID=${chatId}
-TELEGRAM_ALLOWED_USER_IDS=${chatId}
 
-# Primary AI provider (gemini is default and supports 10-model waterfall)
-LLM_PROVIDER=${rawProvider}
-GEMINI_API_KEY=${geminiKey}
+# --- 2. AI / LLM Provider Configuration ---
+LLM_PROVIDER=${selectedProvider}
+LLM_MODEL=${modelChoice}
 
-# n8n internal encryption key (used for encrypting credential store)
-N8N_ENCRYPTION_KEY=${encryptionKey}
+# Primary Provider Key
+${selectedProvider === 'gemini' ? `GEMINI_API_KEY=${providerApiKey}` : `GEMINI_API_KEY=${activeExistingEnv.GEMINI_API_KEY || ''}`}
 
-# Network binding (127.0.0.1 restricts direct port exposure to localhost)
-N8N_PORT=${activeExistingEnv.N8N_PORT || '5678'}
-N8N_HOST_BINDING=${activeExistingEnv.N8N_HOST_BINDING || '127.0.0.1'}
-N8N_WORKFLOW_ID=${activeExistingEnv.N8N_WORKFLOW_ID || 'master-bot'}
+# OpenAI (required only if LLM_PROVIDER=openai)
+OPENAI_API_KEY=${selectedProvider === 'openai' ? providerApiKey : (activeExistingEnv.OPENAI_API_KEY || '')}
+OPENAI_BASE_URL=${activeExistingEnv.OPENAI_BASE_URL || 'https://api.openai.com/v1'}
 
-# Optional Job Board APIs
+# Anthropic Claude (required only if LLM_PROVIDER=claude)
+ANTHROPIC_API_KEY=${selectedProvider === 'claude' ? providerApiKey : (activeExistingEnv.ANTHROPIC_API_KEY || '')}
+
+# Groq (required only if LLM_PROVIDER=groq)
+GROQ_API_KEY=${selectedProvider === 'groq' ? providerApiKey : (activeExistingEnv.GROQ_API_KEY || '')}
+
+# DeepSeek (required only if LLM_PROVIDER=deepseek)
+DEEPSEEK_API_KEY=${selectedProvider === 'deepseek' ? providerApiKey : (activeExistingEnv.DEEPSEEK_API_KEY || '')}
+
+# OpenRouter (required only if LLM_PROVIDER=openrouter)
+OPENROUTER_API_KEY=${selectedProvider === 'openrouter' ? providerApiKey : (activeExistingEnv.OPENROUTER_API_KEY || '')}
+
+# Ollama local inference (required only if LLM_PROVIDER=ollama)
+OLLAMA_BASE_URL=${activeExistingEnv.OLLAMA_BASE_URL || 'http://localhost:11434'}
+
+# --- 3. Job Board Integrations (Optional) ---
 ADZUNA_APP_ID=${adzunaId}
 ADZUNA_APP_KEY=${adzunaKey}
 USAJOBS_API_KEY=${usajobsKey}
 
-# Outbound Email SMTP Credentials (Optional)
-SMTP_HOST=${activeExistingEnv.SMTP_HOST || 'smtp.gmail.com'}
-SMTP_PORT=${activeExistingEnv.SMTP_PORT || '465'}
-SMTP_USER=${activeExistingEnv.SMTP_USER || ''}
-SMTP_PASSWORD=${activeExistingEnv.SMTP_PASSWORD || ''}
-
-# Internal Directories
+# --- 4. System Settings & Runtime Paths ---
 DATA_DIR=${activeExistingEnv.DATA_DIR || './data'}
 SCRIPTS_DIR=${activeExistingEnv.SCRIPTS_DIR || './scripts'}
 PROMPTS_DIR=${activeExistingEnv.PROMPTS_DIR || './prompts'}
-WORKFLOWS_DIR=${activeExistingEnv.WORKFLOWS_DIR || './workflows'}
-
-# Telegram Bridge Internal Webhook Routing
-TELEGRAM_WEBHOOK_PATH=${activeExistingEnv.TELEGRAM_WEBHOOK_PATH || 'telegram-callback'}
-TELEGRAM_WEBHOOK_ID=${activeExistingEnv.TELEGRAM_WEBHOOK_ID || 'e6a4b123-5e6f-7a8b-9c0d-1e2f3a4b5c6d'}
-
-# Filtering & Regional Preferences
 TIMEZONE=${timezone}
 MIN_SCORE_THRESHOLD=${activeExistingEnv.MIN_SCORE_THRESHOLD || '60'}
 MAX_UPLOAD_SIZE_MB=${activeExistingEnv.MAX_UPLOAD_SIZE_MB || '5'}
@@ -217,22 +275,13 @@ ADZUNA_COUNTRY=${activeExistingEnv.ADZUNA_COUNTRY || ''}
 ADZUNA_SEARCH_ROLE=${searchRole}
 ADZUNA_SEARCH_LOCATION=${searchLocation}
 
-# Recruiter Discovery Keys (Optional)
-SERPER_API_KEY=${serperKey}
-HUNTER_API_KEY=${hunterKey}
+# --- 5. Outbound SMTP Email (Optional) ---
+SMTP_HOST=${activeExistingEnv.SMTP_HOST || 'smtp.gmail.com'}
+SMTP_PORT=${activeExistingEnv.SMTP_PORT || '465'}
+SMTP_USER=${activeExistingEnv.SMTP_USER || ''}
+SMTP_PASSWORD=${activeExistingEnv.SMTP_PASSWORD || ''}
 
-# Secondary LLM Providers (Optional overrides)
-LLM_MODEL=${activeExistingEnv.LLM_MODEL || ''}
-LLM_API_KEY=${activeExistingEnv.LLM_API_KEY || ''}
-OPENAI_API_KEY=${activeExistingEnv.OPENAI_API_KEY || ''}
-OPENAI_BASE_URL=${activeExistingEnv.OPENAI_BASE_URL || 'https://api.openai.com/v1'}
-ANTHROPIC_API_KEY=${activeExistingEnv.ANTHROPIC_API_KEY || ''}
-GROQ_API_KEY=${activeExistingEnv.GROQ_API_KEY || ''}
-DEEPSEEK_API_KEY=${activeExistingEnv.DEEPSEEK_API_KEY || ''}
-OPENROUTER_API_KEY=${activeExistingEnv.OPENROUTER_API_KEY || ''}
-OLLAMA_BASE_URL=${activeExistingEnv.OLLAMA_BASE_URL || 'http://localhost:11434'}
-
-# Webhook & Tunneling (Leave blank for internal bridge long-polling)
+# --- 6. Deployment & Tunneling (Optional) ---
 WEBHOOK_URL=${activeExistingEnv.WEBHOOK_URL || ''}
 CLOUDFLARE_TUNNEL_TOKEN=${activeExistingEnv.CLOUDFLARE_TUNNEL_TOKEN || ''}
 `;
@@ -249,36 +298,23 @@ CLOUDFLARE_TUNNEL_TOKEN=${activeExistingEnv.CLOUDFLARE_TUNNEL_TOKEN || ''}
     }
   }
 
-  // Write new file with restricted mode 0o600 (owner read/write only)
-  fs.writeFileSync(targetSavePath, envContent, { encoding: 'utf8', mode: 0o600 });
+  fs.writeFileSync(targetSavePath, envContent.trim() + '\n', 'utf8');
   try {
     fs.chmodSync(targetSavePath, 0o600);
   } catch (_) {}
 
   console.log('\n' + '='.repeat(70));
-  console.log(`CONFIGURATION WRITTEN TO ${targetEnvFile}`);
+  console.log(`✅ SETUP WIZARD COMPLETED SUCCESSFULLY!`);
+  console.log(`Target configuration written to: ${targetEnvFile}`);
   console.log('='.repeat(70));
-  console.log(`File Permissions: 0600 (Restricted to owner read/write)`);
-  console.log(`Target Path:      ${targetSavePath}\n`);
-  console.log('n8n Owner Account:');
-  console.log('   When opening n8n for the first time, set your private admin credentials');
-  console.log('   in the web interface (via SSH tunnel: ssh -L 5678:localhost:5678 ...).\n');
-  console.log('Launch Commands:');
-  if (isProd) {
-    console.log('   ENV_FILE=.env.prod docker compose --env-file .env.prod \\');
-    console.log('     -f docker-compose.yml -f docker-compose.prod.yml up -d');
-  } else {
-    console.log('   docker compose up -d');
-  }
-  console.log('\nTelegram Verification:');
-  console.log('   Open Telegram and send /start or /help to your bot.');
-  console.log('='.repeat(70) + '\n');
-
+  console.log('\nNext steps:');
+  console.log('  1. Run tests: npm test');
+  console.log('  2. Start local server: npm run dev\n');
   rl.close();
 }
 
 runWizard().catch(err => {
-  console.error('\n[Error] Setup Wizard failed:', err.message);
+  console.error('\n❌ Setup Wizard encountered an error:', err.message);
   rl.close();
   process.exit(1);
 });
