@@ -1,12 +1,12 @@
 # Project State
 
-> Updated by /execute 28 on 2026-10-10
+> Updated by /plan on 2026-10-10
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 28 - Profile vs Settings Decoupling & Uncapped High-Performance Concurrent Scoring (completed)
-- **Task**: All plans complete (28.1, 28.2, 28.3)
-- **Status**: Verified ✅
+- **Phase**: 29 - Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine
+- **Task**: Planning Complete (Plans 29.1, 29.2, 29.3)
+- **Status**: Ready for execution (/execute 29)
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -35,11 +35,8 @@
 - [x] **Phase 27: Resume Upload Full-Screen Animated Loader & Setup Wizard Guardrails** (Milestone v1.2)
 - [x] **Phase 28: Profile vs Settings Decoupling & Uncapped High-Performance Concurrent Scoring** (Milestone v1.2)
 
-## Last Session Summary
-Phase 28 executed and verified with 100% test pass rate across 121 tests and 150 benchmark test cases:
-1. Candidate profile decoupled: "My Resume and Profile" cleanly stores only singular current working title and resident city. Discovered roles and target locations route exclusively to `settings.json`.
-2. Pipeline scan derives search targets solely from Search Settings with strict geo and workplace filtering.
-3. Uncapped scoring worker pool (8 concurrent workers) with timeout guard and heuristic fallback eliminates all artificial caps (MAX_TO_SCORE 30 removed, arbitrary board slicing removed).
-
-## Next Steps
-All planned phases up to Phase 28 complete!
+## Next Recommended Action
+Run `/execute 29` to execute all 3 plans:
+- 29.1: Pipeline Scan Mutex, Abort Controller & Last Scan Diagnostics Persistence
+- 29.2: Opportunities Header Redesign, Dynamic Logs/Insights Button & Live Scan Modal with Abort Controller
+- 29.3: Opportunities Filtering, Empty-State Intelligence & End-to-End Automated Tests
