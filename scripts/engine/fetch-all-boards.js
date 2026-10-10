@@ -646,7 +646,7 @@ async function fetchGlobalRemoteFeeds() {
       const res = await hostFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (res.ok) {
         const data = await res.json();
-        for (const item of (data.data || []).slice(0, 20)) {
+        for (const item of (data.data || [])) {
           const rawTitle = item.title || '';
           const rawUrl = item.url || '';
           const rawCompany = item.company_name || 'Tech Employer';
@@ -1322,7 +1322,7 @@ async function fetchNaukri() {
       const html = await res.text();
       // Extract structured article or schema cards
       const tupleMatches = html.match(/<article[\s\S]*?<\/article>/gi) || [];
-      for (const card of tupleMatches.slice(0, 20)) {
+      for (const card of tupleMatches) {
         const titleM = card.match(/<a[^>]*class="title[^"]*"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
         const compM = card.match(/<a[^>]*class="comp-name[^"]*"[^>]*>([\s\S]*?)<\/a>/i);
         const locM = card.match(/<span[^>]*class="loc-wrap[^"]*"[^>]*>([\s\S]*?)<\/span>/i);
@@ -1384,7 +1384,7 @@ async function fetchDaijobJP() {
     if (res.ok) {
       const html = await res.text();
       const articles = html.split(/<div\s+class="gp-job-item(?=["\s>])/i).slice(1);
-      for (const art of articles.slice(0, 15)) {
+      for (const art of articles) {
         const titleM = art.match(/<h3[^>]*>[\s\S]*?<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
         const compM = art.match(/<div class="gp-job-item__company"[^>]*>([\s\S]*?)<\/div>/i);
         const locM = art.match(/<div class="gp-job-item__location"[^>]*>([\s\S]*?)<\/div>/i);
@@ -1447,7 +1447,7 @@ async function fetchVagasBR() {
     if (res.ok) {
       const html = await res.text();
       const articles = html.split('<article class="vaga').slice(1);
-      for (const art of articles.slice(0, 15)) {
+      for (const art of articles) {
         const titleM = art.match(/<h2[^>]*class="cargo"[^>]*>[\s\S]*?<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
         const compM = art.match(/<span[^>]*class="empr"[^>]*>([\s\S]*?)<\/span>/i);
         const locM = art.match(/<span[^>]*class="vaga-local"[^>]*>([\s\S]*?)<\/span>/i);

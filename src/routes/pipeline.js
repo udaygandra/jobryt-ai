@@ -68,18 +68,22 @@ async function executePipelineScan(overrides = {}) {
 
   // Step 1: Ingest from job boards with dynamic search payload
   let rawFetchedJobs = [];
-  try {
-    rawFetchedJobs = await fetchAllJobs({
-      targetTitles,
-      targetLocations,
-      countryScope: activeScope,
-      candidateWorkType: activeWorkType,
-      boardsEnabled: settings.boards_enabled,
-      freshnessHours,
-      commuteRadiusKm: settings.commute_radius_km
-    });
-  } catch (fetchErr) {
-    console.warn('[Pipeline] Fetch note:', fetchErr.message);
+  if (Array.isArray(overrides.injectedRawJobs)) {
+    rawFetchedJobs = overrides.injectedRawJobs;
+  } else {
+    try {
+      rawFetchedJobs = await fetchAllJobs({
+        targetTitles,
+        targetLocations,
+        countryScope: activeScope,
+        candidateWorkType: activeWorkType,
+        boardsEnabled: settings.boards_enabled,
+        freshnessHours,
+        commuteRadiusKm: settings.commute_radius_km
+      });
+    } catch (fetchErr) {
+      console.warn('[Pipeline] Fetch note:', fetchErr.message);
+    }
   }
 
   const allRawItems = rawFetchedJobs.map(j => normalizeJob(j, j.source || 'unknown')).filter(Boolean);
@@ -108,10 +112,9 @@ async function executePipelineScan(overrides = {}) {
     return true;
   });
 
-  // Step 4: Scoring (cap at 30 for snappy web response)
-  const MAX_TO_SCORE = Math.min(unSeenJobs.length, 30);
-  const jobsToScore = unSeenJobs.slice(0, MAX_TO_SCORE);
-  const scoredJobs = [];
+  // Step 4: High-Performance Uncapped Concurrent Scoring
+  const jobsToScore = unSeenJobs;
+  const scoredJobs = new Array(jobsToScore.length);
   const newlySeenIds = [];
 
   for (const job of jobsToScore) {
@@ -122,38 +125,67 @@ async function executePipelineScan(overrides = {}) {
     const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     if (compClean && titClean) newlySeenIds.push(`comp_${compClean}_tit_${titClean}`);
-
-    let scoredItem = null;
-    try {
-      const prompt = buildDynamicScoringPrompt({ ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, commute_radius_km: settings.commute_radius_km }, job.title, job.description);
-      const llmRes = await callLLMProvider({ prompt });
-      if (llmRes.success) {
-        job.rawText = llmRes.rawText;
-        scoredItem = runParseScore({ json: { ...job } }, { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope }, settings).json;
-      }
-    } catch (_) {}
-
-    if (!scoredItem || typeof scoredItem.score !== 'number') {
-      scoredItem = computeHeuristicScore(job, { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, work_type: activeWorkType }, settings);
-    }
-
-    const finalJob = {
-      ...job,
-      ...scoredItem,
-      id: job.id || scoredItem.id,
-      title: (job.title || scoredItem.title || 'Target Role').trim(),
-      company: (job.company || scoredItem.company || 'Direct Employer').trim(),
-      location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
-      source: job.source || scoredItem.source || 'Direct',
-      match_score: scoredItem.score,
-      score: scoredItem.score,
-      job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
-      redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
-      why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
-    };
-
-    scoredJobs.push(finalJob);
   }
+
+  const SCORING_CONCURRENCY = 8;
+  let nextScoringIdx = 0;
+
+  async function scoringWorker() {
+    while (true) {
+      const idx = nextScoringIdx++;
+      if (idx >= jobsToScore.length) return;
+      const job = jobsToScore[idx];
+
+      let scoredItem = null;
+      if (!overrides.skipLLM) {
+        try {
+          const prompt = buildDynamicScoringPrompt(
+            { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, commute_radius_km: settings.commute_radius_km },
+            job.title,
+            job.description
+          );
+          // 4500ms timeout per LLM request with automatic fallback to heuristic scoring
+          const llmPromise = callLLMProvider({ prompt });
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM scoring timeout')), 4500));
+          const llmRes = await Promise.race([llmPromise, timeoutPromise]);
+          if (llmRes && llmRes.success) {
+            job.rawText = llmRes.rawText;
+            scoredItem = runParseScore(
+              { json: { ...job } },
+              { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope },
+              settings
+            ).json;
+          }
+        } catch (_) {}
+      }
+
+      if (!scoredItem || typeof scoredItem.score !== 'number') {
+        scoredItem = computeHeuristicScore(
+          job,
+          { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, work_type: activeWorkType },
+          settings
+        );
+      }
+
+      scoredJobs[idx] = {
+        ...job,
+        ...scoredItem,
+        id: job.id || scoredItem.id,
+        title: (job.title || scoredItem.title || 'Target Role').trim(),
+        company: (job.company || scoredItem.company || 'Direct Employer').trim(),
+        location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
+        source: job.source || scoredItem.source || 'Direct',
+        match_score: scoredItem.score,
+        score: scoredItem.score,
+        job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
+        redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
+        why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
+      };
+    }
+  }
+
+  const activeWorkerCount = Math.min(SCORING_CONCURRENCY, Math.max(1, jobsToScore.length));
+  await Promise.all(Array.from({ length: activeWorkerCount }, scoringWorker));
 
   // Step 5: Persist qualified to pending, rejected to rejected based on user score_threshold
   const qualified = scoredJobs.filter(j => (j.score || 0) >= minThreshold && j.should_apply !== false);
