@@ -363,6 +363,7 @@ let comboboxDebounceTimer = null;
 let liveGeocodingDebounceTimer = null;
 let liveGeocodingAbortController = null;
 let currentLiveResults = [];
+let previousCountryScope = null;
 
 const COUNTRY_METADATA = {
   US: { name: 'United States', flag: '🇺🇸', sampleCity: 'Austin, TX' },
@@ -475,6 +476,31 @@ async function initCanadaCities() {
   return initGlobalCities('CA');
 }
 
+function isLocationInCountryScope(locStr, countryScope) {
+  if (!locStr || !countryScope) return false;
+  const lower = locStr.toLowerCase().trim();
+  if (lower.includes('remote') || lower.includes('worldwide')) return true;
+  if (countryScope === 'GLOBAL' || countryScope === 'ALL') return true;
+  if (countryScope === 'US_CA') {
+    return isLocationInCountryScope(locStr, 'US') || isLocationInCountryScope(locStr, 'CA');
+  }
+  if (Array.isArray(window.allGlobalCitiesDataset) && window.allGlobalCitiesDataset.length) {
+    const match = window.allGlobalCitiesDataset.find(c =>
+      c.formatted.toLowerCase() === lower || c.city.toLowerCase() === lower || lower.includes(c.city.toLowerCase())
+    );
+    if (match) return match.country_code === countryScope;
+  }
+  if (countryScope === 'CA') return lower.includes('canada') || /,\s*(on|bc|qc|ab|mb|sk|ns|nb|nl|pe|nt|nu|yt)\b/i.test(lower);
+  if (countryScope === 'US') return lower.includes('usa') || lower.includes('united states') || /,\s*(al|ak|az|ar|ca|co|ct|de|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy|dc)\b/i.test(lower);
+  if (countryScope === 'GB') return lower.includes('uk') || lower.includes('united kingdom') || lower.includes('london');
+  if (countryScope === 'DE') return lower.includes('germany') || lower.includes('deutschland') || lower.includes('berlin');
+  if (countryScope === 'IN') return lower.includes('india') || lower.includes('bengaluru') || lower.includes('delhi');
+  if (countryScope === 'AU') return lower.includes('australia') || lower.includes('sydney');
+  if (countryScope === 'FR') return lower.includes('france') || lower.includes('paris');
+  return false;
+}
+window.isLocationInCountryScope = isLocationInCountryScope;
+
 function onCountryScopeChange() {
   const scopeSelect = document.getElementById('cfg-scope');
   const locInput = document.getElementById('input-add-location');
@@ -503,8 +529,27 @@ function onCountryScopeChange() {
     }
     if (suggestionsContainer) suggestionsContainer.innerHTML = '';
     closeComboboxDropdown();
+    previousCountryScope = scope;
     return;
   }
+
+  // Reset previously selected cities if country changed to avoid lingering out-of-scope locations
+  if (previousCountryScope !== null && previousCountryScope !== scope && Array.isArray(window.targetLocationsList) && window.targetLocationsList.length > 0) {
+    const targetCheckScope = (effectiveScope && effectiveScope !== 'AUTO') ? effectiveScope : scope;
+    if (targetCheckScope && targetCheckScope !== 'GLOBAL' && targetCheckScope !== 'AUTO') {
+      const keptLocations = window.targetLocationsList.filter(loc => isLocationInCountryScope(loc, targetCheckScope));
+      if (keptLocations.length !== window.targetLocationsList.length) {
+        const removedCount = window.targetLocationsList.length - keptLocations.length;
+        window.targetLocationsList = keptLocations;
+        renderLocationTags();
+        const newCountryName = meta ? meta.name : scope;
+        if (typeof showToast === 'function') {
+          showToast(`Target country changed to ${newCountryName}. ${removedCount} previous cities cleared — please select cities in ${newCountryName}.`, 'warning');
+        }
+      }
+    }
+  }
+  previousCountryScope = scope;
 
   // Country selected: Enable city input and restrict scope
   if (locInput) {
@@ -1089,6 +1134,7 @@ async function loadSettings() {
 
     if (cfgScope) {
       cfgScope.value = targetScope;
+      previousCountryScope = targetScope;
     }
 
     // Trigger onCountryScopeChange to automatically unlock city input, update badge & placeholders
@@ -1151,6 +1197,36 @@ async function runManualScanWithOverrides() {
 }
 
 async function saveAllSettings() {
+  if (typeof validateFormFields === 'function') {
+    const isValid = validateFormFields([
+      {
+        field: 'input-add-role',
+        container: '#roles-tags-container',
+        type: 'list_min',
+        min: 1,
+        getValue: () => window.targetRolesList || [],
+        message: 'Please specify at least 1 target job title.'
+      },
+      {
+        field: 'cfg-scope',
+        type: 'required',
+        message: 'Please select a target country scope.'
+      },
+      {
+        field: 'input-add-location',
+        container: '#locations-tags-container',
+        type: 'list_min',
+        min: 1,
+        getValue: () => window.targetLocationsList || [],
+        message: 'Please add at least 1 target city or location.'
+      }
+    ]);
+    if (!isValid) {
+      showToast('Please complete the required settings fields.', 'error');
+      return;
+    }
+  }
+
   const minScore = parseInt(document.getElementById('cfg-score')?.value || '60', 10);
   const freshness = parseInt(document.getElementById('cfg-freshness')?.value || '24', 10);
   const scope = document.getElementById('cfg-scope')?.value || 'AUTO';

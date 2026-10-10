@@ -892,6 +892,30 @@ async function saveMasterProfile() {
   try {
     syncFormToJson();
 
+    if (typeof validateFormFields === 'function') {
+      const isValid = validateFormFields([
+        {
+          field: 'prof-name',
+          type: 'required',
+          message: 'Candidate full name is required.'
+        },
+        {
+          field: 'prof-email',
+          type: 'email',
+          message: 'A valid email address is required.'
+        },
+        {
+          field: 'prof-target-roles',
+          type: 'required',
+          message: 'At least one target job title or role is required.'
+        }
+      ]);
+      if (!isValid) {
+        showToast('Please complete all required profile fields.', 'error');
+        return;
+      }
+    }
+
     const btn = document.getElementById('btn-save-profile');
     const originalContent = btn ? btn.innerHTML : '';
     if (btn) btn.innerHTML = `<span>Saving...</span>`;

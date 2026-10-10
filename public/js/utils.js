@@ -108,6 +108,110 @@ function formatJsonEditor() {
 }
 
 /**
+ * Action-Button Field Validation Engine
+ * Validates fields only when user explicitly clicks an action button.
+ * Non-intrusive: attaches one-time event listeners to clear error rings on first correction.
+ */
+function clearFieldError(el) {
+  if (!el) return;
+  el.classList.remove('border-rose-500', 'focus:border-rose-500', 'ring-1', 'ring-rose-500/40');
+  const parent = el.closest('.form-group') || el.parentElement;
+  if (parent) {
+    const existingMsg = parent.querySelector('.field-validation-error-msg');
+    if (existingMsg) existingMsg.remove();
+  }
+}
+
+function showFieldError(el, message) {
+  if (!el) return;
+  el.classList.add('border-rose-500', 'focus:border-rose-500', 'ring-1', 'ring-rose-500/40');
+  const parent = el.closest('.form-group') || el.parentElement;
+  if (parent) {
+    let existingMsg = parent.querySelector('.field-validation-error-msg');
+    if (!existingMsg) {
+      existingMsg = document.createElement('p');
+      existingMsg.className = 'field-validation-error-msg text-[11px] text-rose-400 mt-1 font-medium flex items-center gap-1 transition-all';
+      parent.appendChild(existingMsg);
+    }
+    existingMsg.innerHTML = `<svg class="w-3.5 h-3.5 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span>${escapeHtml(message)}</span>`;
+  }
+
+  const clearHandler = () => {
+    clearFieldError(el);
+    el.removeEventListener('input', clearHandler);
+    el.removeEventListener('change', clearHandler);
+  };
+  el.addEventListener('input', clearHandler);
+  el.addEventListener('change', clearHandler);
+}
+
+function validateFormFields(rules) {
+  if (!Array.isArray(rules)) return true;
+  let firstInvalidEl = null;
+  let allValid = true;
+
+  for (const rule of rules) {
+    const el = typeof rule.field === 'string'
+      ? (document.getElementById(rule.field) || document.querySelector(rule.field))
+      : rule.field;
+
+    let val = rule.getValue ? rule.getValue() : (el ? el.value : '');
+    let isInvalid = false;
+    let errorMsg = rule.message || 'This field is required.';
+
+    if (rule.type === 'required') {
+      if (typeof val === 'string' ? !val.trim() : !val) {
+        isInvalid = true;
+      }
+    } else if (rule.type === 'email') {
+      const emailStr = (val || '').trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailStr || !emailRegex.test(emailStr)) {
+        isInvalid = true;
+        errorMsg = rule.message || 'Please provide a valid email address.';
+      }
+    } else if (rule.type === 'list_min') {
+      const list = Array.isArray(val) ? val : [];
+      const min = rule.min || 1;
+      if (list.length < min) {
+        isInvalid = true;
+        errorMsg = rule.message || `Please add at least ${min} item${min > 1 ? 's' : ''}.`;
+      }
+    } else if (rule.type === 'custom' && typeof rule.test === 'function') {
+      if (!rule.test(val)) {
+        isInvalid = true;
+      }
+    }
+
+    if (isInvalid) {
+      allValid = false;
+      const targetEl = el || (rule.container ? document.querySelector(rule.container) : null);
+      if (targetEl) {
+        showFieldError(targetEl, errorMsg);
+        if (!firstInvalidEl) firstInvalidEl = targetEl;
+      }
+    } else if (el) {
+      clearFieldError(el);
+    }
+  }
+
+  if (firstInvalidEl && typeof firstInvalidEl.scrollIntoView === 'function') {
+    firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (typeof firstInvalidEl.focus === 'function') {
+      try { firstInvalidEl.focus(); } catch (_) {}
+    }
+  }
+
+  return allValid;
+}
+
+if (typeof window !== 'undefined') {
+  window.clearFieldError = clearFieldError;
+  window.showFieldError = showFieldError;
+  window.validateFormFields = validateFormFields;
+}
+
+/**
  * Jobryt AI - Lightweight Micro-Reactive Observable State Store
  * Provides predictable state management, event-driven subscriptions,
  * zero-overhead unidirectional data flow, and instant DevTools inspection.
