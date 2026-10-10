@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 29 - Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine (Completed & Verified)
-- **Task**: All plans executed (29.1, 29.2, 29.3)
-- **Status**: ✅ Phase 29 Complete & Verified
+- **Phase**: 30 - True Full Reset Engine, Settings Persistence Integrity & Pre-Scan Validation Guardrails
+- **Task**: Planning Complete (Plans 30.1, 30.2, 30.3)
+- **Status**: Ready for execution (/execute 30)
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -37,8 +37,8 @@
 - [x] **Phase 29: Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine** (Milestone v1.2)
 
 ## Next Recommended Action
-Phase 29 is fully completed and verified.
-To pick up changes in running containers:
-Restart the web container or dev server:
-`docker compose restart web`
+Run `/execute 30` to execute all 3 plans:
+- 30.1: True Full Reset (Zero-Residue Wipe of Profile, Resumes, Settings & Queues) & Settings Persistence Integrity
+- 30.2: Pre-Scan Comprehensive Validation Engine (Frontend Guardrails & Backend API Gate)
+- 30.3: Guided Post-Reset Onboarding Workflow & Automated End-to-End Test Suite
 
