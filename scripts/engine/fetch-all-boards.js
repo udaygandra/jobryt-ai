@@ -1599,7 +1599,7 @@ async function fetchAllJobsInner(options = {}) {
   }
 
   const t0 = Date.now();
-  await runPool(tasks, { globalLimit: 12 });
+  await runPool(tasks, { globalLimit: 12, signal: options.signal });
 
   const uniqueJobs = deduplicateJobList(allFetchedJobs);
   console.error(`\n[Multi-Board Ingestion] Full sweep complete in ${Date.now() - t0}ms. Total jobs fetched: ${allFetchedJobs.length} (Unique: ${uniqueJobs.length})`);

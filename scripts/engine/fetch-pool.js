@@ -77,11 +77,12 @@ async function hostFetch(url, opts = {}) {
   throw lastErr || new Error(`hostFetch failed: ${url}`);
 }
 
-async function runPool(tasks, { globalLimit = 12, onError } = {}) {
+async function runPool(tasks, { globalLimit = 12, onError, signal } = {}) {
   const results = new Array(tasks.length);
   let next = 0;
   async function worker() {
     while (true) {
+      if (signal && signal.aborted) return;
       const i = next++;
       if (i >= tasks.length) return;
       const t = tasks[i];
