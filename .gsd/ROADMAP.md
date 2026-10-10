@@ -114,6 +114,16 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 14.3: 10 Job Roles Guardrail & Slot Counter](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/14/14.3-PLAN.md)
 - [x] [Plan 14.4: Settings Layout Streamlining & Redundant Integrations Cleanup](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/14/14.4-PLAN.md)
 
+### Phase 15: UX Breathing Room, ATS Resume Editor Overhaul, Smart City Resets, Button Validations & Prompt Engineering
+**Status:** 🔄 In Progress (Milestone v1.2)
+**Objective:** Reset target cities when switching country scope with clear user feedback; introduce lightweight action-button field validations for Settings, Profile, and Tailor; remove dense technical jargon across the app; declutter navigation bar and component spacing for visual breathing room; overhaul Resume & Profile section into a full-width ATS-grade editor with on-demand "Format JSON" modal; and engineer production-grade prompts in `prompts/` with updated schema alignment.
+
+**Plans:**
+- [ ] [Plan 15.1: Smart Country Scope City Reset & Action Button Validation Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/15/15.1-PLAN.md)
+- [ ] [Plan 15.2: Jargon Removal, Header/Navigation Breathing Room & Clean Layout Overhaul](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/15/15.2-PLAN.md)
+- [ ] [Plan 15.3: Resume & Profile Section Full-Width ATS Editor & Modal Format JSON](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/15/15.3-PLAN.md)
+- [ ] [Plan 15.4: Forward-Deployed AI Prompt Engineering & Efficiency Optimization](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/15/15.4-PLAN.md)
+
 ---
 
 ## Progress Summary
@@ -131,6 +141,7 @@ updated: 2026-10-08T17:36:00Z
 | 12 | ✅ | 3/3 | 100% (v1.2) |
 | 13 | ✅ | 3/3 | 100% (v1.2) |
 | 14 | ✅ | 4/4 | 100% (v1.2) |
+| 15 | 🔄 | 0/4 | 0% (v1.2) |
 
 
 

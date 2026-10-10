@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 14 - UX Guardrails, City Formatting Consistency, Role & City Quotas, and Settings Layout Refinement
-- **Task**: All plans complete (14.1, 14.2, 14.3, 14.4)
-- **Status**: ✅ Phase 14 Verified & Complete
+- **Phase**: 15 - UX Breathing Room, ATS Resume Editor Overhaul, Smart City Resets, Button Validations & Prompt Engineering
+- **Task**: Planning complete (Plans 15.1, 15.2, 15.3, 15.4)
+- **Status**: Ready for execution
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -21,12 +21,6 @@
 - [x] **Phase 13: Live Geocoding City Search, Google Maps-Grade Hybrid Combobox & Resume-Driven Country Unlocking** (Milestone v1.2)
 - [x] **Phase 14: UX Guardrails, City Formatting Consistency, Role & City Quotas, and Settings Layout Refinement** (Milestone v1.2)
 
-## Phase 14 Summary
-- **Plan 14.1**: Setup Wizard dismissal and auto-popup loop resolved; on-demand "✨ Setup Wizard" button added to Settings header.
-- **Plan 14.2**: City formatting standardized to concise `City, ST, Country` format (e.g. `Redwood City, CA, USA`); 🇺🇸 flag detection fixed; max 5 cities limit enforced.
-- **Plan 14.3**: Max 10 target job roles limit enforced with slot counter `(X/10)` and backend API validation.
-- **Plan 14.4**: Background Scheduler relocated to the bottom of Settings page; redundant static Connected Integrations cards removed.
-
 ## Next Recommended Action
-Audit and complete Milestone v1.2 (`/audit-milestone` or `/complete-milestone`).
+Execute Phase 15 via `/execute 15`.
 
