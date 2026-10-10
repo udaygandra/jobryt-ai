@@ -240,13 +240,13 @@ updated: 2026-10-08T17:36:00Z
 ---
 
 ### Phase 29: Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine
-**Status:** 📋 Planned (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** Overhaul the Opportunities page and pipeline execution: eliminate the duplicate "Scan Feeds" button and replace it with a dynamic "Scan Insights & Logs" button; implement a backend scan mutex/lock to prevent wasteful concurrent duplicate scans and protect LLM token quota; build an AbortController engine to stop scans mid-flight on demand; persist board-by-board yield breakdowns in `last_scan_result.json`; provide rich client-side search, score filtering, workplace mode filtering, and intelligent empty-state diagnostics.
 
 **Plans:**
-- [ ] [Plan 29.1: Pipeline Scan Mutex, Abort Controller & Last Scan Diagnostics Persistence](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/29/29.1-PLAN.md)
-- [ ] [Plan 29.2: Opportunities Header Redesign, Dynamic Logs/Insights Button & Live Scan Modal with Abort Controller](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/29/29.2-PLAN.md)
-- [ ] [Plan 29.3: Opportunities Filtering, Empty-State Intelligence & End-to-End Automated Tests](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/29/29.3-PLAN.md)
+- [x] [Plan 29.1: Pipeline Scan Mutex, Abort Controller & Last Scan Diagnostics Persistence](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/29/29.1-PLAN.md)
+- [x] [Plan 29.2: Opportunities Header Redesign, Dynamic Logs/Insights Button & Live Scan Modal with Abort Controller](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/29/29.2-PLAN.md)
+- [x] [Plan 29.3: Opportunities Filtering, Empty-State Intelligence & End-to-End Automated Tests](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/29/29.3-PLAN.md)
 
 ---
 

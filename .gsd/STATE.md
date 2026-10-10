@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 29 - Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine
-- **Task**: Planning Complete (Plans 29.1, 29.2, 29.3)
-- **Status**: Ready for execution (/execute 29)
+- **Phase**: 29 - Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine (Completed & Verified)
+- **Task**: All plans executed (29.1, 29.2, 29.3)
+- **Status**: ✅ Phase 29 Complete & Verified
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -34,9 +34,11 @@
 - [x] **Phase 26: Universal Zero-Hardcoding, Dynamic Multi-Skillset Market Roles & Global Localization Engine** (Milestone v1.2)
 - [x] **Phase 27: Resume Upload Full-Screen Animated Loader & Setup Wizard Guardrails** (Milestone v1.2)
 - [x] **Phase 28: Profile vs Settings Decoupling & Uncapped High-Performance Concurrent Scoring** (Milestone v1.2)
+- [x] **Phase 29: Opportunities Page Overhaul, Live Scan Controller & Multi-Board Diagnostics Engine** (Milestone v1.2)
 
 ## Next Recommended Action
-Run `/execute 29` to execute all 3 plans:
-- 29.1: Pipeline Scan Mutex, Abort Controller & Last Scan Diagnostics Persistence
-- 29.2: Opportunities Header Redesign, Dynamic Logs/Insights Button & Live Scan Modal with Abort Controller
-- 29.3: Opportunities Filtering, Empty-State Intelligence & End-to-End Automated Tests
+Phase 29 is fully completed and verified.
+To pick up changes in running containers:
+Restart the web container or dev server:
+`docker compose restart web`
+
