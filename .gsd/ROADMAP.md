@@ -197,6 +197,18 @@ updated: 2026-10-08T17:36:00Z
 
 ---
 
+### Phase 25: Market-Validated Resume-to-Job-Titles & Search Engine (Prompts A, B, C & Validation Pipeline)
+**Status:** 📋 Planned (Milestone v1.2)
+**Objective:** Transform raw uploaded resumes into 5–10 real, searchable, market-validated job titles. Implements a 5-stage pipeline: code-based PII redaction and security encapsulation; Prompt A structured candidate profile extraction; Prompt B 15-candidate title generation via a 4-expert reasoning panel with strict tier taxonomy (core, adjacent, stretch); parallel job board API demand probing and composite ranking; and targeted query generation with post-filtering and optional Prompt C hiring manager reranking.
+
+**Plans:**
+- [ ] [Plan 25.1: PII Redaction, Structured Candidate Profile Extraction (Prompt A) & Caching Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.1-PLAN.md)
+- [ ] [Plan 25.2: 15-Candidate Title Generation Engine (Prompt B) with Tiers, Evidence & Guardrails](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.2-PLAN.md)
+- [ ] [Plan 25.3: Parallel Market Validation Probing & Tier-Balanced Ranking Engine](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.3-PLAN.md)
+- [ ] [Plan 25.4: Search Query Dispatch, Post-Filtering, Prompt C Re-Ranker & Profile Integration](file:///c:/Users/udays/Documents/jobryt-ai/.gsd/phases/25/25.4-PLAN.md)
+
+---
+
 ## Progress Summary
 
 | Phase | Status | Plans | Complete |
@@ -222,6 +234,7 @@ updated: 2026-10-08T17:36:00Z
 | 22 | ✅ | 1/1 | 100% (v1.2) |
 | 23 | ✅ | 2/2 | 100% (v1.2) |
 | 24 | ✅ | 3/3 | 100% (v1.2) |
+| 25 | 📋 | 4/4 | Planned (v1.2) |
 
 
 

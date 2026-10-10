@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 24 - Concurrent Ingestion, Per-API Request Builders & Scoring v2
-- **Task**: Phase 24 Complete (Plans 24.1, 24.2, 24.3)
-- **Status**: Complete & Verified (150/150 Benchmark, 11/11 Scoring v2, 11/11 Board Requests, 18/18 Payload & Scoring)
+- **Phase**: 25 - Market-Validated Resume-to-Job-Titles & Search Engine (Prompts A, B, C & Validation Pipeline)
+- **Task**: Planning complete (Plans 25.1, 25.2, 25.3, 25.4)
+- **Status**: Ready for execution (/execute 25)
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -32,5 +32,5 @@
 - [x] **Phase 24: Concurrent Ingestion, Per-API Request Builders & Scoring v2** (Milestone v1.2)
 
 ## Next Recommended Action
-Perform a live scan in the UI or proceed with `/audit-milestone v1.2`.
+Run `/execute 25` to execute the 4 plans for the Market-Validated Resume-to-Job-Titles pipeline.
 
