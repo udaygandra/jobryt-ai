@@ -382,9 +382,9 @@ describe('Scoring Engine v2 — 10 Diverse Personas & Mathematical Guarantees', 
     };
     const resWriter = computeHeuristicScore(unstatedJob, resume, settings);
     assert.strictEqual(resWriter.scoring_pillars.unstated_skills_default, true);
-    assert.strictEqual(resWriter.scoring_pillars.skills_fit_score, 90, 'Must award 90% skills baseline when JD omits skill list');
+    assert.strictEqual(resWriter.scoring_pillars.skills_fit_score, 70, 'Must award 70% skills baseline when JD omits skill list');
     assert.strictEqual(resWriter.scoring_pillars.location_gate_passed, true);
-    assert.ok(resWriter.overall_score >= 80);
+    assert.ok(resWriter.overall_score >= 70);
     assert.strictEqual(resWriter.should_apply, true);
   });
 

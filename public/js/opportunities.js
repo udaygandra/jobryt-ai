@@ -269,7 +269,7 @@ function renderPendingJobs(jobs, isFilterZero = false) {
             <span class="hidden sm:inline text-[#3D444D]">•</span>
             <span class="flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              <span>Scoring Threshold: 70+ Match</span>
+              <span id="opp-empty-threshold-label">Scoring Threshold: ${(window.activeScoreThreshold || 65)}+ Match</span>
             </span>
           </div>
         </div>
@@ -278,11 +278,14 @@ function renderPendingJobs(jobs, isFilterZero = false) {
     }
 
     container.innerHTML = jobs.map(job => {
-      const score = job.score || job.match_score || 80;
+      const score = Number(job.score ?? job.match_score ?? job.overall_score) || 75;
       const isHighMatch = score >= 85;
+      const isStrongMatch = score >= 75;
       const scoreBadgeClass = isHighMatch
         ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
-        : (score >= 75 ? 'text-[#5FA8A0] bg-[#5FA8A0]/10 border-[#5FA8A0]/25' : 'text-[#D9A441] bg-[#D9A441]/10 border-[#D9A441]/25');
+        : (isStrongMatch ? 'text-[#5FA8A0] bg-[#5FA8A0]/10 border-[#5FA8A0]/25' : 'text-[#D9A441] bg-[#D9A441]/10 border-[#D9A441]/25');
+      const scoreDotClass = isHighMatch ? 'bg-emerald-400' : (isStrongMatch ? 'bg-[#5FA8A0]' : 'bg-[#D9A441]');
+      const scoreTierLabel = isHighMatch ? 'Top Match (85%+)' : (isStrongMatch ? 'Strong Match (75-84%)' : 'Qualified Match');
       const jobUrl = job.job_url || job.redirect_url || job.apply_url || job.url || '';
 
       const companyInitial = (job.company || 'J').trim().charAt(0).toUpperCase();
@@ -343,8 +346,8 @@ function renderPendingJobs(jobs, isFilterZero = false) {
 
             <!-- Match Score Badge Gauge & Breakdown Pills -->
             <div class="shrink-0 flex flex-col items-end gap-1.5">
-              <div class="px-3 py-1 text-xs font-bold rounded-lg border ${scoreBadgeClass} font-mono tabular-nums flex items-center gap-1.5 shadow-xs">
-                <span class="w-1.5 h-1.5 rounded-full ${isHighMatch ? 'bg-emerald-400' : 'bg-[#5FA8A0]'}"></span>
+              <div class="px-3 py-1 text-xs font-bold rounded-lg border ${scoreBadgeClass} font-mono tabular-nums flex items-center gap-1.5 shadow-xs" title="${scoreTierLabel}">
+                <span class="w-1.5 h-1.5 rounded-full ${scoreDotClass}"></span>
                 <span>${score}% Match</span>
               </div>
               ${job.breakdown ? `
@@ -485,6 +488,17 @@ async function loadPendingJobs() {
       }
     } catch (_) {}
 
+    // Sync dynamic threshold filter chips from settings
+    try {
+      const sRes = await fetch('/api/settings');
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        const th = Number(sData?.settings?.score_threshold) || 65;
+        window.activeScoreThreshold = th;
+        updateThresholdFilterButtons(th);
+      }
+    } catch (_) {}
+
     filterOpportunities();
   } catch (e) {
     console.error('loadPendingJobs error:', e);
@@ -494,6 +508,20 @@ async function loadPendingJobs() {
 // ── Search & Filter State & Handlers ───────────────────────────────────────────
 window.currentScoreFilter = 'all';
 window.currentWorktypeFilter = 'all';
+window.activeScoreThreshold = 65;
+
+function updateThresholdFilterButtons(threshold = 65) {
+  const btn = document.getElementById('opp-threshold-filter-btn');
+  if (btn) {
+    btn.setAttribute('data-score', String(threshold));
+    btn.setAttribute('onclick', `setScoreFilter(${threshold})`);
+    btn.textContent = `${threshold}%+ Qualified`;
+  }
+  const emptyLabel = document.getElementById('opp-empty-threshold-label');
+  if (emptyLabel) {
+    emptyLabel.textContent = `Scoring Threshold: ${threshold}+ Match`;
+  }
+}
 
 function setScoreFilter(score) {
   window.currentScoreFilter = score;
@@ -543,7 +571,7 @@ function filterOpportunities() {
       }
     }
     // Score threshold match
-    const score = Number(job.match_score) || 0;
+    const score = Number(job.score ?? job.match_score ?? job.overall_score) || 0;
     if (score < scoreMin) return false;
 
     // Worktype filter match
@@ -990,6 +1018,7 @@ window.closeScanModal = closeScanModal;
 window.stopScan = stopScan;
 window.checkScanStatus = checkScanStatus;
 window.renderScanDiagnostics = renderScanDiagnostics;
+window.updateThresholdFilterButtons = updateThresholdFilterButtons;
 window.validateScanPreconditions = validateScanPreconditions;
 window.showScanValidationModal = showScanValidationModal;
 window.closeScanValidationModal = closeScanValidationModal;

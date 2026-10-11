@@ -9,8 +9,8 @@
  */
 
 const HOST_LIMITS = [
-  { match: /linkedin\.com$/i, max: 2, gapMs: 150 },
-  { match: /jobbank\.gc\.ca$/i, max: 3, gapMs: 0 },
+  { match: /linkedin\.com$/i, max: 3, gapMs: 100 },
+  { match: /jobbank\.gc\.ca$/i, max: 4, gapMs: 0 },
   { match: /adzuna\.com$/i, max: 4, gapMs: 0 },
 ];
 const DEFAULT_HOST = { max: 4, gapMs: 0 };

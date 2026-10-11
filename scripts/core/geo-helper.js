@@ -912,7 +912,28 @@ function isJobRoleRelevant(jobTitle, targetTitles = []) {
   if (isLeadTitle && !wantsLead) return false;
   if (isStudentTitle && !wantsStudent) return false;
 
-  // 3. Direct exact or boundary-checked substring match with target titles
+  // 3. Domain Boundary Guards (Filter out cross-industry false positive traps)
+  // A. Electrical / Power Grid trap: e.g. "Power Systems Senior Consultant (Power Grid SME)"
+  const isPowerGridJob = /\b(power systems?|power grid|power plant|substation|high voltage|electrical utility|transmission lines?)\b/i.test(titleLower);
+  const wantsPowerGrid = targetTitles.some(t => /\b(power systems?|power grid|electrical|substation|utility)\b/i.test(t));
+  if (isPowerGridJob && !wantsPowerGrid) return false;
+
+  // B. Cybersecurity / Data Loss Prevention (DLP) trap: e.g. "Senior Specialist, Data Loss Prevention"
+  const isDlpSecurityJob = /\b(data loss prevention|dlp|cyber\s*threat|soc analyst|penetration test)\b/i.test(titleLower);
+  const wantsDlpSecurity = targetTitles.some(t => /\b(data loss prevention|dlp|cyber|security|infosec|soc)\b/i.test(t));
+  if (isDlpSecurityJob && !wantsDlpSecurity) return false;
+
+  // C. Enterprise Data Architect trap: (requires 10+ years architecture)
+  const isArchitectTitle = /\b(data architect|enterprise architect|solution architect|cloud architect)\b/i.test(titleLower);
+  const wantsArchitect = targetTitles.some(t => /\b(architect)\b/i.test(t));
+  if (isArchitectTitle && !wantsArchitect) return false;
+
+  // D. Data Scientist trap: (requires ML/statistical research background)
+  const isScientistTitle = /\b(data scientist|research scientist|machine learning scientist)\b/i.test(titleLower);
+  const wantsScientist = targetTitles.some(t => /\b(scientist|machine learning|data science)\b/i.test(t));
+  if (isScientistTitle && !wantsScientist) return false;
+
+  // 4. Direct exact or boundary-checked substring match with target titles
   for (const target of targetTitles) {
     if (!target) continue;
     const targetLower = target.toLowerCase().trim();

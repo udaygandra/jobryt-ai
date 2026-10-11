@@ -340,9 +340,9 @@ async function executePipelineScan(overrides = {}) {
             job.title,
             job.description
           );
-          // 4500ms timeout per LLM request with automatic fallback to heuristic scoring
+          // 7000ms timeout per LLM request with automatic fallback to heuristic scoring
           const llmPromise = callLLMProvider({ prompt });
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM scoring timeout')), 4500));
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM scoring timeout')), 7000));
           const llmRes = await Promise.race([llmPromise, timeoutPromise]);
           if (llmRes && llmRes.success) {
             job.rawText = llmRes.rawText;

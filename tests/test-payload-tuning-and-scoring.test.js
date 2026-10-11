@@ -272,7 +272,7 @@ describe('3. Top-Tier 3-Pillar Scoring & Edge Cases (node-logic.js)', () => {
     assert.ok(result.scoring_pillars.location_fit_score >= 80);
   });
 
-  it('EDGE CASE: Should award 90% skills match when job description does not list specific skills', () => {
+  it('EDGE CASE: Should award 70% skills match when job description does not list specific skills', () => {
     const jobNoSkills = {
       id: 'job-verbal',
       title: 'Senior Backend Engineer',
@@ -287,11 +287,11 @@ describe('3. Top-Tier 3-Pillar Scoring & Edge Cases (node-logic.js)', () => {
     
     assert.strictEqual(
       result.scoring_pillars.skills_fit_score,
-      90,
-      'When JD omits required skills, skills match must default to 90%'
+      70,
+      'When JD omits required skills, skills match must default to 70%'
     );
     assert.strictEqual(result.skills_edge_case, true, 'skills_edge_case flag must be true');
-    assert.ok(result.overall_score >= 75, `Expected high overall score due to 90% skills baseline, got ${result.overall_score}`);
+    assert.ok(result.overall_score >= 70, `Expected overall score >= 70 due to 70% skills baseline, got ${result.overall_score}`);
     assert.strictEqual(result.should_apply, true);
   });
 
@@ -310,7 +310,7 @@ describe('3. Top-Tier 3-Pillar Scoring & Edge Cases (node-logic.js)', () => {
     assert.strictEqual(result.should_apply, false, 'Should not apply to wrong location job');
   });
 
-  it('runParseScore should enforce the 90% skills rule even if an LLM outputs 0 for unstated skills', async () => {
+  it('runParseScore should enforce the 70% neutral screening rule even if an LLM outputs 0 for unstated skills', async () => {
     const job = {
       id: 'job-test-llm',
       title: 'Senior Backend Engineer',
@@ -331,10 +331,10 @@ describe('3. Top-Tier 3-Pillar Scoring & Edge Cases (node-logic.js)', () => {
 
     const parsed = await runParseScore(mockLlmResponse, job, resume, settings);
     
-    // The deterministic code-node logic must catch this edge case and enforce 90% skills fit
-    assert.strictEqual(parsed.scoring_pillars.skills_fit_score, 90, 'Must override to 90% skills fit');
+    // The deterministic code-node logic must catch this edge case and enforce 70% skills fit
+    assert.strictEqual(parsed.scoring_pillars.skills_fit_score, 70, 'Must override to 70% skills fit');
     assert.strictEqual(parsed.skills_edge_case, true);
-    assert.ok(parsed.overall_score >= 80, `Expected score >= 80 with 90% skills fit, got ${parsed.overall_score}`);
+    assert.ok(parsed.overall_score >= 70, `Expected score >= 70 with 70% skills fit, got ${parsed.overall_score}`);
   });
 
   it('should award 100% location fit for dual-location City + Remote and Canada-wide Remote roles', () => {

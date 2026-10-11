@@ -26,8 +26,8 @@ Before assigning scores, identify the evidence in the posting and compare it to 
 
 Score each pillar from 0-100:
 - skills_fit_score: compare the posting's requirements to the candidate's demonstrated skills.
-  * SPECIAL EDGE CASE: If the job description does not mention specific technical skills, tools, or qualification bullet points (e.g. short recruiter note, agency summary, or roles where technical skills are discussed over the phone/call), assign skills_fit_score = 90. In `notes_concerns`, write: "Skills not specified in posting — 90% default applied for recruiter call screening."
-  * Otherwise, compare required skills against candidate skills. Required skills matter more than nice-to-haves.
+  * SPECIAL EDGE CASE: If the job description does not mention specific technical skills, tools, or qualification bullet points (e.g. short recruiter note, agency summary, or roles where technical skills are discussed over the phone/call), assign skills_fit_score = 70. In `notes_concerns`, write: "Skills not specified in posting — 70% default applied for recruiter call screening."
+  * Otherwise, compare required skills against candidate skills. Required skills matter more than nice-to-haves. A candidate who only matches 3-4 skills out of 20-30 stated requirements should be scored around 50-60% on skills fit. Do not inflate skills fit above 75% unless the candidate possesses the majority of primary required tools.
 - seniority_fit_score: compare the posting's required years/level and title seniority to the candidate's years and target roles. A gap of 3+ years either way scores below 50.
   * If the posting is for Lead, Principal, Staff, Manager, Director, VP, or Head, but the candidate does NOT have those in their target roles, score seniority below 40.
   * If the candidate targets Executive/Management roles, entry-level/internship roles must score below 30.

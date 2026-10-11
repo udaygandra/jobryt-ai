@@ -311,84 +311,89 @@ async function fetchCanadaJobBank() {
   }
   
   let count = 0;
+  const seenJbIds = new Set();
   try {
     const isExplicitRemote = candidateWorkType.toLowerCase().includes('remote') || CTX.loc.toLowerCase() === 'remote';
     const rawSearchLoc = getSearchLocationQuery(CTX.loc);
     const jobBankLoc = isExplicitRemote ? 'Canada' : (rawSearchLoc.split(',')[0].trim() || 'Canada');
     const cleanSearchRole = CTX.role.replace(/\s+(II|III|IV|I)\b/i, '').trim() || CTX.role;
-    const url = `https://www.jobbank.gc.ca/jobsearch/jobsearch?searchstring=${encodeURIComponent(cleanSearchRole)}&locationstring=${encodeURIComponent(jobBankLoc)}&sort=D`;
-    
-    const res = await hostFetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html',
-        'Accept-Language': 'en-CA,en-US;q=0.9'
-      }
-    });
 
-    if (!res.ok) return console.error(`[Fetch] Job Bank HTTP ${res.status}`);
-
-    const htmlText = await res.text();
-    const articles = htmlText.split('<article').slice(1);
-    const candidates = [];
-    
-    for (const article of articles) {
-      const titleMatch = article.match(/<span class="noctitle">([\s\S]*?)<\/span>/i) || article.match(/<h3[\s\S]*?>([\s\S]*?)<\/h3>/i);
-      const linkMatch = article.match(/href="\/jobsearch\/jobposting\/([0-9]+)"/i) || article.match(/href="(\/jobsearch\/jobposting\/[^"]*)"/i);
-      const compMatch = article.match(/<li class="business">([\s\S]*?)<\/li>/i);
-      const locMatch = article.match(/<li class="location">([\s\S]*?)<\/li>/i);
-      const salMatch = article.match(/<li class="salary">([\s\S]*?)<\/li>/i);
-      const srcMatch = article.match(/<li class="source">([\s\S]*?)<\/li>/i);
-
-      let rawTitle = titleMatch ? titleMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').trim() : '';
-      rawTitle = rawTitle.replace(/^(New|Nouveau)\s*/i, '').replace(/^(indeed\.com)\s*/i, '').trim();
-
-      const postingIdRaw = linkMatch ? linkMatch[1] : '';
-      const cleanPostingId = postingIdRaw.replace(/^.*\/jobsearch\/jobposting\//, '').replace(/;.*$/, '').replace(/^\//, '');
-      const rawLink = cleanPostingId ? `https://www.jobbank.gc.ca/jobsearch/jobposting/${cleanPostingId}` : '';
-      const rawComp = compMatch ? compMatch[1].replace(/<\/?[^>]+(>|$)/g, "").trim() : 'Gov of Canada Employer';
-      const rawLoc = locMatch
-        ? locMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^(Location|Lieu)\s*[:\-]?\s*/i, '').trim()
-        : CTX.loc;
-      const rawSalary = salMatch ? salMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^Salary\s*/i, '').trim() : '';
-      const rawSource = srcMatch ? srcMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').trim() : '';
-
-      // Extract work arrangement pill from Canada Job Bank (<span class="telework">...</span>)
-      // "Telework" / "Télétravail" = 100% Remote nationwide
-      // "Hybrid" / "Hybride" = Local Hybrid (requires candidate to live in rawLoc)
-      // "On site" / "Sur place" = Local On-site (requires candidate to live in rawLoc)
-      const teleMatch = article.match(/<span class="telework">([\s\S]*?)<\/span>/i);
-      const teleText = teleMatch ? teleMatch[1].replace(/<[^>]+>/g, '').trim() : '';
-      const isJbRemote = /^(telework|télétravail|virtual|à distance)$/i.test(teleText);
-      const isJbHybrid = /^(hybrid|hybride)$/i.test(teleText);
-
-      let baseDesc = `${rawTitle} at ${rawComp} in ${rawLoc || CTX.loc}${isJbRemote ? ' (Remote)' : (isJbHybrid ? ' (Hybrid)' : '')}`;
-      if (rawSalary) baseDesc += ` | Salary: ${rawSalary}`;
-      if (rawSource) baseDesc += ` | Source: ${rawSource}`;
-
-      if (rawTitle && rawLink && isJobLocationEligible(rawLoc, activeLocations, countryScope, isJbRemote, baseDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, baseDesc, rawTitle, candidateWorkType, isJbRemote)) {
-        const jbId = cleanPostingId || crypto.createHash('md5').update(rawLink).digest('hex').slice(0, 10);
-        candidates.push({ jbId, cleanPostingId, rawTitle, rawComp, rawLoc, rawLink, baseDesc });
-      }
-    }
-
-    await Promise.all(candidates.map(async (c) => {
-      let detailed = '';
-      if (c.cleanPostingId) {
-        detailed = await fetchJobBankDetails(c.cleanPostingId);
-      }
-      allFetchedJobs.push({
-        id: `jobbank_${c.jbId}`,
-        title: c.rawTitle,
-        company: c.rawComp,
-        location: c.rawLoc || CTX.loc,
-        created: new Date().toISOString(),
-        description: detailed ? `${c.baseDesc}\n\n${detailed}` : c.baseDesc,
-        redirect_url: c.rawLink,
-        source: 'Canada Job Bank'
+    for (let page = 1; page <= 3; page++) {
+      const url = `https://www.jobbank.gc.ca/jobsearch/jobsearch?searchstring=${encodeURIComponent(cleanSearchRole)}&locationstring=${encodeURIComponent(jobBankLoc)}&sort=D&page=${page}`;
+      
+      const res = await hostFetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html',
+          'Accept-Language': 'en-CA,en-US;q=0.9'
+        }
       });
-      count++;
-    }));
+
+      if (!res.ok) break;
+
+      const htmlText = await res.text();
+      const articles = htmlText.split('<article').slice(1);
+      if (articles.length === 0) break;
+      const candidates = [];
+      
+      for (const article of articles) {
+        const titleMatch = article.match(/<span class="noctitle">([\s\S]*?)<\/span>/i) || article.match(/<h3[\s\S]*?>([\s\S]*?)<\/h3>/i);
+        const linkMatch = article.match(/href="\/jobsearch\/jobposting\/([0-9]+)"/i) || article.match(/href="(\/jobsearch\/jobposting\/[^"]*)"/i);
+        const compMatch = article.match(/<li class="business">([\s\S]*?)<\/li>/i);
+        const locMatch = article.match(/<li class="location">([\s\S]*?)<\/li>/i);
+        const salMatch = article.match(/<li class="salary">([\s\S]*?)<\/li>/i);
+        const srcMatch = article.match(/<li class="source">([\s\S]*?)<\/li>/i);
+
+        let rawTitle = titleMatch ? titleMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').trim() : '';
+        rawTitle = rawTitle.replace(/^(New|Nouveau)\s*/i, '').replace(/^(indeed\.com)\s*/i, '').trim();
+
+        const postingIdRaw = linkMatch ? linkMatch[1] : '';
+        const cleanPostingId = postingIdRaw.replace(/^.*\/jobsearch\/jobposting\//, '').replace(/;.*$/, '').replace(/^\//, '');
+        const rawLink = cleanPostingId ? `https://www.jobbank.gc.ca/jobsearch/jobposting/${cleanPostingId}` : '';
+        const rawComp = compMatch ? compMatch[1].replace(/<\/?[^>]+(>|$)/g, "").trim() : 'Gov of Canada Employer';
+        const rawLoc = locMatch
+          ? locMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^(Location|Lieu)\s*[:\-]?\s*/i, '').trim()
+          : CTX.loc;
+        const rawSalary = salMatch ? salMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').replace(/^Salary\s*/i, '').trim() : '';
+        const rawSource = srcMatch ? srcMatch[1].replace(/<\/?[^>]+(>|$)/g, "").replace(/\s+/g, ' ').trim() : '';
+
+        // Extract work arrangement pill from Canada Job Bank (<span class="telework">...</span>)
+        const teleMatch = article.match(/<span class="telework">([\s\S]*?)<\/span>/i);
+        const teleText = teleMatch ? teleMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+        const isJbRemote = /^(telework|télétravail|virtual|à distance)$/i.test(teleText);
+        const isJbHybrid = /^(hybrid|hybride)$/i.test(teleText);
+
+        let baseDesc = `${rawTitle} at ${rawComp} in ${rawLoc || CTX.loc}${isJbRemote ? ' (Remote)' : (isJbHybrid ? ' (Hybrid)' : '')}`;
+        if (rawSalary) baseDesc += ` | Salary: ${rawSalary}`;
+        if (rawSource) baseDesc += ` | Source: ${rawSource}`;
+
+        const jbId = cleanPostingId || crypto.createHash('md5').update(rawLink).digest('hex').slice(0, 10);
+        if (seenJbIds.has(jbId)) continue;
+        seenJbIds.add(jbId);
+
+        if (rawTitle && rawLink && isJobLocationEligible(rawLoc, activeLocations, countryScope, isJbRemote, baseDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, baseDesc, rawTitle, candidateWorkType, isJbRemote)) {
+          candidates.push({ jbId, cleanPostingId, rawTitle, rawComp, rawLoc, rawLink, baseDesc });
+        }
+      }
+
+      await Promise.all(candidates.map(async (c) => {
+        let detailed = '';
+        if (c.cleanPostingId) {
+          detailed = await fetchJobBankDetails(c.cleanPostingId);
+        }
+        allFetchedJobs.push({
+          id: `jobbank_${c.jbId}`,
+          title: c.rawTitle,
+          company: c.rawComp,
+          location: c.rawLoc || CTX.loc,
+          created: new Date().toISOString(),
+          description: detailed ? `${c.baseDesc}\n\n${detailed}` : c.baseDesc,
+          redirect_url: c.rawLink,
+          source: 'Canada Job Bank'
+        });
+        count++;
+      }));
+    }
   } catch (err) {
     console.error('[Fetch] Canada Job Bank error:', err.message);
   }
@@ -463,22 +468,27 @@ async function fetchLinkedIn() {
 
   const fTprParam = isFreshnessDisabled ? '' : (freshnessHours <= 24 ? '&f_TPR=r86400' : (freshnessHours <= 72 ? '&f_TPR=r259200' : (freshnessHours <= 168 ? '&f_TPR=r604800' : '')));
 
+  const seenLiIds = new Set();
   try {
-    for (let page = 0; page <= 1; page++) {
-      const start = page * 10;
+    for (let page = 0; page < 3; page++) {
+      const start = page * 25;
       const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodeURIComponent(CTX.role)}&location=${encodeURIComponent(searchLoc)}${f_wt}${fTprParam}&start=${start}`;
       
       const res = await hostFetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           'Accept': 'text/html'
         }
       });
       
-      if (!res.ok) continue;
+      if (!res.ok) {
+        if (res.status === 429) break;
+        continue;
+      }
 
       const html = await res.text();
       const items = html.split('<li').slice(1);
+      if (items.length === 0) break; // Reached end of postings
       const candidates = [];
       
       for (const it of items) {
@@ -495,6 +505,11 @@ async function fetchLinkedIn() {
           const rawUrl = linkM[1].split('?')[0];
           const rawDate = dateM ? dateM[1] : new Date().toISOString();
 
+          const numId = (rawUrl.match(/-([0-9]{5,})/i) || rawUrl.match(/\/([0-9]{5,})/i) || [])[1];
+          const cleanLiId = numId ? `li_${numId}` : `li_${crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`;
+          if (seenLiIds.has(cleanLiId)) continue;
+          seenLiIds.add(cleanLiId);
+
           const isNeg = isExplicitlyNegativeRemote(`${rawTitle} ${rawLoc}`);
           const isHybridLi = /\b(hybrid|hybride)\b/i.test(rawLoc) ||
             /\b(hybrid|hybride)\b/i.test(rawTitle);
@@ -506,8 +521,6 @@ async function fetchLinkedIn() {
           const isRemoteLi = !isNeg && (isExplicitRemote || isExplicitTitleOrLocRemote) && !isHybridLi;
 
           if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteLi) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, `${rawTitle} at ${rawComp}`, rawTitle, candidateWorkType, isRemoteLi)) {
-            const numId = (rawUrl.match(/-([0-9]{5,})/i) || rawUrl.match(/\/([0-9]{5,})/i) || [])[1];
-            const cleanLiId = numId ? `li_${numId}` : `li_${crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`;
             candidates.push({ cleanLiId, numId, rawTitle, rawComp, rawLoc, rawUrl, rawDate, isRemoteLi });
           }
         }
@@ -516,8 +529,9 @@ async function fetchLinkedIn() {
       await Promise.all(candidates.map(async (c) => {
         let fullDesc = '';
         if (c.numId) {
-          // Pacing/429 protection is enforced by hostFetch (per-host cap + gap + retry)
-          fullDesc = await fetchLinkedInJobDetails(c.numId);
+          try {
+            fullDesc = await fetchLinkedInJobDetails(c.numId);
+          } catch (_) {}
         }
 
         const isHybridAfterDesc = /\b(hybrid|hybride)\b/i.test(c.rawLoc) ||

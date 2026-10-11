@@ -199,6 +199,20 @@ function getMasterProfile() {
   return {};
 }
 
+// Technical and domain skill catalog for estimating posting skill demands
+const TECH_SKILL_CATALOG = [
+  'sql', 'python', 'r', 'excel', 'power bi', 'tableau', 'looker', 'aws', 'azure', 'gcp',
+  'snowflake', 'databricks', 'spark', 'hadoop', 'kafka', 'airflow', 'dbt', 'docker', 'kubernetes',
+  'terraform', 'git', 'ci/cd', 'scala', 'java', 'c++', 'c#', '.net', 'javascript', 'typescript',
+  'react', 'angular', 'vue', 'node', 'nodejs', 'graphql', 'rest', 'api', 'nosql', 'mongodb',
+  'postgresql', 'postgres', 'mysql', 'oracle', 'redshift', 'bigquery', 'jira', 'confluence',
+  'scrum', 'agile', 'etl', 'elt', 'machine learning', 'deep learning', 'pandas', 'numpy',
+  'scikit-learn', 'tensorflow', 'pytorch', 'statistics', 'mathematics', 'bi', 'business intelligence',
+  'data warehousing', 'data modeling', 'data governance', 'alteryx', 'spss', 'sas', 'qlik',
+  'ssis', 'ssrs', 'ssas', 'sap', 'salesforce', 'dynamodb', 'redis', 'cassandra', 'linux',
+  'bash', 'powershell', 'jenkins', 'github actions', 'gitlab'
+];
+
 function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
   if (!job) job = {};
   const desc = (job.description || '').toLowerCase();
@@ -227,18 +241,67 @@ function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
   let matchedSkills = [];
   let skillsUnstated = false;
 
-  // Check if job description mentions no specific skills (edge case: discussion on phone screen)
-  const hasSkillKeywords = /\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools|knowledge of)\b/i.test(desc) ||
-    candidateSkills.some(s => s.length > 2 && fullText.includes(s));
+  // Check if job description mentions specific technical skills or requirements
+  const hasSkillKeywords = /\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools|knowledge of|stack|responsibilities)\b/i.test(fullText);
 
-  if (!hasSkillKeywords || desc.trim().length < 150) {
-    skillsScore = 90;
+  if (candidateSkills.length > 0) {
+    matchedSkills = candidateSkills.filter(s => {
+      if (!s || s.length < 2) return false;
+      if (s.length <= 3) {
+        const rx = new RegExp(`\\b${s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        return rx.test(fullText);
+      }
+      return fullText.includes(s);
+    });
+  }
+
+  const jobMentionedTech = TECH_SKILL_CATALOG.filter(tech => {
+    if (tech.length <= 3) {
+      const rx = new RegExp(`\\b${tech.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      return rx.test(fullText);
+    }
+    return fullText.includes(tech);
+  });
+
+  const missingTechFromJob = jobMentionedTech.filter(tech =>
+    !matchedSkills.some(ms => ms.includes(tech) || tech.includes(ms))
+  );
+
+  const totalJobDemands = Math.max(matchedSkills.length + missingTechFromJob.length, matchedSkills.length);
+
+  if (!hasSkillKeywords && totalJobDemands === 0) {
+    // Unstated skills edge case: Neutral 70% screening tier
+    skillsScore = 70;
     skillsUnstated = true;
-  } else if (candidateSkills.length > 0) {
-    matchedSkills = candidateSkills.filter(s => s.length > 2 && fullText.includes(s));
-    skillsScore = matchedSkills.length > 0
-      ? Math.min(100, Math.round(60 + (matchedSkills.length / Math.min(candidateSkills.length, 5)) * 40))
-      : 65;
+  } else if (desc.trim().length < 150 && totalJobDemands === 0 && matchedSkills.length === 0) {
+    skillsScore = 70;
+    skillsUnstated = true;
+  } else if (matchedSkills.length === 0) {
+    // 0 skills matched on technical JD: poor fit (38% baseline for transferable/soft skills)
+    skillsScore = 38;
+  } else {
+    // HR-Calibrated scoring curve with encouraging positive favorability (+20% baseline):
+    const matchRatio = matchedSkills.length / Math.max(totalJobDemands, 1);
+    let calculated;
+
+    if (totalJobDemands >= 10 && matchedSkills.length <= 3) {
+      // Heavy tech stack (10-25 tools) with only 1-3 matched skills -> 50-62% (partial/stretch fit)
+      calculated = Math.round(45 + (matchRatio * 35) + (matchedSkills.length * 3.5));
+    } else if (matchedSkills.length >= 6 || (matchRatio >= 0.70 && matchedSkills.length >= 3)) {
+      // Exceptional fit: high volume of tools or majority of stack -> 85-96%
+      calculated = Math.round(75 + (matchRatio * 20) + Math.min(matchedSkills.length, 5));
+    } else if (matchedSkills.length >= 3 && matchRatio >= 0.40) {
+      // Solid fit: 3-5 core tools and reasonable coverage -> 70-80%
+      calculated = Math.round(58 + (matchRatio * 25) + (matchedSkills.length * 2));
+    } else if (matchedSkills.length >= 2) {
+      // Moderate/partial fit: 2 tools -> 58-66%
+      calculated = Math.round(50 + (matchRatio * 25) + (matchedSkills.length * 3));
+    } else {
+      // 1 tool match -> 48-55%
+      calculated = Math.round(45 + (matchRatio * 25) + 3);
+    }
+
+    skillsScore = Math.min(98, Math.max(35, calculated));
   }
 
   // Seniority & Title Hierarchy Alignment
@@ -319,8 +382,8 @@ function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
     priority_level: overall >= 85 ? 'High' : overall >= minThreshold ? 'Medium' : 'Low',
     key_matched_skills: matchedSkills.slice(0, 10).map(s => s.toUpperCase()),
     missing_skills: [],
-    notes_concerns: skillsUnstated ? 'Skills not specified in posting — 90% default applied for recruiter call screening.' : '',
-    reasoning: disqs.length > 0 ? disqs[0] : (skillsUnstated ? 'Skills not specified in posting (90% applied). Location and seniority match verified.' : `Evaluated core skills (${skillsScore}%), seniority (${seniorityScore}%), and location (${locationScore}%).`),
+    notes_concerns: skillsUnstated ? 'Skills not specified in posting — 70% default applied for recruiter call screening.' : '',
+    reasoning: disqs.length > 0 ? disqs[0] : (skillsUnstated ? 'Skills not specified in posting (70% applied). Location and seniority match verified.' : `Evaluated core skills (${skillsScore}%), seniority (${seniorityScore}%), and location (${locationScore}%).`),
     why_this_fits: disqs.length > 0 ? 'Seniority / level mismatch' : `Alignment across skills (${skillsScore}%) and location (${locationScore}%)`,
     parse_error: false
   };
@@ -448,15 +511,18 @@ function runParseScore(item, profileObj = null, settingsObj = null) {
     : (typeof parsed.skills_fit_score === 'number' ? parsed.skills_fit_score : 70);
   
   const hasNoSkillsListed = parsed.skills_edge_case === true ||
-    (b.skills_fit_score === 90 && /skills not specified/i.test(parsed.notes_concerns || '')) ||
-    (descText.length < 300 && !/\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools)\b/i.test(descText)) ||
-    (Array.isArray(parsed.missing_skills) && parsed.missing_skills.length === 0 && Array.isArray(parsed.key_matched_skills) && parsed.key_matched_skills.length === 0 && !/\b(sql|python|excel|power bi|aws|azure|gcp|react|java|javascript|c\+\+|c#|docker|kubernetes|tableau)\b/i.test(descText));
+    parsed.skills_unstated_default === true ||
+    ((b.skills_fit_score === 90 || b.skills_fit_score === 70) && /skills not specified/i.test(parsed.notes_concerns || '')) ||
+    (skillsFit === 0 && descText.length < 300 && !/\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools|requir)\b/i.test(descText));
 
-  if (hasNoSkillsListed && skillsFit < 90) {
-    skillsFit = 90;
+  if (hasNoSkillsListed) {
+    skillsFit = 70;
     parsed.skills_edge_case = true;
     parsed.skills_unstated_default = true;
-    parsed.notes_concerns = parsed.notes_concerns ? `${parsed.notes_concerns} (Skills not specified in posting — 90% default applied for recruiter call screening.)` : 'Skills not specified in posting — 90% default applied for recruiter call screening.';
+    parsed.notes_concerns = parsed.notes_concerns ? `${parsed.notes_concerns} (Skills not specified in posting — 70% default applied for recruiter call screening.)` : 'Skills not specified in posting — 70% default applied for recruiter call screening.';
+  } else if (Array.isArray(parsed.missing_skills) && parsed.missing_skills.length >= 6 && Array.isArray(parsed.key_matched_skills) && parsed.key_matched_skills.length <= 2 && skillsFit > 65) {
+    // Guard against LLM hallucinated score inflation on heavy missing stack
+    skillsFit = 60;
   }
 
   // Pillar 2: Seniority Match (30% Weight)
