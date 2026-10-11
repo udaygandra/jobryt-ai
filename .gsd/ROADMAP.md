@@ -261,6 +261,17 @@ updated: 2026-10-08T17:36:00Z
 
 ---
 
+### Phase 31: High-Yield Multi-Board Ingestion, Precision Role Matching & Balanced HR-Calibrated Scoring Engine
+**Status:** 📋 Planned (Milestone v1.2)
+**Objective:** Eliminate the board ingestion yield disparity (expand LinkedIn pagination with 25-step increments, multi-page Canada Job Bank, resilient fallbacks); enforce strict multi-token domain boundaries and discipline ceilings in role filtering to reject irrelevant engineering and cybersecurity false positives (e.g. "Power Systems / Power Grid SME", "Data Loss Prevention"); re-engineer scoring to think like an encouraging HR reviewer (eliminating artificial 85%+ inflation on 3-4 skills out of 30, calibrating unstated skills to 70%, and naturally distributing matches across 55%–95%); and dynamically align Opportunities page filter chips and threshold badges with user-configured thresholds (e.g. 65%).
+
+**Plans:**
+- [ ] [Plan 31.1: Multi-Board Ingestion Debottlenecking (LinkedIn 25-Step Pagination, Canada Job Bank Multi-Page, Robust Fallbacks)](.gsd/phases/31/31.1-PLAN.md)
+- [ ] [Plan 31.2: Precision Role Relevance & Multi-Token Domain Boundary Filtering](.gsd/phases/31/31.2-PLAN.md)
+- [ ] [Plan 31.3: Balanced HR-Calibrated Scoring Engine & Opportunities Filter Alignment](.gsd/phases/31/31.3-PLAN.md)
+
+---
+
 ## Progress Summary
 
 | Phase | Status | Plans | Complete |
@@ -292,6 +303,7 @@ updated: 2026-10-08T17:36:00Z
 | 28 | ✅ | 3/3 | 100% (v1.2) |
 | 29 | ✅ | 3/3 | 100% (v1.2) |
 | 30 | ✅ | 3/3 | 100% (v1.2) |
+| 31 | 📋 | 3/3 | Planned (v1.2) |
 
 
 

@@ -4,9 +4,9 @@
 
 ## Current Position
 - **Milestone**: v1.2-Polish-and-Optimization
-- **Phase**: 30 - True Full Reset Engine, Settings Persistence Integrity & Pre-Scan Validation Guardrails
-- **Task**: Phase 30 Complete (All 3 plans executed & verified)
-- **Status**: Milestone v1.2 Complete (134/134 tests passing)
+- **Phase**: 31 - High-Yield Multi-Board Ingestion, Precision Role Matching & Balanced HR-Calibrated Scoring Engine
+- **Task**: Planning Complete (Plans 31.1, 31.2, 31.3)
+- **Status**: Ready for execution (/execute 31)
 
 ## Completed Plans & Phases
 - [x] **Phase 1-4: Baseline System & Core Engine Verification** (Milestone v1.0, archived in `.gsd/milestones/v1.0-phases/`)
@@ -38,5 +38,8 @@
 - [x] **Phase 30: True Full Reset Engine, Settings Persistence Integrity & Pre-Scan Validation Guardrails** (Milestone v1.2)
 
 ## Next Recommended Action
-All planned phases are complete with 100% test passing rate. You can run `/audit-milestone` to audit Milestone v1.2 quality and completeness.
+Run `/execute 31` to execute all 3 plans:
+- 31.1: Multi-Board Ingestion Debottlenecking (LinkedIn 25-Step Pagination, Canada Job Bank Multi-Page, Robust Fallbacks)
+- 31.2: Precision Role Relevance & Multi-Token Domain Boundary Filtering
+- 31.3: Balanced HR-Calibrated Scoring Engine & Opportunities Filter Alignment
 
