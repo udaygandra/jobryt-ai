@@ -156,7 +156,7 @@ async function applyToCustomEvaluated(job) {
       await loadStatus();
       await loadAppliedJobs();
       if (typeof showApplicationPrompt === 'function') {
-        showApplicationPrompt(data.appliedJob);
+        showApplicationPrompt(data.appliedJob, { committed: true });
       } else {
         switchTab('applied');
         previewLetter(data.appliedJob.title, data.appliedJob.company, data.appliedJob.cover_letter);

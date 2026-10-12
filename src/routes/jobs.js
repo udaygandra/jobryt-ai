@@ -50,7 +50,7 @@ router.get('/rejected', (req, res) => {
 // POST /api/jobs/apply (Tailor Resume, Generate PDF & Cover Letter)
 router.post('/apply', async (req, res) => {
   try {
-    const { jobId, job: passedJob, tone, initialStatus } = req.body;
+    const { jobId, job: passedJob, tone, initialStatus, commit = true } = req.body;
     let job = passedJob;
     if (!job && jobId) {
       job = jobsDb.findJobRecord(jobId);
@@ -75,8 +75,16 @@ router.post('/apply', async (req, res) => {
     }
 
     const profile = getMasterProfile();
-    const result = await tailorJobApplication(job, profile, tone || 'Professional & Direct');
-    
+    const shouldCommit = commit !== false;
+    const result = await tailorJobApplication(job, profile, tone || 'Professional & Direct', { persist: shouldCommit });
+
+    if (!shouldCommit) {
+      if (result) {
+        result.status = 'Tailored';
+      }
+      return res.json({ success: true, committed: false, appliedJob: result });
+    }
+
     // Default initial status to 'Tailored' (Ready to Submit)
     const finalStatus = initialStatus || (result && result.status) || 'Tailored';
     if (result && result.id) {
@@ -84,7 +92,7 @@ router.post('/apply', async (req, res) => {
       result.status = finalStatus;
     }
 
-    res.json({ success: true, appliedJob: result });
+    res.json({ success: true, committed: true, appliedJob: result });
   } catch (err) {
     console.error('Apply error:', err);
     res.status(500).json({ error: err.message });
@@ -163,6 +171,46 @@ router.post('/:id/notes', (req, res) => {
     }
     res.json({ success: true, id: jobId, notes, message: 'Application notes saved' });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/jobs/:id/submit-tailored — Explicit submit from Tailored Package modal
+router.post('/:id/submit-tailored', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { job: passedJob, tone } = req.body || {};
+    let job = passedJob || jobsDb.findJobRecord(id);
+    if (!job) {
+      return res.status(404).json({ error: `Job record not found for ID: ${id}` });
+    }
+
+    let existingStatus = null;
+    try {
+      const db = jobsDb.getDb();
+      const existingRow = db.prepare('SELECT status FROM applied_jobs WHERE id = ? OR job_id = ?').get(String(id), String(id));
+      if (existingRow && existingRow.status) {
+        existingStatus = existingRow.status;
+      }
+    } catch (_) {}
+
+    const profile = getMasterProfile();
+    const result = await tailorJobApplication(
+      job,
+      profile,
+      tone || 'Professional & Direct',
+      { persist: true }
+    );
+
+    const finalStatus = (existingStatus && existingStatus !== 'Tailored') ? existingStatus : 'Tailored';
+    if (result && result.id) {
+      jobsDb.updateJobStatus(result.id, finalStatus);
+      result.status = finalStatus;
+    }
+
+    res.json({ success: true, appliedJob: result });
+  } catch (err) {
+    console.error('submit-tailored error:', err);
     res.status(500).json({ error: err.message });
   }
 });

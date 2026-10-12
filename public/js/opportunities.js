@@ -894,8 +894,37 @@ async function triggerPipelineScan() {
   }
 }
 
+let packageModalEscapeHandler = null;
+
+function closePackageModal() {
+  const modal = document.getElementById('applied-confirm-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+  if (packageModalEscapeHandler) {
+    document.removeEventListener('keydown', packageModalEscapeHandler);
+    packageModalEscapeHandler = null;
+  }
+}
+
+function fallbackCopyText(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch (_) {}
+}
+
 async function applyToJob(jobId) {
   const btn = document.getElementById(`btn-apply-${jobId}`);
+  const originalHtml = btn ? btn.innerHTML : null;
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Tailoring...`;
@@ -905,19 +934,12 @@ async function applyToJob(jobId) {
     const res = await fetch('/api/jobs/apply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId })
+      body: JSON.stringify({ jobId, commit: false })
     });
     const data = await res.json();
-    if (data.success) {
-      const card = document.getElementById(`job-card-${jobId}`);
-      if (card) {
-        card.classList.add('opacity-40', 'scale-95');
-        setTimeout(() => card.remove(), 400);
-      }
-      removeJobFromLocalCache(jobId);
-      await loadStatus();
-      await loadAppliedJobs();
-      showApplicationPrompt(data.appliedJob);
+    if (data.success && data.appliedJob) {
+      if (btn && originalHtml) btn.innerHTML = originalHtml;
+      showApplicationPrompt(data.appliedJob, { jobId, committed: false });
     } else {
       showToast('Could not apply: ' + (data.error || 'Unknown error'), 'error');
     }
@@ -928,54 +950,158 @@ async function applyToJob(jobId) {
   }
 }
 
-function showApplicationPrompt(appliedJob) {
+function showApplicationPrompt(appliedJob, opts = {}) {
   const modal = document.getElementById('applied-confirm-modal');
-  if (!modal) {
-    previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
+  if (!modal || !appliedJob) {
+    if (appliedJob && typeof previewLetter === 'function') {
+      previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
+    }
     return;
   }
-  const titleEl = document.getElementById('confirm-modal-title');
-  const subEl = document.getElementById('confirm-modal-subtitle');
-  if (titleEl) titleEl.innerText = `Tailored Package Ready!`;
-  if (subEl) subEl.innerText = `${appliedJob.title} • ${appliedJob.company}`;
 
-  const btnApplied = document.getElementById('btn-confirm-applied');
-  const btnTailored = document.getElementById('btn-confirm-tailored');
-  const pdfLink = document.getElementById('confirm-modal-pdf-link');
-  const jobLink = document.getElementById('confirm-modal-job-link');
+  const titleEl = document.getElementById('pkg-modal-title');
+  const subEl = document.getElementById('pkg-modal-subtitle');
+  const letterEl = document.getElementById('pkg-modal-letter');
+  const chipEl = document.getElementById('pkg-modal-resume-chip');
+  const nameEl = document.getElementById('pkg-modal-resume-name');
+  const previewEl = document.getElementById('pkg-modal-resume-preview');
+  const btnClose = document.getElementById('pkg-modal-close');
+  const btnNotReady = document.getElementById('btn-pkg-not-ready');
+  const btnSubmit = document.getElementById('btn-pkg-submit');
 
-  if (pdfLink && appliedJob.pdf_filename) {
-    pdfLink.href = `/api/resume/download/${encodeURIComponent(appliedJob.pdf_filename)}`;
-    pdfLink.classList.remove('hidden');
-  } else if (pdfLink) {
-    pdfLink.classList.add('hidden');
+  if (titleEl) titleEl.innerText = 'Tailored Package Ready!';
+  if (subEl) subEl.innerText = `${appliedJob.title || 'Target Role'} • ${appliedJob.company || 'Employer'}`;
+  if (letterEl) letterEl.textContent = appliedJob.cover_letter || '';
+
+  if (chipEl) {
+    if (appliedJob.pdf_filename) {
+      chipEl.classList.remove('hidden');
+      if (nameEl) nameEl.textContent = appliedJob.pdf_filename;
+      if (previewEl) {
+        previewEl.href = `/api/resume/download/${encodeURIComponent(appliedJob.pdf_filename)}`;
+      }
+    } else {
+      chipEl.classList.add('hidden');
+    }
   }
 
-  const externalUrl = appliedJob.job_url || appliedJob.redirect_url;
-  if (jobLink && externalUrl) {
-    jobLink.href = externalUrl;
-    jobLink.classList.remove('hidden');
-  } else if (jobLink) {
-    jobLink.classList.add('hidden');
+  // Bind close buttons (✕ and Not Ready)
+  if (btnClose) {
+    btnClose.onclick = closePackageModal;
+  }
+  if (btnNotReady) {
+    btnNotReady.onclick = closePackageModal;
+  }
+
+  // Backdrop click
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closePackageModal();
+    }
+  };
+
+  // Escape key handler
+  if (packageModalEscapeHandler) {
+    document.removeEventListener('keydown', packageModalEscapeHandler);
+  }
+  packageModalEscapeHandler = (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      closePackageModal();
+    }
+  };
+  document.addEventListener('keydown', packageModalEscapeHandler);
+
+  // Submit button
+  if (btnSubmit) {
+    btnSubmit.disabled = false;
+    const originalSubmitText = btnSubmit.innerHTML;
+
+    btnSubmit.onclick = async () => {
+      if (btnSubmit.disabled) return;
+      btnSubmit.disabled = true;
+
+      const jobId = opts.jobId || appliedJob.id || appliedJob.jobId;
+      const targetUrl = appliedJob.job_url || appliedJob.redirect_url || appliedJob.apply_url || appliedJob.url;
+      const pdfFile = appliedJob.pdf_filename;
+      const letterText = appliedJob.cover_letter || '';
+
+      // Steps 1-3 MUST run synchronously at the top of the click handler, before any await:
+      // 1. Open job posting
+      if (targetUrl) {
+        try {
+          window.open(targetUrl, '_blank', 'noopener');
+        } catch (_) {}
+      }
+
+      // 2. Download the PDF
+      if (pdfFile) {
+        try {
+          const a = document.createElement('a');
+          a.href = `/api/resume/download/${encodeURIComponent(pdfFile)}`;
+          a.download = pdfFile;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (_) {}
+      }
+
+      // 3. Copy cover letter to clipboard
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(letterText).catch(() => fallbackCopyText(letterText));
+        } else {
+          fallbackCopyText(letterText);
+        }
+      } catch (_) {
+        fallbackCopyText(letterText);
+      }
+
+      // 4. Notify
+      showToast('📋 Cover letter copied to clipboard — paste it into the application form', 'success');
+      btnSubmit.innerHTML = `✓ Copied &amp; Downloaded`;
+      setTimeout(() => {
+        if (btnSubmit) btnSubmit.innerHTML = originalSubmitText;
+      }, 1500);
+
+      // 5. Submit to backend
+      try {
+        if (!opts.committed) {
+          const res = await fetch('/api/jobs/' + encodeURIComponent(jobId) + '/submit-tailored', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job: appliedJob })
+          });
+          const submitData = await res.json();
+          if (!submitData.success) {
+            showToast('Submission error: ' + (submitData.error || 'Could not move job'), 'error');
+            btnSubmit.disabled = false;
+            return;
+          }
+        } else if (typeof updateApplicationStatus === 'function') {
+          // If already committed (e.g. from custom-tailor), still ensure status is Tailored
+          await updateApplicationStatus(jobId, 'Tailored');
+        }
+
+        // 6. On success: hide modal, fade out and remove card, update caches & status
+        closePackageModal();
+        const card = document.getElementById(`job-card-${jobId}`);
+        if (card) {
+          card.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-300');
+          setTimeout(() => card.remove(), 300);
+        }
+        removeJobFromLocalCache(jobId);
+        await loadStatus();
+        await loadAppliedJobs();
+        showToast('Moved to My Applications · Tailored (Ready to Submit)', 'success');
+      } catch (err) {
+        showToast('Error finalizing application: ' + err.message, 'error');
+      } finally {
+        if (btnSubmit) btnSubmit.disabled = false;
+      }
+    };
   }
 
   modal.classList.remove('hidden');
-
-  if (btnApplied) {
-    btnApplied.onclick = async () => {
-      modal.classList.add('hidden');
-      await updateApplicationStatus(appliedJob.id, 'Applied');
-      previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
-    };
-  }
-
-  if (btnTailored) {
-    btnTailored.onclick = async () => {
-      modal.classList.add('hidden');
-      await updateApplicationStatus(appliedJob.id, 'Tailored');
-      previewLetter(appliedJob.title, appliedJob.company, appliedJob.cover_letter);
-    };
-  }
 }
 
 async function rejectJob(jobId) {
@@ -1024,3 +1150,5 @@ window.showScanValidationModal = showScanValidationModal;
 window.closeScanValidationModal = closeScanValidationModal;
 window.goToSettingsFromValidation = goToSettingsFromValidation;
 window.goToProfileFromValidation = goToProfileFromValidation;
+window.closePackageModal = closePackageModal;
+window.showApplicationPrompt = showApplicationPrompt;

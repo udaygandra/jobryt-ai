@@ -2291,56 +2291,59 @@
     </div>
   </div>
 
-  <!-- LinkedIn-Style Application Confirmation Interstitial Modal -->
+  <!-- Single-Step Tailored Package Modal -->
   <div id="applied-confirm-modal" class="fixed inset-0 z-50 bg-[#14161A]/95 hidden flex items-center justify-center p-4">
-    <div class="app-card max-w-lg w-full p-6 space-y-4">
-      <div class="flex items-center justify-between border-b border-[#2B3036] pb-3">
+    <div class="app-card max-w-2xl w-full max-h-[90vh] flex flex-col p-6 space-y-4">
+      <!-- 1. Header -->
+      <div class="flex items-center justify-between border-b border-[#2B3036] pb-3 shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           </div>
           <div>
-            <h3 class="font-bold text-[#E8E6E1] text-base tracking-tight" id="confirm-modal-title">Tailored Package Ready!</h3>
-            <p class="text-xs text-[#9AA0A6]" id="confirm-modal-subtitle">Target Role • Employer</p>
+            <h3 class="font-bold text-[#E8E6E1] text-base tracking-tight" id="pkg-modal-title">Tailored Package Ready!</h3>
+            <p class="text-xs text-[#9AA0A6]" id="pkg-modal-subtitle">Target Role • Employer</p>
           </div>
         </div>
-        <button onclick="document.getElementById('applied-confirm-modal').classList.add('hidden')" class="text-[#9AA0A6] hover:text-[#E8E6E1] p-1 rounded-md hover:bg-[#242830]">
+        <button id="pkg-modal-close" type="button" class="text-[#9AA0A6] hover:text-[#E8E6E1] p-1.5 rounded-md hover:bg-[#242830] cursor-pointer" aria-label="Close modal">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="p-4 rounded-lg bg-[#111317] border border-[#2B3036] space-y-2">
-        <div class="flex items-center gap-1.5 text-xs font-semibold text-[#E8E6E1]">
-          <span class="text-[#D9A441]">Application Tracking (LinkedIn/Indeed Model)</span>
+      <!-- 2. Resume Attached Chip Row -->
+      <div id="pkg-modal-resume-chip" class="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-[#111317] border border-[#2B3036] text-xs shrink-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <svg class="w-4 h-4 text-[#D9A441] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span class="text-[#9AA0A6] shrink-0 font-medium">Resume attached:</span>
+          <span id="pkg-modal-resume-name" class="font-semibold text-[#E8E6E1] truncate">Resume.pdf</span>
         </div>
-        <p class="text-xs text-[#CBD5E1] leading-relaxed">
-          Did you submit your application on the company's career page?
-        </p>
-        <p class="text-[11px] text-[#9AA0A6] leading-relaxed">
-          Because external application portals don't return webhooks, this confirmation ensures your tracker accurately differentiates between drafted/tailored resumes and real submissions.
-        </p>
-      </div>
-
-      <!-- Quick Action Links -->
-      <div class="flex items-center gap-2 pt-1">
-        <a id="confirm-modal-pdf-link" href="#" target="_blank" download class="hidden flex-1 py-2 px-3 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
-          <svg class="w-3.5 h-3.5 text-[#D9A441]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          <span>Download PDF</span>
-        </a>
-        <a id="confirm-modal-job-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden flex-1 py-2 px-3 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] flex items-center justify-center gap-1.5 active:scale-95">
-          <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-          <span>View Job Page</span>
+        <a id="pkg-modal-resume-preview" href="#" target="_blank" class="text-[#D9A441] hover:underline font-semibold ml-3 shrink-0 flex items-center gap-1">
+          <span>Preview</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
         </a>
       </div>
 
-      <!-- Confirmation Choices -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2 border-t border-[#2B3036]/60">
-        <button id="btn-confirm-tailored" type="button" class="px-3.5 py-2 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95 cursor-pointer">
-          📝 Saved for Later / In Progress
+      <!-- 3. Cover Letter Panel -->
+      <div class="flex-1 flex flex-col min-h-0 space-y-1.5">
+        <label class="text-xs font-semibold text-[#9AA0A6] uppercase tracking-wider">Tailored Cover Letter</label>
+        <div id="pkg-modal-letter" class="p-4 rounded-lg bg-[#111317] border border-[#2B3036] text-xs text-[#CBD5E1] leading-relaxed max-h-[45vh] overflow-y-auto whitespace-pre-wrap font-sans select-text"></div>
+      </div>
+
+      <!-- 4. Helper line -->
+      <p class="text-[11px] text-[#9AA0A6] leading-normal shrink-0">
+        Download &amp; Submit opens the job page, downloads your resume, and copies this cover letter to your clipboard.
+      </p>
+
+      <!-- 5. Footer Buttons -->
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#2B3036] shrink-0">
+        <button id="btn-pkg-not-ready" type="button" class="px-4 py-2 rounded-md text-xs font-semibold bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] active:scale-95 cursor-pointer">
+          Not Ready
         </button>
-        <button id="btn-confirm-applied" type="button" class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-          <span>Yes, I Submitted!</span>
+        <button id="btn-pkg-submit" type="button" class="px-4 py-2 rounded-md text-xs font-semibold bg-[#D9A441] hover:bg-[#C59132] text-[#14161A] active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download &amp; Submit</span>
         </button>
       </div>
     </div>

@@ -47,6 +47,7 @@ async function tailorJobApplication(job, profile, customTone = 'Professional & D
   const rawJobId = String(job.id || job.jobId || job.job_id || `${company}_${targetRole}`).trim();
   const safeJobId = rawJobId.replace(/[^a-zA-Z0-9_-]/g, '_');
   const artifacts = getTailoredArtifactPaths(safeJobId);
+  const shouldPersist = options.persist !== false;
 
   // ── Step 1: Check Local Cache First (0 LLM Token Cost) ───────────────────
   if (!options.forceRegenerate && fs.existsSync(artifacts.jsonPath) && fs.existsSync(artifacts.txtPath)) {
@@ -103,7 +104,9 @@ async function tailorJobApplication(job, profile, customTone = 'Professional & D
         is_cached: true
       };
 
-      jobsDb.saveAppliedJob(appliedRecord);
+      if (shouldPersist) {
+        jobsDb.saveAppliedJob(appliedRecord);
+      }
       return appliedRecord;
     } catch (cacheErr) {
       console.warn('[Tailor] Error loading cached tailored files, re-generating:', cacheErr.message);
@@ -268,7 +271,9 @@ ${candidateName}`;
     is_cached: false
   };
 
-  jobsDb.saveAppliedJob(appliedRecord);
+  if (shouldPersist) {
+    jobsDb.saveAppliedJob(appliedRecord);
+  }
   return appliedRecord;
 }
 
