@@ -552,6 +552,202 @@ body {
 }
 
 /* ==========================================================================
+   Phase 32.3 — Residual Dark Element Sweep (light only)
+   ========================================================================== */
+
+/* Score breakdown pills */
+[data-theme="light"] .bg-\[\#20242B\] {
+  background-color: #F3F5F8 !important;
+  border-color: #DDE1E6 !important;
+  color: #38404B !important;
+}
+
+/* Avatar gradient */
+[data-theme="light"] .from-\[\#242830\] {
+  --tw-gradient-from: #FFF7ED !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+[data-theme="light"] .to-\[\#1A1D23\] {
+  --tw-gradient-to: #FDEBD3 !important;
+}
+
+/* Generic dark gradient */
+[data-theme="light"] .from-\[\#1C1F24\] {
+  --tw-gradient-from: #FFFFFF !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+[data-theme="light"] .via-\[\#181B20\] {
+  --tw-gradient-stops: var(--tw-gradient-from), #F8F9FB, var(--tw-gradient-to) !important;
+}
+[data-theme="light"] .to-\[\#14161A\] {
+  --tw-gradient-to: #F3F5F8 !important;
+}
+
+/* Danger-zone card */
+[data-theme="light"] .bg-\[\#161214\] {
+  background-color: #FFF5F5 !important;
+  border-color: #FECACA !important;
+}
+[data-theme="light"] .text-rose-300 {
+  color: #B91C1C !important;
+}
+[data-theme="light"] .text-zinc-400 {
+  color: #5A6472 !important;
+}
+[data-theme="light"] .border-rose-500\/30,
+[data-theme="light"] .border-rose-500\/40 {
+  border-color: #FECACA !important;
+}
+[data-theme="light"] .hover\:border-rose-500\/60:hover,
+[data-theme="light"] .hover\:border-rose-500:hover {
+  border-color: #F87171 !important;
+}
+[data-theme="light"] .bg-rose-500\/20,
+[data-theme="light"] .hover\:bg-rose-500\/20:hover,
+[data-theme="light"] .hover\:bg-rose-500\/30:hover {
+  background-color: #FEE2E2 !important;
+}
+
+/* Hovers and dividers */
+[data-theme="light"] .bg-\[\#2B3036\] {
+  background-color: #E5E8ED !important;
+}
+[data-theme="light"] .hover\:bg-\[\#242830\]:hover,
+[data-theme="light"] .hover\:bg-\[\#3C4043\]:hover {
+  background-color: #EFF1F4 !important;
+}
+
+/* Panels */
+[data-theme="light"] .bg-\[\#111317\]\/60 {
+  background-color: #F3F5F8 !important;
+}
+[data-theme="light"] .bg-sky-950\/40 {
+  background-color: #F0F9FF !important;
+}
+[data-theme="light"] .hover\:bg-sky-900\/50:hover {
+  background-color: #E0F2FE !important;
+}
+
+/* Modal overlays */
+[data-theme="light"] .bg-\[\#14161A\]\/95,
+[data-theme="light"] .bg-\[\#14161A\]\/85 {
+  background-color: rgba(30, 35, 43, 0.45) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Tints: slate/sky/purple/teal/indigo */
+[data-theme="light"] .bg-slate-500\/10,
+[data-theme="light"] .bg-slate-500\/20 {
+  background-color: #F8FAFC !important;
+}
+[data-theme="light"] .border-slate-500\/20,
+[data-theme="light"] .border-slate-500\/30 {
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .bg-sky-500\/10,
+[data-theme="light"] .bg-sky-500\/15,
+[data-theme="light"] .bg-sky-500\/20 {
+  background-color: #F0F9FF !important;
+}
+[data-theme="light"] .border-sky-500\/20,
+[data-theme="light"] .border-sky-500\/25,
+[data-theme="light"] .border-sky-500\/30 {
+  border-color: #BAE6FD !important;
+}
+
+[data-theme="light"] .bg-purple-500\/10,
+[data-theme="light"] .bg-purple-500\/15,
+[data-theme="light"] .bg-purple-500\/20 {
+  background-color: #FAF5FF !important;
+}
+[data-theme="light"] .border-purple-500\/20,
+[data-theme="light"] .border-purple-500\/25,
+[data-theme="light"] .border-purple-500\/30 {
+  border-color: #E9D5FF !important;
+}
+
+[data-theme="light"] .bg-teal-500\/10,
+[data-theme="light"] .bg-teal-500\/20 {
+  background-color: #F0FDFA !important;
+}
+[data-theme="light"] .border-teal-500\/20,
+[data-theme="light"] .border-teal-500\/25,
+[data-theme="light"] .border-teal-500\/30 {
+  border-color: #99F6E4 !important;
+}
+
+[data-theme="light"] .bg-indigo-500\/10,
+[data-theme="light"] .bg-indigo-500\/20 {
+  background-color: #EEF2FF !important;
+}
+[data-theme="light"] .border-indigo-500\/20,
+[data-theme="light"] .border-indigo-500\/25,
+[data-theme="light"] .border-indigo-500\/30 {
+  border-color: #C7D2FE !important;
+}
+
+/* Accent tints */
+[data-theme="light"] .bg-\[\#D9A441\]\/10 {
+  background-color: #FEF6E7 !important;
+}
+[data-theme="light"] .bg-\[\#D9A441\]\/15 {
+  background-color: #FDEFD3 !important;
+}
+[data-theme="light"] .bg-\[\#D9A441\]\/20 {
+  background-color: #FCE7C0 !important;
+}
+[data-theme="light"] .bg-\[\#D9A441\]\/25 {
+  background-color: #FBDFA9 !important;
+}
+
+[data-theme="light"] .bg-\[\#5FA8A0\]\/15,
+[data-theme="light"] .bg-\[\#5FA8A0\]\/20 {
+  background-color: #E6F6F4 !important;
+}
+
+[data-theme="light"] .border-\[\#D9A441\]\/20,
+[data-theme="light"] .border-\[\#D9A441\]\/25,
+[data-theme="light"] .border-\[\#D9A441\]\/30,
+[data-theme="light"] .border-\[\#D9A441\]\/40,
+[data-theme="light"] .border-\[\#D9A441\]\/50 {
+  border-color: #F3DFBF !important;
+}
+
+/* Text contrast (WCAG AA on white) */
+[data-theme="light"] .text-sky-300,
+[data-theme="light"] .text-sky-400 {
+  color: #0369A1 !important;
+}
+
+[data-theme="light"] .text-amber-200,
+[data-theme="light"] .text-amber-300 {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .text-purple-300,
+[data-theme="light"] .text-purple-400 {
+  color: #7E22CE !important;
+}
+
+[data-theme="light"] .text-teal-300,
+[data-theme="light"] .text-teal-400 {
+  color: #0F766E !important;
+}
+
+[data-theme="light"] .text-indigo-400 {
+  color: #4338CA !important;
+}
+
+[data-theme="light"] .text-red-400 {
+  color: #DC2626 !important;
+}
+
+[data-theme="light"] .hover\:text-rose-400:hover {
+  color: #DC2626 !important;
+}
+
+/* ==========================================================================
    Toast Notification Component — Universal Contrast & Theme Architecture
    ========================================================================== */
 .toast-notification {
