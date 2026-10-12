@@ -380,15 +380,10 @@ Every variable supported by the application is listed below. Copy `.env.example`
 | `TELEGRAM_BOT_USERNAME` | No | — | Optional bot username for display. |
 | `GEMINI_API_KEY` | **Yes\*** | — | Google Gemini API key from [aistudio.google.com](https://aistudio.google.com/) (*if using Gemini). |
 | `LLM_PROVIDER` | No | `gemini` | Active AI provider: `gemini`, `openai`, `claude`, `groq`, `deepseek`, `openrouter`, `ollama`. |
-| `LLM_MODEL` | No | *(waterfall)* | Optional model override (e.g. `gpt-4o-mini`). Omit to use the 10-model waterfall. |
-| `N8N_ENCRYPTION_KEY` | **Yes** | — | 32-character hex key for encrypting n8n credentials database. |
-| `N8N_PORT` | No | `5678` | Local port for n8n web dashboard. |
-| `N8N_HOST_BINDING` | No | `127.0.0.1` | Local IP binding for loopback security. |
-| `ADZUNA_APP_ID` | No | — | Adzuna Job Board API App ID. |
-| `ADZUNA_APP_KEY` | No | — | Adzuna Job Board API Key. |
-| `USAJOBS_API_KEY` | No | — | USAJOBS Federal API Key (for US searches). |
-| `SERPER_API_KEY` | No | — | Google Serper API key for automated recruiter discovery. |
-| `HUNTER_API_KEY` | No | — | Hunter.io API key for recruiter email verification. |
+| `LLM_MODEL` | No | `gemini-3.8-flash` | Preferred primary model (e.g. `gemini-3.8-flash`, `gpt-4o-mini`). |
+| `ADZUNA_APP_ID` | No | — | Adzuna Job Board API App ID (optional). |
+| `ADZUNA_APP_KEY` | No | — | Adzuna Job Board API Key (optional). |
+| `USAJOBS_API_KEY` | No | — | USAJOBS Federal API Key (for US searches, optional). |
 | `MIN_SCORE_THRESHOLD` | No | `60` | Minimum match score (0–100) to push Telegram alert card. |
 | `MAX_UPLOAD_SIZE_MB` | No | `5` | Maximum allowed resume file upload size in MB. |
 | `TIMEZONE` | No | `America/Toronto` | Local timezone for cron scheduling (auto-detected if omitted). |

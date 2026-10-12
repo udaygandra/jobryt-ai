@@ -202,6 +202,41 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert(res.json.profile.skills && res.json.profile.skills.length >= 3);
   });
 
+  await test('POST /api/profile/upload-resume auto-detects candidate country_code', async () => {
+    const canadianResumeText = `
+SARAH JENNINGS
+Email: sarah.jennings@example.ca | Phone: (416) 555-0199 | Location: Toronto, ON, Canada
+Senior Data Analyst
+
+SUMMARY
+Senior Data Analyst with 6+ years of analytics experience across Canadian financial and tech ecosystems.
+
+WORK EXPERIENCE
+Senior Data Analyst | Royal Bank of Canada | 2022 - Present | Toronto, ON
+• Led analytics initiatives across consumer banking pipelines
+• Spearheaded predictive churn models in Python and SQL
+
+Data Analyst | Shopify | 2018 - 2022 | Ottawa, ON
+• Built dashboards in Tableau and automated ETL with dbt
+
+EDUCATION
+B.Sc. Statistics | University of Toronto | 2014 - 2018
+
+SKILLS
+SQL, Python, Tableau, Power BI, dbt, Snowflake, Git
+    `;
+
+    const res = await request('POST', '/api/profile/upload-resume', {
+      filename: 'sarah_jennings_resume.txt',
+      fileText: canadianResumeText
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.json.success, true);
+    assert(res.json.profile);
+    assert.strictEqual(res.json.profile.country_code, 'CA', 'Uploaded Canadian resume must detect CA country_code');
+  });
+
   // ── TEST GROUP 3: Settings & Configuration ────────────────────────────────
   console.log('\n--- 3. Testing Settings & Configuration Menu ---');
   await test('GET /api/settings/countries returns global supported country scopes', async () => {
@@ -220,6 +255,26 @@ JavaScript, TypeScript, Python, Node.js, React, Docker, Kubernetes, AWS, Postgre
     assert(countryIds.includes('IN'));
     assert(countryIds.includes('AE'));
     assert(countryIds.includes('JP'));
+  });
+
+  await test('GET /api/settings/cities/live-search performs country-scoped edge geocoding', async () => {
+    // 1. Live search Markham in Canada
+    const liveCa = await request('GET', '/api/settings/cities/live-search?q=markham&country=CA');
+    assert.strictEqual(liveCa.status, 200);
+    assert.strictEqual(liveCa.json.success, true);
+    assert(Array.isArray(liveCa.json.cities));
+    assert(liveCa.json.cities.length > 0, 'Must return Markham city suggestion');
+    const markham = liveCa.json.cities.find(c => c.city.toLowerCase().includes('markham'));
+    assert(markham, 'Markham must be present');
+    assert.strictEqual(markham.country_code, 'CA');
+    assert(liveCa.json.cities.every(c => c.country_code === 'CA'), 'All returned cities must strictly belong to Canada');
+
+    // 2. Cross-country leakage prevention: query Seattle in CA scope
+    const leakTest = await request('GET', '/api/settings/cities/live-search?q=seattle&country=CA');
+    assert.strictEqual(leakTest.status, 200);
+    if (leakTest.json.cities.length > 0) {
+      assert(leakTest.json.cities.every(c => c.country_code === 'CA'), 'No US cities leaked in CA scope');
+    }
   });
 
   await test('GET /api/settings/boards filters boards specifically for target country', async () => {

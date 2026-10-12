@@ -142,10 +142,24 @@ Return ONLY valid JSON:
   "ats_keyword_fit": number
 }`;
 
+  let modelUsed = process.env.LLM_MODEL || 'gemini-3.8-flash';
+  let providerUsed = (process.env.LLM_PROVIDER || 'gemini').toLowerCase().trim();
+
   try {
-    const llmRes = await callLLMProvider({ prompt });
-    if (llmRes.success && llmRes.rawText) {
-      const clean = llmRes.rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const llmRes = await callLLMProvider({
+      prompt,
+      provider: providerUsed,
+      model: process.env.LLM_MODEL
+    });
+    if (llmRes.success && (llmRes.rawText || llmRes.response)) {
+      if (llmRes.model_used) modelUsed = llmRes.model_used;
+      if (llmRes.provider) providerUsed = llmRes.provider;
+      const textToClean = llmRes.rawText || (typeof llmRes.response === 'string' ? llmRes.response : JSON.stringify(llmRes.response));
+      const clean = textToClean
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
       const parsed = JSON.parse(clean);
       if (parsed.tailored_summary) tailoredSummary = parsed.tailored_summary;
       if (parsed.cover_letter) coverLetter = parsed.cover_letter;
@@ -216,6 +230,8 @@ ${candidateName}`;
     tailored_experience: profile.experience || [],
     pdf_filename: pdfFilename,
     pdf_path: pdfPath,
+    model_used: modelUsed,
+    provider_used: providerUsed,
     created_at: new Date().toISOString()
   };
 
@@ -245,6 +261,8 @@ ${candidateName}`;
     pdf_filename: pdfFilename,
     resume_json_path: artifacts.jsonPath,
     cover_letter_txt_path: artifacts.txtPath,
+    model_used: modelUsed,
+    provider_used: providerUsed,
     status: job.status || 'Tailored',
     applied_at: new Date().toISOString(),
     is_cached: false

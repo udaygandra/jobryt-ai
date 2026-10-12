@@ -49,8 +49,8 @@ async function refreshWorkflowGuide() {
     if (step2Badge) {
       if (hasResume && candidate.skills_count > 0) {
         step2Badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-        step2Badge.innerHTML = '✓ Ground Truth Active';
-        if (step2Desc) step2Desc.innerText = `Zero-fabrication baseline ready with ${candidate.skills_count} verifiable skills and timeline.`;
+        step2Badge.innerHTML = '✓ Profile Active';
+        if (step2Desc) step2Desc.innerText = `Profile ready with ${candidate.skills_count} verified skills and career timeline.`;
       } else {
         step2Badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20';
         step2Badge.innerHTML = 'Pending Profile';
@@ -119,6 +119,7 @@ let wizardRolesList = [];
 let wizardLocationsList = [];
 let wizardSchedulePreset = 'daily9am';
 let wizardCountryCode = 'CA';
+let isWizardParsingResume = false;
 
 function openWelcomeWizard() {
   wizardCurrentStep = 1;
@@ -181,9 +182,29 @@ function openWelcomeWizard() {
 function closeWelcomeWizard() {
   const modal = document.getElementById('welcome-wizard-modal');
   if (modal) modal.classList.add('hidden');
+  const onboarded = localStorage.getItem('jobryt_onboarded');
+  if (!onboarded) {
+    localStorage.setItem('jobryt_onboarded', 'dismissed');
+  }
+}
+
+function skipWelcomeWizard() {
+  localStorage.setItem('jobryt_onboarded', 'dismissed');
+  const modal = document.getElementById('welcome-wizard-modal');
+  if (modal) modal.classList.add('hidden');
+  if (typeof showToast === 'function') {
+    showToast('Setup skipped. You can relaunch the wizard anytime from Settings.', 'info');
+  }
 }
 
 function goToWizardStep(stepNum) {
+  if (isWizardParsingResume && stepNum > 1) {
+    if (typeof showToast === 'function') {
+      showToast('⏳ Please wait for resume parsing to complete before proceeding.', 'warning');
+    }
+    return;
+  }
+
   wizardCurrentStep = stepNum;
 
   // Update progress bar
@@ -250,19 +271,89 @@ function triggerResumeUploadFromWizard() {
   const fileInput = document.getElementById('resume-file-input');
   if (!fileInput) return;
 
-  // One-time listener to update status in wizard
+  // One-time listener to handle wizard UI state when file is chosen
   fileInput.addEventListener('change', function onUpload(e) {
     const file = e.target.files && e.target.files[0];
-    const statusEl = document.getElementById('wizard-resume-status');
-    if (statusEl && file) {
-      statusEl.className = 'text-xs text-emerald-400 font-semibold flex items-center gap-1';
-      statusEl.innerHTML = `✓ ${escapeHtml(file.name)} loaded!`;
+    if (file) {
+      isWizardParsingResume = true;
+
+      // Disable Next button
+      const nextBtn = document.getElementById('wizard-btn-next');
+      if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+
+      // Disable Upload button
+      const uploadBtn = document.getElementById('wizard-btn-upload');
+      if (uploadBtn) {
+        uploadBtn.disabled = true;
+        uploadBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+
+      // Display animated spinner and waiting message
+      const statusEl = document.getElementById('wizard-resume-status');
+      if (statusEl) {
+        statusEl.className = 'text-xs text-amber-400 font-semibold flex items-center gap-2';
+        statusEl.innerHTML = `
+          <svg class="w-3.5 h-3.5 animate-spin text-[#D9A441] shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>⏳ Please wait, analyzing &amp; parsing resume...</span>
+        `;
+      }
     }
     fileInput.removeEventListener('change', onUpload);
   }, { once: true });
 
   fileInput.click();
 }
+
+// Synchronize Wizard state when resume parsing completes
+window.addEventListener('resume-parse-complete', (e) => {
+  const detail = e.detail || {};
+  isWizardParsingResume = false;
+
+  // Re-enable Next button
+  const nextBtn = document.getElementById('wizard-btn-next');
+  if (nextBtn) {
+    nextBtn.disabled = false;
+    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+  }
+
+  // Re-enable Upload button
+  const uploadBtn = document.getElementById('wizard-btn-upload');
+  if (uploadBtn) {
+    uploadBtn.disabled = false;
+    uploadBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+  }
+
+  const statusEl = document.getElementById('wizard-resume-status');
+  if (!statusEl) return;
+
+  if (detail.success) {
+    const roles = Array.isArray(detail.targetRoles) && detail.targetRoles.length ? detail.targetRoles : [];
+    const locs = Array.isArray(detail.targetLocs) && detail.targetLocs.length ? detail.targetLocs : [];
+
+    statusEl.className = 'text-xs text-emerald-400 font-semibold flex items-center gap-1.5';
+    const countText = roles.length ? ` Discovered ${roles.length} market roles.` : '';
+    statusEl.innerHTML = `<span>✓</span><span>Resume parsed!${countText}</span>`;
+
+    // Hydrate wizard roles and locations so Step 2 reflects them immediately
+    if (roles.length) {
+      wizardRolesList = [...roles];
+      renderWizardRoles();
+    }
+    if (locs.length) {
+      wizardLocationsList = [...locs];
+      renderWizardLocations();
+    }
+  } else {
+    statusEl.className = 'text-xs text-rose-400 font-semibold flex items-center gap-1.5';
+    statusEl.innerHTML = `<span>⚠</span><span>${escapeHtml(detail.error || 'Parsing failed. Please verify format.')}</span>`;
+  }
+});
 
 function setupWizardInputListeners() {
   const roleInput = document.getElementById('wizard-role-input');
@@ -294,6 +385,12 @@ function addWizardRole(role) {
   if (!role || typeof role !== 'string') return;
   const clean = role.trim();
   if (!clean) return;
+  if (wizardRolesList.length >= 10) {
+    if (typeof showToast === 'function') {
+      showToast('Maximum 10 job roles allowed.', 'warning');
+    }
+    return;
+  }
   if (!wizardRolesList.some(r => r.toLowerCase() === clean.toLowerCase())) {
     wizardRolesList.push(clean);
     renderWizardRoles();
@@ -327,6 +424,12 @@ function addWizardLocation(loc) {
   if (!loc || typeof loc !== 'string') return;
   const clean = loc.trim();
   if (!clean) return;
+  if (wizardLocationsList.length >= 5) {
+    if (typeof showToast === 'function') {
+      showToast('Maximum 5 cities allowed to prevent exceeding API scoring limits.', 'warning');
+    }
+    return;
+  }
   if (!wizardLocationsList.some(l => l.toLowerCase() === clean.toLowerCase())) {
     wizardLocationsList.push(clean);
     renderWizardLocations();
@@ -491,14 +594,46 @@ async function finishWelcomeWizard() {
   }
 }
 
-function checkFirstTimeOnboarding() {
+async function checkFirstTimeOnboarding() {
   try {
     const onboarded = localStorage.getItem('jobryt_onboarded');
-    if (!onboarded) {
-      setTimeout(() => {
-        openWelcomeWizard();
-      }, 500);
+    if (onboarded === 'true' || onboarded === 'dismissed') {
+      return;
     }
+
+    // Check if user already has an active profile or roles/locations in memory
+    if (window.currentProfile && (
+      (Array.isArray(window.currentProfile.target_titles) && window.currentProfile.target_titles.length > 0) ||
+      (Array.isArray(window.currentProfile.locations) && window.currentProfile.locations.length > 0) ||
+      window.currentProfile.contact?.name
+    )) {
+      localStorage.setItem('jobryt_onboarded', 'true');
+      return;
+    }
+
+    // Double check with backend master profile
+    try {
+      const res = await fetch('/api/profile');
+      if (res.ok) {
+        const data = await res.json();
+        const prof = data.profile || data;
+        if (prof && (
+          (Array.isArray(prof.target_titles) && prof.target_titles.length > 0) ||
+          (Array.isArray(prof.locations) && prof.locations.length > 0) ||
+          prof.contact?.name
+        )) {
+          localStorage.setItem('jobryt_onboarded', 'true');
+          return;
+        }
+      }
+    } catch (e) {
+      // Non-fatal profile check error
+    }
+
+    // Virgin setup only: trigger initial onboarding once
+    setTimeout(() => {
+      openWelcomeWizard();
+    }, 600);
   } catch (err) {
     console.error('checkFirstTimeOnboarding error:', err);
   }
@@ -507,6 +642,7 @@ function checkFirstTimeOnboarding() {
 // Window exports
 window.openWelcomeWizard = openWelcomeWizard;
 window.closeWelcomeWizard = closeWelcomeWizard;
+window.skipWelcomeWizard = skipWelcomeWizard;
 window.addWizardRole = addWizardRole;
 window.removeWizardRole = removeWizardRole;
 window.addWizardLocation = addWizardLocation;

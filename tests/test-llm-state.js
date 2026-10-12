@@ -57,6 +57,22 @@ const { model: fourthModel } = getNextWaterfallModel(1000);
 assert.strictEqual(fourthModel.id, 'gemini-3.5-flash', 'Should skip 404 blacklisted models');
 console.log('   ✅ 404 Blacklisting verified -> Switched to:', fourthModel.id);
 
+// Test 6: getActiveModelInfo helper
+const { getActiveModelInfo, isModelAvailable } = require('../scripts/engine/llm-state-manager');
+const modelInfo = getActiveModelInfo();
+assert(modelInfo.top_model === 'gemini-3.8-flash');
+assert(typeof modelInfo.active_model === 'string');
+console.log('   ✅ Active model info verified:', modelInfo.active_model);
+
+// Test 7: Auto-revisit top model after cooldown expiry
+const testState = getLLMState();
+testState['gemini-3.8-flash'].minute = []; // 60s sliding window elapsed
+testState['gemini-3.8-flash'].blocked_until = (Date.now() / 1000) - 5; // expired 5 seconds ago
+saveLLMState(testState);
+const { model: revisitedModel } = getNextWaterfallModel(1000);
+assert.strictEqual(revisitedModel.id, 'gemini-3.8-flash', 'Must auto-revisit gemini-3.8-flash after cooldown expires');
+console.log('   ✅ Auto-revisit after cooldown expiry verified -> Returned to:', revisitedModel.id);
+
 // Cleanup state after test
 saveLLMState(cleanState);
 

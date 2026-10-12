@@ -4,16 +4,22 @@
  */
 
 async function evaluateCustomJob() {
+  if (typeof validateFormFields === 'function') {
+    const isValid = validateFormFields([
+      { field: 'cust-title', type: 'required', message: 'Job title is required.' },
+      { field: 'cust-desc', type: 'required', message: 'Job description text is required.' }
+    ]);
+    if (!isValid) {
+      showToast('Please enter both Job Title and Job Description.', 'error');
+      return;
+    }
+  }
+
   const title = document.getElementById('cust-title')?.value.trim();
   const company = document.getElementById('cust-company')?.value.trim();
   const location = document.getElementById('cust-location')?.value.trim();
   const url = document.getElementById('cust-url')?.value.trim();
   const description = document.getElementById('cust-desc')?.value.trim();
-
-  if (!title || !description) {
-    showToast('Please enter both Job Title and Job Description.', 'error');
-    return;
-  }
 
   const resBox = document.getElementById('cust-result-box');
   if (resBox) {

@@ -45,9 +45,11 @@ JobRyt AI is an automated AI job search, resume parsing, and application agent p
 - **Dependencies:** `data/`, `prompts/`, `xlsx`
 
 ### 5. Frontend Client
-- **Purpose:** Single Page Interface (SPI) with tabbed navigation, live opportunity viewing, custom resume tailoring, profile editing, and settings management.
-- **Location:** `public/` (`index.html`, `public/js/navigation.js`, `public/js/settings.js`, `public/js/profile.js`, `public/js/opportunities.js`, `public/js/applied.js`)
-- **Dependencies:** `fetch` API against Express `/api/*` endpoints
+- **Purpose:** High-performance Single Page Interface (SPI) with tabbed navigation, live opportunity viewing, custom resume tailoring, profile editing, and settings management.
+- **Location:** `public/` (`index.html`, `public/js/utils.js`, `public/js/navigation.js`, `public/js/settings.js`, `public/js/profile.js`, `public/js/opportunities.js`, `public/js/applied.js`)
+- **State Architecture:** Lightweight Micro-Reactive Observable Store (`JobrytStore` in `utils.js`) with SWR (`localStorage`) caching, 0ms optimistic rendering, zero-build vanilla ES6 modular design, and DevTools inspector (`window.__JOBRYT_STORE__`).
+- **Architectural Decision Record:** See [docs/ADR-004-FRONTEND-ARCHITECTURE-EVALUATION.md](file:///c:/Users/udays/Documents/jobryt-ai/docs/ADR-004-FRONTEND-ARCHITECTURE-EVALUATION.md) for full evaluation of Next.js vs. React vs. Zero-Build Vanilla.
+- **Dependencies:** Native Fetch API against Express `/api/*` endpoints, Tailwind CSS via CDN.
 
 ### 6. Test & Verification Harness
 - **Purpose:** E2E integration tests, PDF parsing benchmarks, experience calculator validations, and security audits.

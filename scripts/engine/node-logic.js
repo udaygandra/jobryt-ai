@@ -14,6 +14,8 @@
  */
 
 const assert = require('assert');
+const { classifyWorkMode } = require('./board-requests');
+const { locationGate, combine, WEIGHTS } = require('./scoring-v2');
 
 // ── 1. Job Normalization ────────────────────────────────────────────────────
 function normalizeJob(rawJob, defaultSource = 'unknown') {
@@ -31,7 +33,14 @@ function normalizeJob(rawJob, defaultSource = 'unknown') {
   const company = typeof rawJob.company === 'string' ? rawJob.company : rawJob.company?.display_name || rawJob.companyName || 'Unknown Company';
   const location = typeof rawJob.location === 'string' ? rawJob.location : rawJob.location?.display_name || 'Remote / Unspecified';
   const created = rawJob.created || rawJob.publishedAt || rawJob.postedTime || new Date().toISOString();
-  const targetUrl = rawJob.redirect_url || rawJob.jobUrl || rawJob.applyUrl || rawJob.url || rawJob.link || '';
+  let targetUrl = (rawJob.redirect_url || rawJob.job_url || rawJob.apply_url || rawJob.jobUrl || rawJob.applyUrl || rawJob.url || rawJob.link || '').trim();
+  if (!targetUrl) {
+    if (source === 'linkedin' || source === 'linkedin_jobs') {
+      targetUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(title + ' ' + company)}`;
+    } else {
+      targetUrl = `https://www.google.com/search?q=${encodeURIComponent(title + ' ' + company + ' job')}`;
+    }
+  }
 
   return {
     id: cleanId,
@@ -132,11 +141,12 @@ function runDedupFilter(items, seenIds) {
 }
 
 function runGeoFilter(items, profileObj = null) {
-  let isJobLocationEligible, detectTargetCountryScope;
+  let isJobLocationEligible, detectTargetCountryScope, isJobWorkplaceEligible;
   try {
     const gh = require('../core/geo-helper');
     isJobLocationEligible = gh.isJobLocationEligible;
     detectTargetCountryScope = gh.detectTargetCountryScope;
+    isJobWorkplaceEligible = gh.isJobWorkplaceEligible;
   } catch (_) {
     return items; // Fallback if geo-helper is missing
   }
@@ -146,10 +156,25 @@ function runGeoFilter(items, profileObj = null) {
   const countryScope = (profileObj && profileObj.country_scope && profileObj.country_scope !== 'AUTO')
     ? profileObj.country_scope
     : (detectTargetCountryScope ? detectTargetCountryScope(locations) : 'GLOBAL');
+  const workType = profile.work_type || 'Open to All';
 
   return items.filter(item => {
-    const loc = (item.json || item).location || '';
-    return isJobLocationEligible(loc, locations, countryScope);
+    const job = item.json || item;
+    const loc = job.location || '';
+    const title = job.title || '';
+    const desc = job.description || job.snippet || '';
+
+    // Unified work-mode classification (hybrid in external city is strictly rejected)
+    const mode = classifyWorkMode(title, loc, desc, { sourceRemote: job.remote === true });
+    const isRemote = mode === 'remote';
+
+    if (!isJobLocationEligible(loc, locations, countryScope, isRemote, desc)) {
+      return false;
+    }
+    if (typeof isJobWorkplaceEligible === 'function' && !isJobWorkplaceEligible(loc, desc, title, workType, isRemote)) {
+      return false;
+    }
+    return true;
   });
 }
 
@@ -174,22 +199,109 @@ function getMasterProfile() {
   return {};
 }
 
-function computeHeuristicScore(job, profileObj = null) {
+// Technical and domain skill catalog for estimating posting skill demands
+const TECH_SKILL_CATALOG = [
+  'sql', 'python', 'r', 'excel', 'power bi', 'tableau', 'looker', 'aws', 'azure', 'gcp',
+  'snowflake', 'databricks', 'spark', 'hadoop', 'kafka', 'airflow', 'dbt', 'docker', 'kubernetes',
+  'terraform', 'git', 'ci/cd', 'scala', 'java', 'c++', 'c#', '.net', 'javascript', 'typescript',
+  'react', 'angular', 'vue', 'node', 'nodejs', 'graphql', 'rest', 'api', 'nosql', 'mongodb',
+  'postgresql', 'postgres', 'mysql', 'oracle', 'redshift', 'bigquery', 'jira', 'confluence',
+  'scrum', 'agile', 'etl', 'elt', 'machine learning', 'deep learning', 'pandas', 'numpy',
+  'scikit-learn', 'tensorflow', 'pytorch', 'statistics', 'mathematics', 'bi', 'business intelligence',
+  'data warehousing', 'data modeling', 'data governance', 'alteryx', 'spss', 'sas', 'qlik',
+  'ssis', 'ssrs', 'ssas', 'sap', 'salesforce', 'dynamodb', 'redis', 'cassandra', 'linux',
+  'bash', 'powershell', 'jenkins', 'github actions', 'gitlab'
+];
+
+function computeHeuristicScore(job, profileObj = null, settingsObj = null) {
+  if (!job) job = {};
   const desc = (job.description || '').toLowerCase();
   const title = (job.title || '').toLowerCase();
   const fullText = `${title} ${desc}`;
 
   const profile = profileObj || getMasterProfile();
-  const candidateSkills = (profile.skills || job.profile_skills || []).map(s => String(s).toLowerCase());
-  const targetTitles = profile.target_titles || [];
+  const settings = settingsObj || {};
+
+  // Extract skills from profile / resume object or job.profile_skills
+  let rawSkills = profile.skills || job.profile_skills || [];
+  let flatSkillsList = [];
+  if (Array.isArray(rawSkills)) {
+    flatSkillsList = rawSkills.flatMap(s => typeof s === 'string' ? s : (s && s.name ? s.name : (s && s.skills ? s.skills : [])));
+  } else if (rawSkills && typeof rawSkills === 'object') {
+    flatSkillsList = Object.values(rawSkills).flatMap(v => Array.isArray(v) ? v : (typeof v === 'string' ? [v] : []));
+  }
+  const candidateSkills = flatSkillsList.map(s => String(s).toLowerCase()).filter(Boolean);
+
+  const targetTitles = profile.target_titles || settings.target_roles || (profile.basics?.title ? [profile.basics.title] : []);
+  const locations = profile.locations || settings.target_locations || (profile.basics?.location ? [profile.basics.location] : []);
+  const countryScope = profile.country_scope || settings.target_country || 'GLOBAL';
+  const workType = profile.work_type || settings.work_type || 'Open to All';
+
   let skillsScore = 70;
   let matchedSkills = [];
+  let skillsUnstated = false;
+
+  // Check if job description mentions specific technical skills or requirements
+  const hasSkillKeywords = /\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools|knowledge of|stack|responsibilities)\b/i.test(fullText);
 
   if (candidateSkills.length > 0) {
-    matchedSkills = candidateSkills.filter(s => s.length > 2 && fullText.includes(s));
-    skillsScore = matchedSkills.length > 0
-      ? Math.min(100, Math.round(60 + (matchedSkills.length / Math.min(candidateSkills.length, 5)) * 40))
-      : 65;
+    matchedSkills = candidateSkills.filter(s => {
+      if (!s || s.length < 2) return false;
+      if (s.length <= 3) {
+        const rx = new RegExp(`\\b${s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        return rx.test(fullText);
+      }
+      return fullText.includes(s);
+    });
+  }
+
+  const jobMentionedTech = TECH_SKILL_CATALOG.filter(tech => {
+    if (tech.length <= 3) {
+      const rx = new RegExp(`\\b${tech.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      return rx.test(fullText);
+    }
+    return fullText.includes(tech);
+  });
+
+  const missingTechFromJob = jobMentionedTech.filter(tech =>
+    !matchedSkills.some(ms => ms.includes(tech) || tech.includes(ms))
+  );
+
+  const totalJobDemands = Math.max(matchedSkills.length + missingTechFromJob.length, matchedSkills.length);
+
+  if (!hasSkillKeywords && totalJobDemands === 0) {
+    // Unstated skills edge case: Neutral 70% screening tier
+    skillsScore = 70;
+    skillsUnstated = true;
+  } else if (desc.trim().length < 150 && totalJobDemands === 0 && matchedSkills.length === 0) {
+    skillsScore = 70;
+    skillsUnstated = true;
+  } else if (matchedSkills.length === 0) {
+    // 0 skills matched on technical JD: poor fit (38% baseline for transferable/soft skills)
+    skillsScore = 38;
+  } else {
+    // HR-Calibrated scoring curve with encouraging positive favorability (+20% baseline):
+    const matchRatio = matchedSkills.length / Math.max(totalJobDemands, 1);
+    let calculated;
+
+    if (totalJobDemands >= 10 && matchedSkills.length <= 3) {
+      // Heavy tech stack (10-25 tools) with only 1-3 matched skills -> 50-62% (partial/stretch fit)
+      calculated = Math.round(45 + (matchRatio * 35) + (matchedSkills.length * 3.5));
+    } else if (matchedSkills.length >= 6 || (matchRatio >= 0.70 && matchedSkills.length >= 3)) {
+      // Exceptional fit: high volume of tools or majority of stack -> 85-96%
+      calculated = Math.round(75 + (matchRatio * 20) + Math.min(matchedSkills.length, 5));
+    } else if (matchedSkills.length >= 3 && matchRatio >= 0.40) {
+      // Solid fit: 3-5 core tools and reasonable coverage -> 70-80%
+      calculated = Math.round(58 + (matchRatio * 25) + (matchedSkills.length * 2));
+    } else if (matchedSkills.length >= 2) {
+      // Moderate/partial fit: 2 tools -> 58-66%
+      calculated = Math.round(50 + (matchRatio * 25) + (matchedSkills.length * 3));
+    } else {
+      // 1 tool match -> 48-55%
+      calculated = Math.round(45 + (matchRatio * 25) + 3);
+    }
+
+    skillsScore = Math.min(98, Math.max(35, calculated));
   }
 
   // Seniority & Title Hierarchy Alignment
@@ -219,28 +331,60 @@ function computeHeuristicScore(job, profileObj = null) {
     disqs.push('Role is an entry-level/junior position; candidate is seeking management or executive roles.');
   }
 
-  const workplaceScore = 80;
-  const domainScore = 75;
-  
-  // Skills: 60%, Seniority: 25%, Workplace: 15%
-  let overall = Math.round((skillsScore * 0.60) + (seniorityScore * 0.25) + (workplaceScore * 0.15));
-  if (disqs.length > 0) overall = Math.min(overall, 45);
+  // Deterministic Location Gate & Radial Score
+  const gateRes = locationGate(job, profile, settings);
+  const locationScore = gateRes.score;
+  if (!gateRes.pass && gateRes.reason) {
+    disqs.push(gateRes.reason);
+  }
 
-  const minThreshold = (typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60;
-  const isQualified = overall > minThreshold && disqs.length === 0;
+  const fnScore = seniorityScore; // For CPU heuristic fallback, function mirrors seniority/role tier
+
+  // 4-Pillar Scoring v2: 45% Skills + 30% Seniority + 10% Function + 15% Location (Gate)
+  const overall = combine({
+    skills: skillsScore,
+    seniority: seniorityScore,
+    fn: fnScore,
+    location: locationScore,
+    gateFailed: !gateRes.pass,
+    disqs
+  });
+
+  const minThreshold = (settings.score_threshold !== undefined)
+    ? Number(settings.score_threshold)
+    : ((typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60);
+  const isQualified = overall >= minThreshold && disqs.length === 0 && gateRes.pass;
 
   return {
     ...job,
     score: overall,
-    breakdown: { skills_fit_score: skillsScore, seniority_fit_score: seniorityScore, workplace_fit_score: workplaceScore, domain_fit_score: domainScore },
+    overall_score: overall,
     should_apply: isQualified,
-    company_tier: 'Enterprise / Product',
-    priority_level: overall >= 85 ? 'High' : overall > minThreshold ? 'Medium' : 'Low',
+    skills_edge_case: skillsUnstated,
+    scoring_pillars: {
+      formula: '45% skills + 30% seniority + 10% function + 15% location (gate)',
+      skills_fit_score: skillsScore,
+      seniority_fit_score: seniorityScore,
+      function_fit_score: fnScore,
+      location_fit_score: locationScore,
+      location_gate_passed: gateRes.pass,
+      matched_skills: matchedSkills,
+      unstated_skills_default: skillsUnstated
+    },
+    breakdown: {
+      skills_fit_score: skillsScore,
+      seniority_fit_score: seniorityScore,
+      function_fit_score: fnScore,
+      location_fit_score: locationScore,
+      title_fit_score: fnScore
+    },
+    disqualification_reasons: disqs,
+    priority_level: overall >= 85 ? 'High' : overall >= minThreshold ? 'Medium' : 'Low',
     key_matched_skills: matchedSkills.slice(0, 10).map(s => s.toUpperCase()),
     missing_skills: [],
-    disqualification_reasons: disqs,
-    reasoning: disqs.length > 0 ? disqs[0] : `Heuristic Scorer Evaluated core skills (${skillsScore}%) and seniority fit (${seniorityScore}%).`,
-    why_this_fits: disqs.length > 0 ? 'Seniority / level mismatch' : `Strong skills match (${skillsScore}%)`,
+    notes_concerns: skillsUnstated ? 'Skills not specified in posting — 70% default applied for recruiter call screening.' : '',
+    reasoning: disqs.length > 0 ? disqs[0] : (skillsUnstated ? 'Skills not specified in posting (70% applied). Location and seniority match verified.' : `Evaluated core skills (${skillsScore}%), seniority (${seniorityScore}%), and location (${locationScore}%).`),
+    why_this_fits: disqs.length > 0 ? 'Seniority / level mismatch' : `Alignment across skills (${skillsScore}%) and location (${locationScore}%)`,
     parse_error: false
   };
 }
@@ -307,17 +451,34 @@ function runAtsCoverage(item) {
 // ── LLM Parse Score ─────────────────────────────────────────────────────────
 const { extractLLMResponseText, parseLLMJsonResponse } = require('./llm-provider');
 
-function runParseScore(item, profileObj = null) {
+function runParseScore(item, profileObj = null, settingsObj = null) {
+  let prof = profileObj;
+  let sett = settingsObj;
+
+  // Support invocation both as runParseScore(n8nItem, profile) and runParseScore(rawLlmText, job, profile, settings)
+  if (typeof item === 'string') {
+    const rawText = item;
+    const jobData = (typeof profileObj === 'object' && profileObj && (profileObj.title || profileObj.description || profileObj.id)) ? profileObj : {};
+    prof = (typeof settingsObj === 'object' && settingsObj && (settingsObj.skills || settingsObj.target_titles || settingsObj.basics)) ? settingsObj : (arguments[2] || null);
+    sett = arguments[3] || null;
+    item = { json: { ...jobData, rawText } };
+  } else if (!item || !item.json) {
+    item = { json: (item && typeof item === 'object') ? item : {} };
+  }
+
   if (item.json?.disqualified_deterministic) {
-    Object.assign(item.json, {
+    const res = {
       score: 0,
       overall_score: 0,
-      breakdown: { title_fit_score: 0, skills_fit_score: 0, seniority_fit_score: 0, domain_fit_score: 0 },
+      breakdown: { title_fit_score: 0, skills_fit_score: 0, seniority_fit_score: 0, location_fit_score: 0 },
+      scoring_pillars: { formula: '40% skills + 30% seniority + 30% location', skills_fit_score: 0, seniority_fit_score: 0, location_fit_score: 0 },
       should_apply: false,
       priority_level: 'Low',
       reasoning: item.json.deterministic_reasoning,
       parse_error: false
-    });
+    };
+    Object.assign(item.json, res);
+    Object.assign(item, res);
     return item;
   }
 
@@ -331,20 +492,44 @@ function runParseScore(item, profileObj = null) {
 
   // 2. Fallback: If LLM failed or response unparseable
   if (item.json?.llm_failed === true || !parsed) {
-    item.json = { ...item.json, ...computeHeuristicScore(item.json, profileObj), scored_by: 'Heuristic' };
+    const heuristic = computeHeuristicScore(item.json, prof, sett);
+    item.json = { ...item.json, ...heuristic, scored_by: 'Heuristic' };
     item.json.reasoning = item.json.reasoning || "Heuristic Scorer evaluated this job because LLM was offline.";
+    Object.assign(item, item.json);
     return item;
   }
 
   // 3. Deterministic Code Node Computation:
+  const profile = prof || getMasterProfile();
+  const settings = sett || {};
   const b = parsed.breakdown || {};
-  const titleFit = typeof b.title_fit_score === 'number' ? b.title_fit_score : 80;
-  const skillsFit = typeof b.skills_fit_score === 'number' ? b.skills_fit_score : 70;
-  const seniorityFit = typeof b.seniority_fit_score === 'number' ? b.seniority_fit_score : 75;
-  const domainFit = typeof b.domain_fit_score === 'number' ? b.domain_fit_score : 70;
+  const descText = String(item.json.description || item.json.snippet || item.json.details || '').trim();
 
-  const prof = profileObj || getMasterProfile();
-  const targetTitles = prof.target_titles || [];
+  // Pillar 1: Skills Match (40% Weight) with 90% Edge Case
+  let skillsFit = typeof b.skills_fit_score === 'number'
+    ? b.skills_fit_score
+    : (typeof parsed.skills_fit_score === 'number' ? parsed.skills_fit_score : 70);
+  
+  const hasNoSkillsListed = parsed.skills_edge_case === true ||
+    parsed.skills_unstated_default === true ||
+    ((b.skills_fit_score === 90 || b.skills_fit_score === 70) && /skills not specified/i.test(parsed.notes_concerns || '')) ||
+    (skillsFit === 0 && descText.length < 300 && !/\b(requirements|qualifications|skills|experience with|proficient in|technologies|tools|requir)\b/i.test(descText));
+
+  if (hasNoSkillsListed) {
+    skillsFit = 70;
+    parsed.skills_edge_case = true;
+    parsed.skills_unstated_default = true;
+    parsed.notes_concerns = parsed.notes_concerns ? `${parsed.notes_concerns} (Skills not specified in posting — 70% default applied for recruiter call screening.)` : 'Skills not specified in posting — 70% default applied for recruiter call screening.';
+  } else if (Array.isArray(parsed.missing_skills) && parsed.missing_skills.length >= 6 && Array.isArray(parsed.key_matched_skills) && parsed.key_matched_skills.length <= 2 && skillsFit > 65) {
+    // Guard against LLM hallucinated score inflation on heavy missing stack
+    skillsFit = 60;
+  }
+
+  // Pillar 2: Seniority Match (30% Weight)
+  let seniorityFit = typeof b.seniority_fit_score === 'number'
+    ? b.seniority_fit_score
+    : (typeof parsed.seniority_fit_score === 'number' ? parsed.seniority_fit_score : 75);
+  const targetTitles = profile.target_titles || settings.target_roles || (profile.basics?.title ? [profile.basics.title] : []);
   const wantsExec = targetTitles.some(t => /\b(director|vp|vice president|head of|chief|svp|avp)\b/i.test(t));
   const wantsManager = wantsExec || targetTitles.some(t => /\b(manager|management)\b/i.test(t));
   const wantsLead = targetTitles.some(t => /\b(lead|principal|staff|architect)\b/i.test(t));
@@ -358,25 +543,48 @@ function runParseScore(item, profileObj = null) {
   const disqs = Array.isArray(parsed.disqualification_reasons) ? [...parsed.disqualification_reasons] : [];
 
   if (isExecTitle && !wantsExec) {
+    seniorityFit = Math.min(seniorityFit, 20);
     disqs.push('Role is an Executive/Director position; candidate targets individual contributor roles.');
   } else if (isManagerTitle && !wantsManager) {
+    seniorityFit = Math.min(seniorityFit, 25);
     disqs.push('Role is a Manager/Executive level position; candidate targets individual contributor roles.');
   } else if (isLeadTitle && !wantsLead) {
+    seniorityFit = Math.min(seniorityFit, 35);
     disqs.push('Role is a Lead/Principal position requiring higher seniority than candidate target.');
   } else if ((wantsExec || wantsManager) && isJuniorTitle) {
+    seniorityFit = Math.min(seniorityFit, 20);
     disqs.push('Role is an entry-level/junior position; candidate is seeking management or executive roles.');
   }
 
-  // Code node arithmetic:
-  let overall = Math.round(titleFit * 0.40 + skillsFit * 0.35 + seniorityFit * 0.15 + domainFit * 0.10);
-  if (titleFit < 50 || disqs.length > 0) overall = Math.min(overall, 45);
+  // Deterministic Location Gate & Radial Score
+  const gateRes = locationGate(item.json, profile, settings);
+  const locationFit = gateRes.score;
+  if (!gateRes.pass && gateRes.reason) {
+    disqs.push(gateRes.reason);
+  }
 
-  const minThreshold = (typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60;
-  const shouldApply = overall > minThreshold && titleFit >= 50 && disqs.length === 0;
+  const fnFit = typeof b.function_fit_score === 'number'
+    ? b.function_fit_score
+    : (typeof b.title_fit_score === 'number' ? b.title_fit_score : 85);
+
+  // 4-Pillar Scoring v2: 45% Skills + 30% Seniority + 10% Function + 15% Location (Gate)
+  const overall = combine({
+    skills: skillsFit,
+    seniority: seniorityFit,
+    fn: fnFit,
+    location: locationFit,
+    gateFailed: !gateRes.pass,
+    disqs
+  });
+
+  const minThreshold = (settings.score_threshold !== undefined)
+    ? Number(settings.score_threshold)
+    : ((typeof process !== 'undefined' && process.env?.MIN_SCORE_THRESHOLD) ? Number(process.env.MIN_SCORE_THRESHOLD) : 60);
+  const shouldApply = overall >= minThreshold && disqs.length === 0 && gateRes.pass;
   const priorityLevel = overall >= 80 ? 'High' : overall >= 65 ? 'Medium' : 'Low';
   const safetyTier = overall >= 80 ? 'Strongest Application' : overall >= 65 ? 'Safe Opportunity' : 'Stretch Opportunity';
 
-  Object.assign(item.json, {
+  const merged = {
     ...parsed,
     score: overall,
     overall_score: overall,
@@ -384,14 +592,28 @@ function runParseScore(item, profileObj = null) {
     priority_level: priorityLevel,
     safety_tier: safetyTier,
     disqualification_reasons: disqs,
-    breakdown: {
-      title_fit_score: titleFit,
+    skills_edge_case: parsed.skills_edge_case || parsed.skills_unstated_default || false,
+    scoring_pillars: {
+      formula: '45% skills + 30% seniority + 10% function + 15% location (gate)',
       skills_fit_score: skillsFit,
       seniority_fit_score: seniorityFit,
-      domain_fit_score: domainFit
+      function_fit_score: fnFit,
+      location_fit_score: locationFit,
+      location_gate_passed: gateRes.pass,
+      unstated_skills_default: Boolean(parsed.skills_edge_case || parsed.skills_unstated_default)
+    },
+    breakdown: {
+      skills_fit_score: skillsFit,
+      seniority_fit_score: seniorityFit,
+      function_fit_score: fnFit,
+      location_fit_score: locationFit,
+      title_fit_score: fnFit
     },
     parse_error: false
-  });
+  };
+
+  Object.assign(item.json, merged);
+  Object.assign(item, merged);
 
   return item;
 }

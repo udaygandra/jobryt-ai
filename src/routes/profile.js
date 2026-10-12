@@ -15,22 +15,35 @@ const profilesDir = path.join(dataDir, 'profiles');
 function getMasterProfile() {
   const profilePath = path.join(profilesDir, 'master-profile.json');
   const examplePath = path.join(profilesDir, 'master-profile.example.json');
+  let profileData = null;
   if (fs.existsSync(profilePath)) {
-    return readJsonFile(profilePath, {});
-  }
-  if (fs.existsSync(examplePath)) {
+    profileData = readJsonFile(profilePath, {});
+  } else if (fs.existsSync(examplePath)) {
     const defaultData = readJsonFile(examplePath, {});
     fs.writeFileSync(profilePath, JSON.stringify(defaultData, null, 2), 'utf8');
-    return defaultData;
+    profileData = defaultData;
+  } else {
+    profileData = {
+      name: 'Your Name',
+      target_titles: ['Data Analyst', 'Software Engineer'],
+      locations: ['Remote', 'Toronto, ON'],
+      skills: ['JavaScript', 'Python', 'SQL', 'Docker', 'Git'],
+      experience: [],
+      writing_sample: ''
+    };
   }
-  return {
-    name: 'Your Name',
-    target_titles: ['Data Analyst', 'Software Engineer'],
-    locations: ['Remote', 'Toronto, ON'],
-    skills: ['JavaScript', 'Python', 'SQL', 'Docker', 'Git'],
-    experience: [],
-    writing_sample: ''
-  };
+
+  if (profileData && !profileData.country_code) {
+    try {
+      const { detectTargetCountryScope } = require('../../scripts/core/geo-helper');
+      const detected = detectTargetCountryScope([profileData.contact?.location, ...(Array.isArray(profileData.locations) ? profileData.locations : [])]);
+      if (detected && detected !== 'GLOBAL') {
+        profileData.country_code = detected;
+      }
+    } catch (_) {}
+  }
+
+  return profileData;
 }
 
 // GET /api/profile
@@ -49,6 +62,16 @@ router.post('/', (req, res) => {
     const profileData = req.body;
     if (!profileData || typeof profileData !== 'object') {
       return res.status(400).json({ error: 'Invalid profile data provided' });
+    }
+
+    if (!profileData.country_code) {
+      try {
+        const { detectTargetCountryScope } = require('../../scripts/core/geo-helper');
+        const detected = detectTargetCountryScope([profileData.contact?.location, ...(Array.isArray(profileData.locations) ? profileData.locations : [])]);
+        if (detected && detected !== 'GLOBAL') {
+          profileData.country_code = detected;
+        }
+      } catch (_) {}
     }
 
     const profilePath = path.join(profilesDir, 'master-profile.json');
@@ -141,6 +164,23 @@ router.post('/upload-resume', async (req, res) => {
       }
       const { normalizeProfileFields } = require('../../scripts/engine/resume-to-profile');
       parsed = normalizeProfileFields(parsed);
+
+      // Auto-detect candidate country code from profile location / raw text
+      if (!parsed.country_code) {
+        try {
+          const { detectTargetCountryScope } = require('../../scripts/core/geo-helper');
+          const candidateLocs = [
+            parsed.country,
+            parsed.contact?.location,
+            ...(Array.isArray(parsed.locations) ? parsed.locations : []),
+            (rawText || '').slice(0, 1000)
+          ].filter(Boolean);
+          const detected = detectTargetCountryScope(candidateLocs);
+          if (detected && detected !== 'GLOBAL') {
+            parsed.country_code = detected;
+          }
+        } catch (_) {}
+      }
     }
 
     // Clean up temporary file
@@ -160,10 +200,29 @@ router.post('/upload-resume', async (req, res) => {
       });
     }
 
+    // Automatically synchronize parsed target titles, location, and country to settings
+    let syncedSettings = null;
+    try {
+      const { syncProfileToSettings } = require('../../scripts/core/settings-helper');
+      syncedSettings = syncProfileToSettings(parsed);
+      // Persist to master-profile.json as candidate credential baseline
+      const masterProfilePath = path.join(profilesDir, 'master-profile.json');
+      fs.writeFileSync(masterProfilePath, JSON.stringify(parsed, null, 2), 'utf8');
+    } catch (syncErr) {
+      console.warn('⚠️ Failed to sync profile to settings:', syncErr.message);
+    }
+
     res.json({
       success: true,
       message: 'Resume parsed into detailed master profile successfully.',
-      profile: parsed
+      profile: parsed,
+      synced_settings: syncedSettings ? {
+        target_roles: syncedSettings.target_roles || [],
+        target_titles: syncedSettings.target_titles || [],
+        target_locations: syncedSettings.target_locations || [],
+        locations: syncedSettings.locations || [],
+        country_scope: syncedSettings.country_scope || 'AUTO'
+      } : null
     });
   } catch (err) {
     if (fs.existsSync(tempPath)) {

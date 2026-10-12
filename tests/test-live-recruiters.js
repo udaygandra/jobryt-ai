@@ -1,84 +1,69 @@
-const fs = require('fs');
-const path = require('path');
-const { loadEnv } = require('../scripts/core/load-env');
-loadEnv();
+/**
+ * test-live-recruiters.js — Recruiter & Hiring Team Finder / X-Ray Search Tests
+ *
+ * Verifies 100% free, zero-API-key Google X-Ray Search generation for LinkedIn talent acquisition
+ * and hiring managers, plus personalized draft outreach messages (<=300 chars).
+ */
 
-const code = fs.readFileSync(path.join(__dirname, '../scripts/engine/find-recruiters-code.js'), 'utf8');
+const assert = require('assert');
+const { router } = require('../src/routes/recruiters');
 
-const mockItem = {
-  json: {
-    action: 'APPLY',
-    title: 'Senior Data Analyst',
-    company: 'Shopify',
-    company_name: 'Shopify',
-    location: 'Toronto, ON',
-    chat_id: process.env.TELEGRAM_CHAT_ID || '123456789'
-  }
-};
+async function testRecruiterSearchGenerator() {
+  console.log('🧪 Testing Recruiter Intelligence (100% Free Google X-Ray & LinkedIn Search)...');
 
-let outputMessage = null;
-let outputMarkup = null;
-
-const helpers = {
-  httpRequest: async (opts) => {
-    if (opts.url && opts.url.includes('sendMessage')) {
-      outputMessage = opts.body.text;
-      outputMarkup = opts.body.reply_markup;
-      return { ok: true };
+  let mockResponse = null;
+  const mockReq = {
+    query: {
+      company: 'Shopify',
+      city: 'Toronto, ON'
     }
+  };
 
-    const fetchOpts = {
-      method: opts.method || 'GET',
-      headers: opts.headers || {}
-    };
-
-    if (opts.body) {
-      fetchOpts.body = typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body);
+  const mockRes = {
+    json: (data) => { mockResponse = data; return mockRes; },
+    status: (code) => {
+      return {
+        json: (data) => { mockResponse = { ...data, statusCode: code }; return mockRes; }
+      };
     }
+  };
 
-    const res = await fetch(opts.url, fetchOpts);
-    if (!res.ok) {
-      const err = new Error(`HTTP ${res.status}: ${res.statusText}`);
-      err.statusCode = res.status;
-      throw err;
-    }
-    return res.json();
-  }
-};
+  // Find the GET handler in recruiter router
+  const routeLayer = router.stack.find(s => s.route && s.route.path === '/search');
+  assert(routeLayer, 'Recruiter router must have /search route handler');
 
-async function testLive() {
-  console.log('🧪 Testing Live Recruiter Discovery (Serper & Hunter APIs)...');
-  console.log('  SERPER_API_KEY:', process.env.SERPER_API_KEY ? 'Present' : 'Missing');
-  console.log('  HUNTER_API_KEY:', process.env.HUNTER_API_KEY ? 'Present' : 'Missing');
+  const handler = routeLayer.route.stack[0].handle;
+  await handler(mockReq, mockRes);
 
-  const wrapped = `
-    const $env = envObj;
-    const $input = inputObj;
-    this.helpers = mockHelpers;
-    ${code}
-  `;
+  assert(mockResponse, 'Handler must produce a response');
+  assert.strictEqual(mockResponse.success, true);
+  assert.strictEqual(mockResponse.company, 'Shopify');
+  assert.strictEqual(mockResponse.city, 'Toronto, ON');
 
-  const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-  const runner = new AsyncFunction('require', 'envObj', 'inputObj', 'mockHelpers', wrapped);
+  // Verify Google X-Ray URLs
+  assert(mockResponse.xRaySearchUrl.includes('google.com/search?q='), 'Must produce valid Google search URL');
+  assert(mockResponse.xRaySearchUrl.includes('site%3Alinkedin.com%2Fin%2F'), 'Must contain site:linkedin.com/in/ target');
+  assert(mockResponse.xRaySearchUrl.includes('recruiter'), 'Must query recruiters');
 
-  const context = { helpers };
-  await runner.call(context, require, process.env, { all: () => [mockItem] }, helpers);
+  // Verify Leadership URLs
+  assert(mockResponse.leadershipSearchUrl.includes('google.com/search?q='), 'Must produce leadership Google search URL');
 
-  console.log('\n───────────────── CAPTURED TELEGRAM OUTPUT ─────────────────');
-  console.log(outputMessage);
-  console.log('────────────────────────────────────────────────────────────');
-  if (outputMarkup) {
-    console.log('Buttons:', JSON.stringify(outputMarkup.inline_keyboard, null, 2));
-  }
+  // Verify LinkedIn Direct Search
+  assert(mockResponse.linkedInSearchUrl.includes('linkedin.com/search/results/people'), 'Must produce LinkedIn search URL');
 
-  if (outputMessage.includes('Verified Contacts Found')) {
-    console.log('✅ LIVE RECRUITER DISCOVERY SUCCEEDED WITH REAL CONTACTS!');
-  } else {
-    console.log('⚠️ No contacts parsed, but Google X-Ray fallback was generated.');
-  }
+  // Verify personalized LinkedIn Note <= 300 characters
+  assert(mockResponse.draftLinkedInNote, 'Must produce a drafted connection note');
+  assert(mockResponse.draftLinkedInNote.length <= 300, `Note must be <= 300 chars for LinkedIn (got ${mockResponse.draftLinkedInNote.length})`);
+  assert(mockResponse.draftLinkedInNote.includes('Shopify'), 'Note must customize company name');
+
+  console.log('  ✔ [PASS] Google X-Ray recruiter query correctly generated');
+  console.log('  ✔ [PASS] Google X-Ray leadership query correctly generated');
+  console.log('  ✔ [PASS] LinkedIn direct company URL verified');
+  console.log(`  ✔ [PASS] Tailored connection note within limits (${mockResponse.draftLinkedInNote.length} chars)`);
+  console.log('\n🎉 ALL RECRUITER X-RAY & INTELLIGENCE TESTS PASSED (100% FREE)!');
 }
 
-testLive().catch(err => {
-  console.error('❌ Error during live recruiter test:', err);
+testRecruiterSearchGenerator().then(() => process.exit(0)).catch(err => {
+  console.error('❌ Error during recruiter search test:', err);
   process.exit(1);
 });

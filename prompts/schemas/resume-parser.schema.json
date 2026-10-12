@@ -2,7 +2,7 @@
   "type": "object",
   "properties": {
     "name": {"type": "string"},
-    "target_titles_inferred": {"type": "array", "items": {"type": "string"}},
+    "target_titles": {"type": "array", "items": {"type": "string"}},
     "locations": {"type": "array", "items": {"type": "string"}},
     "contact": {
       "type": "object",
@@ -40,6 +40,7 @@
         "properties": {
           "role": {"type": "string"},
           "project": {"type": "string"},
+          "client": {"type": "string"},
           "company": {"type": "string"},
           "dates": {"type": "string"},
           "bullets": {"type": "array", "items": {"type": "string"}}
@@ -79,12 +80,14 @@
   },
   "required": [
     "name",
-    "target_titles_inferred",
+    "target_titles",
     "locations",
     "contact",
     "summary",
+    "total_experience_stated",
     "skills",
     "skills_familiar",
+    "skills_categorized",
     "experience",
     "education",
     "certifications",

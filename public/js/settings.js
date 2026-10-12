@@ -357,6 +357,42 @@ window.targetRolesList = [];
 window.targetLocationsList = [];
 window.canadaCitiesList = [];
 window.globalCitiesList = [];
+window.allGlobalCitiesDataset = [];
+let activeComboboxIndex = -1;
+let comboboxDebounceTimer = null;
+let liveGeocodingDebounceTimer = null;
+let liveGeocodingAbortController = null;
+let currentLiveResults = [];
+let previousCountryScope = null;
+
+const COUNTRY_METADATA = {
+  US: { name: 'United States', flag: '🇺🇸', sampleCity: 'Austin, TX' },
+  CA: { name: 'Canada', flag: '🇨🇦', sampleCity: 'Toronto, ON' },
+  GB: { name: 'United Kingdom', flag: '🇬🇧', sampleCity: 'London' },
+  DE: { name: 'Germany', flag: '🇩🇪', sampleCity: 'Berlin' },
+  AU: { name: 'Australia', flag: '🇦🇺', sampleCity: 'Sydney' },
+  FR: { name: 'France', flag: '🇫🇷', sampleCity: 'Paris' },
+  IN: { name: 'India', flag: '🇮🇳', sampleCity: 'Bengaluru' },
+  NL: { name: 'Netherlands', flag: '🇳🇱', sampleCity: 'Amsterdam' },
+  AE: { name: 'UAE & Gulf', flag: '🇦🇪', sampleCity: 'Dubai' },
+  SG: { name: 'Singapore', flag: '🇸🇬', sampleCity: 'Singapore' },
+  JP: { name: 'Japan', flag: '🇯🇵', sampleCity: 'Tokyo' },
+  BR: { name: 'Brazil', flag: '🇧🇷', sampleCity: 'São Paulo' },
+  IT: { name: 'Italy', flag: '🇮🇹', sampleCity: 'Milan' },
+  PL: { name: 'Poland', flag: '🇵🇱', sampleCity: 'Warsaw' },
+  ZA: { name: 'South Africa', flag: '🇿🇦', sampleCity: 'Cape Town' },
+  AT: { name: 'Austria', flag: '🇦🇹', sampleCity: 'Vienna' },
+  NZ: { name: 'New Zealand', flag: '🇳🇿', sampleCity: 'Auckland' },
+  MX: { name: 'Mexico', flag: '🇲🇽', sampleCity: 'Mexico City' },
+  US_CA: { name: 'North America (US & Canada)', flag: '🌎', sampleCity: 'New York / Toronto' },
+  GLOBAL: { name: 'Worldwide / Global Remote', flag: '🌐', sampleCity: 'Remote' },
+  AUTO: { name: 'Auto (Profile Detected)', flag: '🤖', sampleCity: 'Remote' }
+};
+
+function getCountryMeta(code) {
+  if (!code) return null;
+  return COUNTRY_METADATA[code.toUpperCase()] || { name: code, flag: getFlagEmoji(code), sampleCity: 'Capital' };
+}
 
 function updateLocationSuggestionsForCountry(scope, hubs) {
   const container = document.getElementById('settings-location-suggestions');
@@ -364,38 +400,64 @@ function updateLocationSuggestionsForCountry(scope, hubs) {
 
   const defaultHubs = ['Remote', 'New York, NY', 'Toronto, ON', 'London, UK', 'Bengaluru, KA', 'Berlin, Germany'];
   const activeHubs = Array.isArray(hubs) && hubs.length ? hubs : defaultHubs;
-  const labelScope = (scope && scope !== 'ALL' && scope !== 'AUTO') ? scope : 'Global';
-
-  const badge = document.getElementById('settings-cities-badge');
-  if (badge) {
-    badge.innerText = `${labelScope} Cities Autocomplete`;
-  }
+  const meta = getCountryMeta(scope);
+  const labelScope = meta ? `${meta.flag} ${meta.name}` : ((scope && scope !== 'ALL' && scope !== 'AUTO') ? scope : 'Global');
 
   container.innerHTML = `
-    <span class="text-[11px] text-[#9AA0A6]">Top Hubs (${escapeHtml(labelScope)}):</span>
+    <span class="text-[11px] text-[#9AA0A6] font-medium">Top Hubs (${escapeHtml(labelScope)}):</span>
     ${activeHubs.slice(0, 6).map(hub => {
       const shortName = hub.split(',')[0].trim();
-      return `<button type="button" onclick="addLocationTag('${escapeHtml(hub)}')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#5FA8A0] transition-colors cursor-pointer">+ ${escapeHtml(shortName)}</button>`;
+      return `<button type="button" onclick="addLocationTag('${escapeHtml(hub)}')" class="text-[11px] px-2 py-0.5 rounded bg-[#242830] hover:bg-[#2B3036] text-[#E8E6E1] border border-[#2B3036] hover:border-[#5FA8A0] transition-colors cursor-pointer active:scale-95">+ ${escapeHtml(shortName)}</button>`;
     }).join('')}
   `;
 }
 
 async function initGlobalCities(countryCode) {
   try {
-    const scope = countryCode || (document.getElementById('cfg-scope') ? document.getElementById('cfg-scope').value : 'ALL');
-    let url = `/api/settings/cities?country=${encodeURIComponent(scope)}`;
+    const scope = countryCode || (document.getElementById('cfg-scope') ? document.getElementById('cfg-scope').value : 'AUTO');
+    
+    // 1. Fetch full cities dataset if not already in memory
+    if (!window.allGlobalCitiesDataset || window.allGlobalCitiesDataset.length === 0) {
+      try {
+        const fullRes = await fetch('/data/global-cities.json');
+        if (fullRes.ok) {
+          const fullData = await fullRes.json();
+          window.rawGlobalCitiesJson = fullData;
+          const flatList = [];
+          if (fullData.by_country) {
+            for (const [cCode, cMeta] of Object.entries(fullData.by_country)) {
+              if (Array.isArray(cMeta.cities)) {
+                cMeta.cities.forEach(item => {
+                  flatList.push(typeof item === 'string' ? {
+                    city: item.split(',')[0],
+                    formatted: item,
+                    country_code: cCode,
+                    country_name: cMeta.name,
+                    flag: cMeta.flag,
+                    tier: 2
+                  } : item);
+                });
+              }
+            }
+          }
+          window.allGlobalCitiesDataset = flatList;
+        }
+      } catch (err) {
+        console.warn('Could not load global cities json directly:', err);
+      }
+    }
+
+    // 2. Fetch scoped city list for suggestions & hubs
+    let url = `/api/settings/cities?country=${encodeURIComponent(scope || 'ALL')}`;
     let res = await fetch(url);
     let data;
     if (res.ok) {
       data = await res.json();
-    } else {
-      // Fallback to static global-cities.json if API is unavailable
-      const staticRes = await fetch('/data/global-cities.json');
-      const staticData = await staticRes.json();
-      const countryEntry = staticData.by_country && staticData.by_country[scope];
+    } else if (window.rawGlobalCitiesJson) {
+      const countryEntry = window.rawGlobalCitiesJson.by_country && window.rawGlobalCitiesJson.by_country[scope];
       data = {
         success: true,
-        cities: countryEntry ? countryEntry.cities : (staticData.all || []),
+        cities: countryEntry ? countryEntry.cities : (window.rawGlobalCitiesJson.all || []),
         popular_hubs: countryEntry ? countryEntry.popular_hubs : ["Remote", "New York, NY", "London, UK", "Toronto, ON", "Bengaluru, KA", "Berlin, Germany"]
       };
     }
@@ -403,17 +465,6 @@ async function initGlobalCities(countryCode) {
     if (data && data.success) {
       window.globalCitiesList = data.cities || [];
       window.canadaCitiesList = window.globalCitiesList;
-
-      const globalDatalist = document.getElementById('global-cities-datalist');
-      if (globalDatalist && Array.isArray(data.cities)) {
-        globalDatalist.innerHTML = data.cities.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
-      }
-
-      const canadaDatalist = document.getElementById('canada-cities-datalist');
-      if (canadaDatalist && Array.isArray(data.cities)) {
-        canadaDatalist.innerHTML = data.cities.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
-      }
-
       updateLocationSuggestionsForCountry(scope, data.popular_hubs);
     }
   } catch (e) {
@@ -425,9 +476,398 @@ async function initCanadaCities() {
   return initGlobalCities('CA');
 }
 
+function isLocationInCountryScope(locStr, countryScope) {
+  if (!locStr || !countryScope) return false;
+  const lower = locStr.toLowerCase().trim();
+  if (lower.includes('remote') || lower.includes('worldwide')) return true;
+  if (countryScope === 'GLOBAL' || countryScope === 'ALL') return true;
+  if (countryScope === 'US_CA') {
+    return isLocationInCountryScope(locStr, 'US') || isLocationInCountryScope(locStr, 'CA');
+  }
+  if (Array.isArray(window.allGlobalCitiesDataset) && window.allGlobalCitiesDataset.length) {
+    const match = window.allGlobalCitiesDataset.find(c =>
+      c.formatted.toLowerCase() === lower || c.city.toLowerCase() === lower || lower.includes(c.city.toLowerCase())
+    );
+    if (match) return match.country_code === countryScope;
+  }
+  if (countryScope === 'CA') return lower.includes('canada') || /,\s*(on|bc|qc|ab|mb|sk|ns|nb|nl|pe|nt|nu|yt)\b/i.test(lower);
+  if (countryScope === 'US') return lower.includes('usa') || lower.includes('united states') || /,\s*(al|ak|az|ar|ca|co|ct|de|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy|dc)\b/i.test(lower);
+  if (countryScope === 'GB') return lower.includes('uk') || lower.includes('united kingdom') || lower.includes('london');
+  if (countryScope === 'DE') return lower.includes('germany') || lower.includes('deutschland') || lower.includes('berlin');
+  if (countryScope === 'IN') return lower.includes('india') || lower.includes('bengaluru') || lower.includes('delhi');
+  if (countryScope === 'AU') return lower.includes('australia') || lower.includes('sydney');
+  if (countryScope === 'FR') return lower.includes('france') || lower.includes('paris');
+  return false;
+}
+window.isLocationInCountryScope = isLocationInCountryScope;
+
+function onCountryScopeChange() {
+  const scopeSelect = document.getElementById('cfg-scope');
+  const locInput = document.getElementById('input-add-location');
+  const countryStatus = document.getElementById('settings-country-status');
+  const citiesBadge = document.getElementById('settings-cities-badge');
+  const suggestionsContainer = document.getElementById('settings-location-suggestions');
+
+  const scope = scopeSelect ? scopeSelect.value.trim() : '';
+  const effectiveScope = (scope === 'AUTO' && window.detectedProfileCountry) ? window.detectedProfileCountry : scope;
+  const meta = getCountryMeta(effectiveScope || scope);
+
+  if (!scope) {
+    // Disabled state until country selected
+    if (locInput) {
+      locInput.disabled = true;
+      locInput.value = '';
+      locInput.placeholder = 'Select a country above to enable city search...';
+    }
+    if (countryStatus) {
+      countryStatus.innerText = 'Select country first';
+      countryStatus.className = 'text-[10px] text-[#D9A441] font-mono';
+    }
+    if (citiesBadge) {
+      citiesBadge.innerText = 'Waiting for country selection';
+      citiesBadge.className = 'text-[10px] text-[#9AA0A6] font-mono';
+    }
+    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+    closeComboboxDropdown();
+    previousCountryScope = scope;
+    return;
+  }
+
+  // Reset previously selected cities if country changed to avoid lingering out-of-scope locations
+  if (previousCountryScope !== null && previousCountryScope !== scope && Array.isArray(window.targetLocationsList) && window.targetLocationsList.length > 0) {
+    const targetCheckScope = (effectiveScope && effectiveScope !== 'AUTO') ? effectiveScope : scope;
+    if (targetCheckScope && targetCheckScope !== 'GLOBAL' && targetCheckScope !== 'AUTO') {
+      const keptLocations = window.targetLocationsList.filter(loc => isLocationInCountryScope(loc, targetCheckScope));
+      if (keptLocations.length !== window.targetLocationsList.length) {
+        const removedCount = window.targetLocationsList.length - keptLocations.length;
+        window.targetLocationsList = keptLocations;
+        renderLocationTags();
+        const newCountryName = meta ? meta.name : scope;
+        if (typeof showToast === 'function') {
+          showToast(`Target country changed to ${newCountryName}. ${removedCount} previous cities cleared — please select cities in ${newCountryName}.`, 'warning');
+        }
+      }
+    }
+  }
+  previousCountryScope = scope;
+
+  // Country selected: Enable city input and restrict scope
+  if (locInput) {
+    locInput.disabled = false;
+    locInput.placeholder = `Search cities in ${meta ? meta.name : (effectiveScope || scope)} (e.g. ${meta ? meta.sampleCity : 'Remote'})...`;
+  }
+
+  // Count available cities in selected country
+  let availableCount = 0;
+  if (Array.isArray(window.allGlobalCitiesDataset)) {
+    if (effectiveScope === 'GLOBAL' || (effectiveScope === 'AUTO' && !window.detectedProfileCountry)) {
+      availableCount = window.allGlobalCitiesDataset.length;
+    } else if (effectiveScope === 'US_CA') {
+      availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === 'US' || c.country_code === 'CA').length;
+    } else {
+      availableCount = window.allGlobalCitiesDataset.filter(c => c.country_code === effectiveScope).length;
+    }
+  }
+
+  if (countryStatus && meta) {
+    if (scope === 'AUTO' && window.detectedProfileCountry) {
+      countryStatus.innerHTML = `<span class="text-emerald-400 font-semibold">✓ 🤖 Auto (${meta.flag} ${meta.name})</span>`;
+    } else {
+      countryStatus.innerHTML = `<span class="text-emerald-400 font-semibold">✓ ${meta.flag} ${meta.name}</span>`;
+    }
+  }
+  if (citiesBadge && meta) {
+    citiesBadge.innerText = `${meta.flag} ${availableCount} Cities Available`;
+    citiesBadge.className = 'text-[10px] text-[#5FA8A0] font-mono font-medium';
+  }
+
+  initGlobalCities(effectiveScope || scope);
+
+  if (typeof renderSettingsBoards === 'function') {
+    renderSettingsBoards();
+  }
+}
+window.onCountryScopeChange = onCountryScopeChange;
+
+// Google Maps-Grade Hybrid Combobox with Live Edge Geocoding & Custom Fallback
+function filterAndRenderLocationSuggestions(query, liveResults = null, isSearchingLive = false) {
+  const dropdown = document.getElementById('location-combobox-dropdown');
+  const input = document.getElementById('input-add-location');
+  if (!dropdown || !input || input.disabled) return;
+
+  const rawQuery = (query || '').trim();
+  const trimmed = rawQuery.toLowerCase();
+  const scopeSelect = document.getElementById('cfg-scope');
+  const scope = (scopeSelect ? scopeSelect.value.trim() : '').toUpperCase();
+
+  if (!scope) {
+    dropdown.innerHTML = `
+      <div class="combobox-header text-amber-400">Step 1 Required</div>
+      <div class="p-3 text-xs text-[#9AA0A6]">Please select a target country above before choosing cities.</div>
+    `;
+    dropdown.classList.remove('hidden');
+    input.setAttribute('aria-expanded', 'true');
+    return;
+  }
+
+  const meta = getCountryMeta(scope);
+  const countryName = meta ? meta.name : scope;
+  const flag = meta ? meta.flag : '📍';
+
+  let results = [];
+
+  // Scoped presets for the selected country
+  if (scope === 'GLOBAL') {
+    results.push(
+      { formatted: 'Remote / Anywhere (Worldwide)', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Universal' },
+      { formatted: 'Remote', flag: '🌐', country_code: 'GLOBAL', tierLabel: 'Workplace' },
+      { formatted: 'Hybrid / Flexible', flag: '🏢', country_code: 'GLOBAL', tierLabel: 'Workplace' }
+    );
+  } else {
+    results.push(
+      { formatted: `Remote (${countryName})`, flag: flag, country_code: scope, tierLabel: 'Country Remote' },
+      { formatted: `Hybrid (${countryName})`, flag: '🏢', country_code: scope, tierLabel: 'Flexible' }
+    );
+  }
+
+  if (trimmed) {
+    results = results.filter(p => p.formatted.toLowerCase().includes(trimmed));
+  }
+
+  // Tier 1 (Instant 0ms): Local major cities dataset
+  if (Array.isArray(window.allGlobalCitiesDataset) && window.allGlobalCitiesDataset.length > 0) {
+    const scopedPool = window.allGlobalCitiesDataset.filter(c => {
+      if (scope === 'GLOBAL' || scope === 'AUTO') return true;
+      if (scope === 'US_CA') return c.country_code === 'US' || c.country_code === 'CA';
+      return c.country_code === scope;
+    });
+
+    const scored = [];
+    for (const c of scopedPool) {
+      const fmt = (c.formatted || c.city || '').toLowerCase();
+      const city = (c.city || '').toLowerCase();
+      const region = (c.region || '').toLowerCase();
+
+      let matchScore = 0;
+      if (city === trimmed) matchScore = 100;
+      else if (city.startsWith(trimmed)) matchScore = 80;
+      else if (fmt.startsWith(trimmed)) matchScore = 70;
+      else if (fmt.includes(trimmed)) matchScore = 50;
+      else if (region === trimmed) matchScore = 40;
+
+      if (matchScore > 0 || !trimmed) {
+        scored.push({ city: c, score: matchScore });
+      }
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+    const topCities = scored.slice(0, trimmed ? 10 : 8).map(s => s.city);
+    results.push(...topCities);
+  }
+
+  // Tier 2: Merge live geocoding results if available
+  const activeLiveList = Array.isArray(liveResults) ? liveResults : currentLiveResults;
+  if (Array.isArray(activeLiveList) && activeLiveList.length > 0) {
+    for (const item of activeLiveList) {
+      if (!results.some(r => (r.city || '').toLowerCase() === (item.city || '').toLowerCase() && (r.region || '').toLowerCase() === (item.region || '').toLowerCase())) {
+        results.push(item);
+      }
+    }
+  }
+
+  // Deduplicate results
+  const seen = new Set();
+  results = results.filter(item => {
+    const key = (item.formatted || item.city || '').toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // Tier 3: Guaranteed custom fallback if user typed something
+  if (trimmed.length > 0) {
+    const hasExactCity = results.some(r => (r.city || '').toLowerCase() === trimmed);
+    if (!hasExactCity) {
+      results.push({
+        city: rawQuery,
+        formatted: `${rawQuery}, ${countryName}`,
+        country_code: scope,
+        isCustomAdd: true
+      });
+    }
+  }
+
+  if (results.length === 0) {
+    dropdown.classList.add('hidden');
+    input.setAttribute('aria-expanded', 'false');
+    activeComboboxIndex = -1;
+    return;
+  }
+
+  // Build header with live status indication
+  const liveIndicator = isSearchingLive
+    ? `<span class="text-[9px] text-[#5FA8A0] font-mono animate-pulse">🌐 searching live cities...</span>`
+    : `<span class="font-mono text-[9px] lowercase text-[#D9A441]">↑↓ arrows · enter to select</span>`;
+
+  let html = `<div class="combobox-header flex items-center justify-between">
+    <span>${trimmed ? `Cities in ${escapeHtml(countryName)}` : `Top Cities & Presets (${escapeHtml(countryName)})`}</span>
+    ${liveIndicator}
+  </div>`;
+
+  results.forEach((item, idx) => {
+    if (item.isCustomAdd) {
+      html += `
+        <div class="combobox-item add-custom-option" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(item.formatted)}', '${escapeHtml(item.country_code)}')">
+          <div class="flex items-center gap-2 text-[#D9A441]">
+            <span class="text-sm">➕</span>
+            <span class="text-xs font-semibold">Add custom location: "<b>${escapeHtml(item.city)}</b>" (${escapeHtml(countryName)})</span>
+          </div>
+          <span class="text-[10px] text-[#9AA0A6] font-mono">Press Enter to add</span>
+        </div>
+      `;
+      return;
+    }
+
+    const fmt = item.formatted || item.city || '';
+    const itemFlag = item.flag || (item.country_code ? getFlagEmoji(item.country_code) : flag);
+    const itemCountryCode = item.country_code || scope;
+    let badgeHtml = '';
+
+    if (item.source === 'live_geocoding') {
+      badgeHtml = '<span class="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 border border-sky-500/25">📍 Live Geocoding</span>';
+    } else if (item.tier === 1) {
+      badgeHtml = '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Hub</span>';
+    } else if (item.tierLabel) {
+      badgeHtml = `<span class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6]">${escapeHtml(item.tierLabel)}</span>`;
+    }
+
+    html += `
+      <div class="combobox-item" data-index="${idx}" onclick="selectComboboxLocation('${escapeHtml(fmt)}', '${escapeHtml(itemCountryCode)}')">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-base shrink-0">${itemFlag}</span>
+          <div class="truncate">
+            <span class="font-medium text-xs text-[#E8E6E1]">${highlightComboboxMatch(fmt, trimmed)}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+          ${itemCountryCode ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#242830] text-[#9AA0A6] border border-[#2B3036]">${escapeHtml(itemCountryCode)}</span>` : ''}
+          ${badgeHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  dropdown.innerHTML = html;
+  dropdown.classList.remove('hidden');
+  input.setAttribute('aria-expanded', 'true');
+  activeComboboxIndex = -1;
+
+  // Trigger debounced live search if query >= 2 and not already rendered with live results
+  if (trimmed.length >= 2 && liveResults === null) {
+    triggerLiveGeocodingSearch(trimmed, scope);
+  }
+}
+
+function triggerLiveGeocodingSearch(trimmedQuery, scope) {
+  clearTimeout(liveGeocodingDebounceTimer);
+  if (liveGeocodingAbortController) {
+    liveGeocodingAbortController.abort();
+  }
+  liveGeocodingAbortController = new AbortController();
+
+  liveGeocodingDebounceTimer = setTimeout(async () => {
+    try {
+      const input = document.getElementById('input-add-location');
+      if (!input || input.value.trim().toLowerCase() !== trimmedQuery) return;
+
+      // Update header with micro-loader
+      filterAndRenderLocationSuggestions(input.value, currentLiveResults, true);
+
+      const url = `/api/settings/cities/live-search?q=${encodeURIComponent(trimmedQuery)}&country=${encodeURIComponent(scope)}`;
+      const res = await fetch(url, { signal: liveGeocodingAbortController.signal });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (input.value.trim().toLowerCase() === trimmedQuery && Array.isArray(data.cities)) {
+        currentLiveResults = data.cities;
+        filterAndRenderLocationSuggestions(input.value, currentLiveResults, false);
+      }
+    } catch (err) {
+      // Abort or network failure — keep current suggestions
+    }
+  }, 220);
+}
+
+function getFlagEmoji(countryCode) {
+  if (!countryCode || countryCode === 'GLOBAL') return '🌐';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+function highlightComboboxMatch(text, query) {
+  if (!query) return escapeHtml(text);
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return escapeHtml(text).replace(regex, '<span class="text-[#D9A441] font-semibold underline">$1</span>');
+}
+
+function selectComboboxLocation(locationString, countryCode) {
+  if (locationString) {
+    addLocationTag(locationString);
+  }
+  closeComboboxDropdown();
+
+  // Smart country-scope alignment hint:
+  if (countryCode && countryCode !== 'GLOBAL') {
+    const scopeSelect = document.getElementById('cfg-scope');
+    if (scopeSelect && scopeSelect.value === 'AUTO') {
+      scopeSelect.value = countryCode;
+      onCountryScopeChange();
+    }
+  }
+}
+
+function closeComboboxDropdown() {
+  const dropdown = document.getElementById('location-combobox-dropdown');
+  const input = document.getElementById('input-add-location');
+  if (dropdown) dropdown.classList.add('hidden');
+  if (input) {
+    input.value = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+  activeComboboxIndex = -1;
+  currentLiveResults = [];
+  clearTimeout(liveGeocodingDebounceTimer);
+  if (liveGeocodingAbortController) {
+    liveGeocodingAbortController.abort();
+    liveGeocodingAbortController = null;
+  }
+}
+
+const MAX_ROLES = 10;
+
 function renderRoleTags() {
   const container = document.getElementById('roles-badges-list');
   const hiddenInput = document.getElementById('cfg-roles');
+  const countLabel = document.getElementById('settings-roles-count-label');
+  const roleCount = (window.targetRolesList || []).length;
+
+  if (countLabel) {
+    countLabel.innerText = `(${roleCount}/${MAX_ROLES})`;
+    countLabel.className = roleCount >= MAX_ROLES ? 'text-amber-400 font-mono text-[10px] font-bold' : 'text-[#5FA8A0] font-mono text-[10px]';
+  }
+
+  const roleInput = document.getElementById('input-add-role');
+  if (roleInput) {
+    if (roleCount >= MAX_ROLES) {
+      roleInput.placeholder = 'Maximum 10 roles reached';
+    } else {
+      roleInput.placeholder = 'e.g. Data Analyst, Python Developer...';
+    }
+  }
+
   if (hiddenInput) hiddenInput.value = (window.targetRolesList || []).join(', ');
   if (!container) return;
   container.innerHTML = (window.targetRolesList || []).map((role, idx) => `
@@ -442,6 +882,12 @@ function addRoleTag(rawRole) {
   const role = (rawRole || '').trim().replace(/^,+|,+$/g, '');
   if (!role) return;
   if (!window.targetRolesList) window.targetRolesList = [];
+  if (window.targetRolesList.length >= MAX_ROLES) {
+    if (typeof showToast === 'function') {
+      showToast(`Maximum ${MAX_ROLES} job roles allowed to maintain optimal search relevance.`, 'warning');
+    }
+    return;
+  }
   if (!window.targetRolesList.some(r => r.toLowerCase() === role.toLowerCase())) {
     window.targetRolesList.push(role);
     renderRoleTags();
@@ -455,23 +901,67 @@ function removeRoleTag(idx) {
   }
 }
 
+const MAX_LOCATIONS = 5;
+
+function detectLocationFlag(locStr) {
+  const lower = (locStr || '').toLowerCase();
+  if (lower.includes('remote') || lower.includes('worldwide')) return '🌐';
+  if (Array.isArray(window.allGlobalCitiesDataset)) {
+    const match = window.allGlobalCitiesDataset.find(c =>
+      c.formatted.toLowerCase() === lower || c.city.toLowerCase() === lower || lower.includes(c.city.toLowerCase())
+    );
+    if (match && match.flag) return match.flag;
+  }
+  if (lower.includes('canada') || /,\s*(on|bc|qc|ab|mb|sk|ns|nb|nl|pe|nt|nu|yt)\b/i.test(lower)) return '🇨🇦';
+  if (lower.includes('usa') || lower.includes('united states') || /,\s*(al|ak|az|ar|ca|co|ct|de|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy|dc)\b/i.test(lower)) return '🇺🇸';
+  if (lower.includes('uk') || lower.includes('united kingdom') || lower.includes('london')) return '🇬🇧';
+  if (lower.includes('germany') || lower.includes('deutschland') || lower.includes('berlin')) return '🇩🇪';
+  if (lower.includes('india') || lower.includes('bengaluru') || lower.includes('delhi')) return '🇮🇳';
+  if (lower.includes('australia') || lower.includes('sydney')) return '🇦🇺';
+  if (lower.includes('france') || lower.includes('paris')) return '🇫🇷';
+  return '📍';
+}
+
 function renderLocationTags() {
   const container = document.getElementById('locations-badges-list');
   const hiddenInput = document.getElementById('cfg-locations');
+  const countLabel = document.getElementById('settings-cities-count-label');
+  const locCount = (window.targetLocationsList || []).length;
+
+  if (countLabel) {
+    countLabel.innerText = `(${locCount}/${MAX_LOCATIONS})`;
+    countLabel.className = locCount >= MAX_LOCATIONS ? 'text-amber-400 font-mono text-[10px] font-bold' : 'text-[#5FA8A0] font-mono text-[10px]';
+  }
+
+  const locInput = document.getElementById('input-add-location');
+  if (locInput && locCount >= MAX_LOCATIONS) {
+    locInput.placeholder = 'Maximum 5 cities reached';
+  }
+
   if (hiddenInput) hiddenInput.value = (window.targetLocationsList || []).join(', ');
   if (!container) return;
-  container.innerHTML = (window.targetLocationsList || []).map((loc, idx) => `
-    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#242830] text-[#5FA8A0] border border-[#2B3036] shadow-xs">
-      <span>${escapeHtml(loc)}</span>
-      <button type="button" onclick="removeLocationTag(${idx})" class="text-[#9AA0A6] hover:text-rose-400 focus:outline-none cursor-pointer" title="Remove location">✕</button>
-    </span>
-  `).join('');
+  container.innerHTML = (window.targetLocationsList || []).map((loc, idx) => {
+    const flag = detectLocationFlag(loc);
+    return `
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#242830] text-[#5FA8A0] border border-[#2B3036] shadow-xs">
+        <span class="text-xs">${flag}</span>
+        <span>${escapeHtml(loc)}</span>
+        <button type="button" onclick="removeLocationTag(${idx})" class="text-[#9AA0A6] hover:text-rose-400 focus:outline-none cursor-pointer" title="Remove location">✕</button>
+      </span>
+    `;
+  }).join('');
 }
 
 function addLocationTag(rawLoc) {
   const loc = (rawLoc || '').trim().replace(/^,+|,+$/g, '');
   if (!loc) return;
   if (!window.targetLocationsList) window.targetLocationsList = [];
+  if (window.targetLocationsList.length >= MAX_LOCATIONS) {
+    if (typeof showToast === 'function') {
+      showToast(`Maximum ${MAX_LOCATIONS} cities allowed to prevent exceeding free API scoring limits.`, 'warning');
+    }
+    return;
+  }
   if (!window.targetLocationsList.some(l => l.toLowerCase() === loc.toLowerCase())) {
     window.targetLocationsList.push(loc);
     renderLocationTags();
@@ -482,6 +972,10 @@ function removeLocationTag(idx) {
   if (window.targetLocationsList) {
     window.targetLocationsList.splice(idx, 1);
     renderLocationTags();
+    const locInput = document.getElementById('input-add-location');
+    if (locInput && (window.targetLocationsList.length < MAX_LOCATIONS)) {
+      onCountryScopeChange();
+    }
   }
 }
 
@@ -505,19 +999,60 @@ function setupTagInputListeners() {
   }
 
   const locInput = document.getElementById('input-add-location');
+  const dropdown = document.getElementById('location-combobox-dropdown');
+
   if (locInput && !locInput.dataset.listenerAttached) {
     locInput.dataset.listenerAttached = 'true';
+
+    // Focus opens top suggestions
+    locInput.addEventListener('focus', () => {
+      filterAndRenderLocationSuggestions(locInput.value);
+    });
+
+    // Input with debouncing
+    locInput.addEventListener('input', () => {
+      clearTimeout(comboboxDebounceTimer);
+      comboboxDebounceTimer = setTimeout(() => {
+        filterAndRenderLocationSuggestions(locInput.value);
+      }, 100);
+    });
+
+    // Keyboard navigation (ArrowDown, ArrowUp, Enter, Escape)
     locInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ',') {
+      const items = dropdown ? dropdown.querySelectorAll('.combobox-item') : [];
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
-        addLocationTag(locInput.value);
-        locInput.value = '';
+        if (dropdown.classList.contains('hidden')) {
+          filterAndRenderLocationSuggestions(locInput.value);
+          return;
+        }
+        activeComboboxIndex = (activeComboboxIndex + 1) % items.length;
+        items.forEach((it, i) => it.classList.toggle('combobox-item-active', i === activeComboboxIndex));
+        if (items[activeComboboxIndex]) items[activeComboboxIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (dropdown.classList.contains('hidden')) return;
+        activeComboboxIndex = (activeComboboxIndex - 1 + items.length) % items.length;
+        items.forEach((it, i) => it.classList.toggle('combobox-item-active', i === activeComboboxIndex));
+        if (items[activeComboboxIndex]) items[activeComboboxIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        if (!dropdown.classList.contains('hidden') && activeComboboxIndex >= 0 && items[activeComboboxIndex]) {
+          items[activeComboboxIndex].click();
+        } else if (locInput.value.trim()) {
+          addLocationTag(locInput.value);
+          closeComboboxDropdown();
+        }
+      } else if (e.key === 'Escape') {
+        closeComboboxDropdown();
       }
     });
-    locInput.addEventListener('blur', () => {
-      if (locInput.value.trim()) {
-        addLocationTag(locInput.value);
-        locInput.value = '';
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('location-combobox-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeComboboxDropdown();
       }
     });
   }
@@ -533,6 +1068,9 @@ window.initGlobalCities = initGlobalCities;
 window.initCanadaCities = initCanadaCities;
 window.updateLocationSuggestionsForCountry = updateLocationSuggestionsForCountry;
 window.onCountryScopeChange = onCountryScopeChange;
+window.selectComboboxLocation = selectComboboxLocation;
+window.filterAndRenderLocationSuggestions = filterAndRenderLocationSuggestions;
+window.closeComboboxDropdown = closeComboboxDropdown;
 
 async function loadSettings() {
   try {
@@ -544,8 +1082,11 @@ async function loadSettings() {
     if (lblScore) lblScore.innerText = currentSettings.score_threshold || 60;
     const cfgFreshness = document.getElementById('cfg-freshness');
     if (cfgFreshness) cfgFreshness.value = currentSettings.freshness_hours !== undefined ? currentSettings.freshness_hours : 24;
+    const cfgRadius = document.getElementById('cfg-radius');
+    if (cfgRadius) cfgRadius.value = currentSettings.commute_radius_km !== undefined ? currentSettings.commute_radius_km : 25;
+    const lblRadius = document.getElementById('lbl-radius');
+    if (lblRadius) lblRadius.innerText = currentSettings.commute_radius_km !== undefined ? currentSettings.commute_radius_km : 25;
     const cfgScope = document.getElementById('cfg-scope');
-    if (cfgScope) cfgScope.value = currentSettings.country_scope || 'AUTO';
     const cfgWorktype = document.getElementById('cfg-worktype');
     if (cfgWorktype) cfgWorktype.value = currentSettings.work_type || 'Open to All';
 
@@ -557,22 +1098,78 @@ async function loadSettings() {
       }
     } catch (_) {}
 
-    await initGlobalCities(cfgScope ? cfgScope.value : 'AUTO');
     setupTagInputListeners();
 
-    // Initialize tags from current master profile
+    // 1. Target Roles: Populate directly from search settings first!
+    if (Array.isArray(currentSettings.target_titles) && currentSettings.target_titles.length > 0) {
+      window.targetRolesList = [...currentSettings.target_titles];
+    } else if (Array.isArray(currentSettings.target_roles) && currentSettings.target_roles.length > 0) {
+      window.targetRolesList = [...currentSettings.target_roles];
+    } else {
+      window.targetRolesList = [];
+    }
+
+    // 2. Target Locations: Populate directly from search settings first!
+    if (Array.isArray(currentSettings.locations) && currentSettings.locations.length > 0) {
+      window.targetLocationsList = [...currentSettings.locations];
+    } else if (Array.isArray(currentSettings.target_locations) && currentSettings.target_locations.length > 0) {
+      window.targetLocationsList = [...currentSettings.target_locations];
+    } else {
+      window.targetLocationsList = [];
+    }
+
+    // 3. Fallback to profile ONLY on initial cold start if settings lists are completely empty
+    let detectedProfileCountry = null;
     try {
       const profRes = await fetch('/api/profile');
       const profData = await profRes.json();
-      window.targetRolesList = Array.isArray(profData.target_titles) && profData.target_titles.length
-        ? [...profData.target_titles]
-        : (Array.isArray(profData.target_roles) && profData.target_roles.length ? [...profData.target_roles] : ['Data Analyst']);
-      window.targetLocationsList = Array.isArray(profData.locations) && profData.locations.length
-        ? [...profData.locations]
-        : ['Remote', 'Toronto, ON'];
-      renderRoleTags();
-      renderLocationTags();
+
+      if (window.targetRolesList.length === 0) {
+        if (Array.isArray(profData.target_titles) && profData.target_titles.length > 0) {
+          window.targetRolesList = [...profData.target_titles];
+        } else if (profData.role) {
+          window.targetRolesList = [profData.role];
+        }
+      }
+
+      if (window.targetLocationsList.length === 0) {
+        if (Array.isArray(profData.locations) && profData.locations.length > 0) {
+          window.targetLocationsList = [...profData.locations];
+        } else if (profData.contact?.location) {
+          window.targetLocationsList = [profData.contact.location];
+        }
+      }
+
+      detectedProfileCountry = profData.country_code || null;
+      if (!detectedProfileCountry) {
+        const locStr = [profData.contact?.location, ...(window.targetLocationsList || [])].filter(Boolean).join(' ').toLowerCase();
+        if (/\b(canada|toronto|vancouver|montreal|calgary|ottawa|edmonton|ontario|quebec|alberta|british columbia|\bon\b|\bbc\b|\bab\b|\bqc\b)\b/i.test(locStr)) detectedProfileCountry = 'CA';
+        else if (/\b(usa|united states|new york|california|texas|san francisco|austin|seattle|chicago|los angeles|boston|\bny\b|\btx\b|\bwa\b|\bil\b)\b/i.test(locStr)) detectedProfileCountry = 'US';
+        else if (/\b(uk|united kingdom|great britain|london|manchester|birmingham|scotland|england)\b/i.test(locStr)) detectedProfileCountry = 'GB';
+        else if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg)\b/i.test(locStr)) detectedProfileCountry = 'DE';
+        else if (/\b(india|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai)\b/i.test(locStr)) detectedProfileCountry = 'IN';
+        else if (/\b(australia|sydney|melbourne|brisbane|perth)\b/i.test(locStr)) detectedProfileCountry = 'AU';
+      }
+      window.detectedProfileCountry = detectedProfileCountry;
     } catch (_) {}
+
+    renderRoleTags();
+    renderLocationTags();
+
+    // Populate country scope dropdown: preserve user's explicit choice
+    let targetScope = currentSettings.country_scope;
+    if (!targetScope || targetScope === 'AUTO') {
+      if (detectedProfileCountry) targetScope = detectedProfileCountry;
+      else targetScope = 'AUTO';
+    }
+
+    if (cfgScope) {
+      cfgScope.value = targetScope;
+      previousCountryScope = targetScope;
+    }
+
+    // Trigger onCountryScopeChange to automatically unlock city input, update badge & placeholders
+    onCountryScopeChange();
 
     await renderSettingsBoards();
     await loadSchedulerSettings();
@@ -631,8 +1228,39 @@ async function runManualScanWithOverrides() {
 }
 
 async function saveAllSettings() {
+  if (typeof validateFormFields === 'function') {
+    const isValid = validateFormFields([
+      {
+        field: 'input-add-role',
+        container: '#roles-tags-container',
+        type: 'list_min',
+        min: 1,
+        getValue: () => window.targetRolesList || [],
+        message: 'Please specify at least 1 target job title.'
+      },
+      {
+        field: 'cfg-scope',
+        type: 'required',
+        message: 'Please select a target country scope.'
+      },
+      {
+        field: 'input-add-location',
+        container: '#locations-tags-container',
+        type: 'list_min',
+        min: 1,
+        getValue: () => window.targetLocationsList || [],
+        message: 'Please add at least 1 target city or location.'
+      }
+    ]);
+    if (!isValid) {
+      showToast('Please complete the required settings fields.', 'error');
+      return;
+    }
+  }
+
   const minScore = parseInt(document.getElementById('cfg-score')?.value || '60', 10);
   const freshness = parseInt(document.getElementById('cfg-freshness')?.value || '24', 10);
+  const radius = parseInt(document.getElementById('cfg-radius')?.value || '25', 10);
   const scope = document.getElementById('cfg-scope')?.value || 'AUTO';
   const worktype = document.getElementById('cfg-worktype')?.value || 'Open to All';
 
@@ -644,19 +1272,27 @@ async function saveAllSettings() {
   });
 
   try {
-    await fetch('/api/settings', {
+    const payload = {
+      score_threshold: minScore,
+      freshness_hours: freshness,
+      commute_radius_km: isNaN(radius) ? 25 : radius,
+      country_scope: scope,
+      work_type: worktype,
+      boards_enabled: boards,
+      target_titles: window.targetRolesList || [],
+      target_roles: window.targetRolesList || [],
+      locations: window.targetLocationsList || [],
+      target_locations: window.targetLocationsList || []
+    };
+    const res = await fetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        score_threshold: minScore,
-        freshness_hours: freshness,
-        country_scope: scope,
-        work_type: worktype,
-        boards_enabled: boards,
-        target_titles: window.targetRolesList || [],
-        locations: window.targetLocationsList || []
-      })
+      body: JSON.stringify(payload)
     });
+    const data = await res.json();
+    if (data.success && data.settings) {
+      currentSettings = data.settings;
+    }
     showToast('✅ Preferences & settings saved successfully!');
     await loadStatus();
   } catch (e) {
@@ -1068,3 +1704,99 @@ async function triggerBackgroundScanNow() {
     await loadSchedulerSettings();
   }
 }
+
+// ── Maintenance & Reset Handlers ──────────────────────────────────────────
+async function executeSettingsReset(action) {
+  if (action === 'clear_queue' || action === 'clear_and_rescan') {
+    const ok = window.confirm('Purge current opportunities queue and unblock recent jobs? (You can run a manual scan from the header whenever you are ready.)');
+    if (!ok) return;
+  } else if (action === 'reset_preferences') {
+    const ok = window.confirm('Restore default settings (70% match score, 25 km commute radius, 24h freshness, all boards enabled)? Your master resume and profile will remain unchanged.');
+    if (!ok) return;
+  } else if (action === 'fresh_start') {
+    // Stage 1: Explicit Warning
+    const warnOk = window.confirm(
+      '⚠️ WARNING: Start from Fresh (Full Reset)\n\n' +
+      'This will permanently delete all unapplied opportunities, seen job history, and rejected jobs, erase your uploaded resume and master profile, and restore search preferences to clean factory defaults.\n\n' +
+      'Are you sure you want to proceed with a complete fresh start?'
+    );
+    if (!warnOk) return;
+
+    // Stage 2: Final Proceed Confirmation Guard
+    const proceedOk = window.confirm(
+      '⚠️ Final Confirmation: All candidate profile data, resumes, and search history will be erased.\n\nProceed with Full Reset?'
+    );
+    if (!proceedOk) return;
+  }
+
+  const btnMap = {
+    'clear_queue': document.getElementById('btn-reset-queue'),
+    'clear_and_rescan': document.getElementById('btn-reset-queue') || document.getElementById('btn-reset-rescan'),
+    'reset_preferences': document.getElementById('btn-reset-prefs'),
+    'fresh_start': document.getElementById('btn-reset-fresh')
+  };
+  const activeBtn = btnMap[action];
+  const origHtml = activeBtn ? activeBtn.innerHTML : '';
+  if (activeBtn) {
+    activeBtn.disabled = true;
+    activeBtn.innerHTML = `<span class="animate-spin text-xs">⏳</span> <span>Working...</span>`;
+  }
+
+  try {
+    const res = await fetch('/api/settings/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Server returned non-JSON response (${res.status} ${res.statusText}).`);
+    }
+    const data = await res.json();
+    if (data.success) {
+      showToast(`✅ ${data.message}`);
+      if (action === 'fresh_start') {
+        window.targetRolesList = [];
+        window.targetLocationsList = [];
+        try { localStorage.removeItem('jobryt_cached_pending_jobs'); } catch (_) {}
+        if (typeof renderRoleTags === 'function') renderRoleTags();
+        if (typeof renderLocationTags === 'function') renderLocationTags();
+        if (typeof loadProfileData === 'function') await loadProfileData();
+        if (typeof showFreshStartBanner === 'function') showFreshStartBanner();
+      }
+      if (typeof loadSettings === 'function') await loadSettings();
+      if (typeof loadStatus === 'function') await loadStatus();
+      if (typeof loadPendingJobs === 'function') loadPendingJobs();
+      if (action === 'clear_and_rescan') {
+        setTimeout(() => {
+          if (typeof loadPendingJobs === 'function') loadPendingJobs();
+        }, 3000);
+      }
+    } else {
+      showToast(`⚠️ Reset failed: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showToast(`Reset error: ${err.message}`, 'error');
+  } finally {
+    if (activeBtn) {
+      activeBtn.disabled = false;
+      activeBtn.innerHTML = origHtml;
+    }
+  }
+}
+
+async function handleClearAndRescan() {
+  await executeSettingsReset('clear_queue');
+}
+function showFreshStartBanner() {
+  const banner = document.getElementById('fresh-start-banner');
+  if (banner) {
+    banner.classList.remove('hidden');
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+window.executeSettingsReset = executeSettingsReset;
+window.handleClearAndRescan = handleClearAndRescan;
+window.showFreshStartBanner = showFreshStartBanner;
+

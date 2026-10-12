@@ -270,3 +270,112 @@ a:active {
   border-color: #D97706 !important;
   box-shadow: 0 0 12px rgba(217, 119, 6, 0.2) !important;
 }
+
+/* Location Combobox Component */
+#location-combobox-dropdown {
+  background-color: var(--surface-base);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  scrollbar-width: thin;
+}
+
+.combobox-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-primary);
+  transition: background-color 0.12s ease;
+  user-select: none;
+}
+
+.combobox-item:hover,
+.combobox-item.combobox-item-active {
+  background-color: var(--surface-elevated);
+}
+
+[data-theme="light"] #location-combobox-dropdown {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="light"] .combobox-item {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .combobox-item:hover,
+[data-theme="light"] .combobox-item.combobox-item-active {
+  background-color: #F1F5F9 !important;
+}
+
+.combobox-header {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background-color: var(--surface-inset);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+[data-theme="light"] .combobox-header {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #64748B !important;
+}
+
+.combobox-item.add-custom-option {
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--surface-inset);
+  font-weight: 500;
+}
+
+[data-theme="light"] .combobox-item.add-custom-option {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+
+.combobox-live-badge {
+  font-size: 9px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: rgba(95, 168, 160, 0.15);
+  color: #5FA8A0;
+  border: 1px solid rgba(95, 168, 160, 0.25);
+}
+
+/* ── Full-Screen Resume Upload Loader Animations ───────────────────────────── */
+@keyframes orbital-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes parse-progress-indeterminate {
+  0% { transform: translateX(-100%); width: 40%; }
+  50% { transform: translateX(100%); width: 65%; }
+  100% { transform: translateX(250%); width: 40%; }
+}
+
+.animate-orbital-spin {
+  animation: orbital-spin 4s linear infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.resume-parse-progress-bar {
+  animation: parse-progress-indeterminate 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+

@@ -23,6 +23,110 @@ async function loadProfile() {
   }
 }
 
+window.profileSkillsList = [];
+
+// Exact decimal experience rounding: 0.5 increments
+// 2.25 rounds to 2, 2.3 rounds to 2.5, 2.75 rounds to 2.5, 2.8 rounds to 3
+function roundExperienceYears(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'string') {
+    const m = val.match(/(\d+(?:\.\d+)?)/);
+    if (m) val = parseFloat(m[1]);
+    else return 0;
+  }
+  const num = parseFloat(val);
+  if (isNaN(num) || num < 0) return 0;
+  const base = Math.floor(num);
+  const dec = num - base;
+  if (dec <= 0.25) return base;
+  if (dec <= 0.75) return base + 0.5;
+  return base + 1.0;
+}
+
+function onExperienceInputChange() {
+  const input = document.getElementById('prof-total-exp');
+  if (!input) return;
+  const rounded = roundExperienceYears(input.value);
+  input.value = rounded;
+  updateExperienceBadge(rounded);
+  syncFormToJson();
+}
+
+function stepExperienceYears(delta) {
+  const input = document.getElementById('prof-total-exp');
+  if (!input) return;
+  const current = roundExperienceYears(input.value);
+  const next = Math.max(0, roundExperienceYears(current + delta));
+  input.value = next;
+  updateExperienceBadge(next);
+  syncFormToJson();
+}
+
+function updateExperienceBadge(years) {
+  const badge = document.getElementById('prof-years-badge');
+  if (badge) {
+    badge.innerText = `${years} Yrs Exp`;
+  }
+}
+
+// Workday-Style Skills Tag Manager
+function renderProfileSkillsTags() {
+  const container = document.getElementById('prof-skills-tag-container');
+  const countEl = document.getElementById('prof-skills-count');
+  if (!container) return;
+  if (countEl) countEl.innerText = `${window.profileSkillsList.length} skills`;
+
+  if (!window.profileSkillsList.length) {
+    container.innerHTML = `<span class="text-xs text-[#5F6B76] italic self-center px-1">No skills added yet. Type a skill and click Add or upload a resume.</span>`;
+    return;
+  }
+
+  container.innerHTML = window.profileSkillsList.map((skill, idx) => `
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-[#1C1F24] border border-[#2B3036] text-[#E8E6E1] hover:border-[#D9A441]/40 transition-colors">
+      <span>${escapeHtml(skill)}</span>
+      <button type="button" onclick="removeProfileSkill(${idx})" class="text-[#9AA0A6] hover:text-[#E5786D] transition-colors ml-0.5 cursor-pointer text-xs" title="Remove ${escapeHtml(skill)}">×</button>
+    </span>
+  `).join('');
+}
+
+function addProfileSkill(skill) {
+  const trimmed = (skill || '').trim();
+  if (!trimmed) return;
+  const exists = window.profileSkillsList.some(s => s.toLowerCase() === trimmed.toLowerCase());
+  if (!exists) {
+    window.profileSkillsList.push(trimmed);
+    renderProfileSkillsTags();
+    syncFormToJson();
+  }
+}
+
+function addProfileSkillFromInput() {
+  const input = document.getElementById('prof-skill-input');
+  if (!input) return;
+  const val = input.value;
+  if (!val.trim()) return;
+
+  const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+  parts.forEach(part => addProfileSkill(part));
+  input.value = '';
+  input.focus();
+}
+
+function handleProfileSkillKeyDown(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addProfileSkillFromInput();
+  }
+}
+
+function removeProfileSkill(idx) {
+  if (idx >= 0 && idx < window.profileSkillsList.length) {
+    window.profileSkillsList.splice(idx, 1);
+    renderProfileSkillsTags();
+    syncFormToJson();
+  }
+}
+
 function populateProfileForm(prof) {
   if (!prof) prof = {};
   currentProfile = prof;
@@ -34,16 +138,24 @@ function populateProfileForm(prof) {
   if (document.getElementById('prof-status')) document.getElementById('prof-status').value = (prof.contact && prof.contact.status) || '';
   if (document.getElementById('prof-linkedin')) document.getElementById('prof-linkedin').value = (prof.contact && prof.contact.linkedin) || '';
   if (document.getElementById('prof-github')) document.getElementById('prof-github').value = (prof.contact && prof.contact.github) || '';
+  const currentRole = prof.role || (Array.isArray(prof.target_titles) && prof.target_titles[0]) || (Array.isArray(prof.target_roles) && prof.target_roles[0]) || '';
+  if (document.getElementById('prof-current-role')) document.getElementById('prof-current-role').value = currentRole;
+  if (document.getElementById('prof-target-roles')) document.getElementById('prof-target-roles').value = currentRole;
+
   const targetRoles = (Array.isArray(prof.target_titles) && prof.target_titles.length)
     ? prof.target_titles
-    : ((Array.isArray(prof.target_roles) && prof.target_roles.length) ? prof.target_roles : (prof.role ? [prof.role] : []));
-  if (document.getElementById('prof-target-roles')) document.getElementById('prof-target-roles').value = targetRoles.join(', ');
-  if (document.getElementById('prof-total-exp')) document.getElementById('prof-total-exp').value = prof.total_experience_stated || (prof.years_of_experience ? `${prof.years_of_experience} years` : '');
-  if (document.getElementById('prof-skills')) document.getElementById('prof-skills').value = (prof.skills || []).join(', ');
-  if (document.getElementById('prof-skills-familiar')) document.getElementById('prof-skills-familiar').value = (prof.skills_familiar || []).join(', ');
-  if (document.getElementById('prof-summary')) document.getElementById('prof-summary').value = prof.summary || prof.writing_sample || '';
+    : ((Array.isArray(prof.target_roles) && prof.target_roles.length) ? prof.target_roles : (currentRole ? [currentRole] : []));
 
-  renderCategorizedSkillsPreview(prof.skills_categorized || []);
+  // Decimal experience rounding
+  const roundedYears = roundExperienceYears(prof.total_experience_stated || prof.years_of_experience);
+  if (document.getElementById('prof-total-exp')) document.getElementById('prof-total-exp').value = roundedYears;
+  updateExperienceBadge(roundedYears);
+
+  // Workday-Style Unified Skills List
+  window.profileSkillsList = Array.isArray(prof.skills) ? [...prof.skills] : [];
+  renderProfileSkillsTags();
+
+  if (document.getElementById('prof-summary')) document.getElementById('prof-summary').value = prof.summary || prof.writing_sample || '';
 
   const jsonEl = document.getElementById('prof-json');
   if (jsonEl) jsonEl.value = JSON.stringify(prof, null, 2);
@@ -53,7 +165,6 @@ function populateProfileForm(prof) {
   renderCertificationCards(prof.certifications || []);
   renderEducationCards(prof.education || []);
   updateProfileCounters();
-  renderProfileCountryBoards(prof);
 
   // Sync tags in Search Preferences
   window.targetRolesList = targetRoles.length ? [...targetRoles] : (window.targetRolesList || []);
@@ -66,97 +177,7 @@ function populateProfileForm(prof) {
 }
 
 async function renderProfileCountryBoards(prof = currentProfile) {
-  const container = document.getElementById('prof-country-boards-list');
-  const badge = document.getElementById('prof-country-badge');
-  if (!container) return;
-
-  const loc = (prof?.contact?.location || (prof?.locations && prof.locations[0]) || document.getElementById('prof-location')?.value || '').trim();
-  
-  let countryCode = 'GLOBAL';
-  if (/canada|toronto|vancouver|montreal|ottawa|calgary|edmonton|ontario|quebec|alberta|\bon\b|\bbc\b/i.test(loc)) countryCode = 'CA';
-  else if (/usa|united states|new york|nyc|san francisco|austin|seattle|chicago|los angeles|california|texas|\bny\b|\btx\b|\bca\b/i.test(loc)) countryCode = 'US';
-  else if (/uk|united kingdom|london|england|great britain|manchester|edinburgh/i.test(loc)) countryCode = 'GB';
-  else if (/germany|deutschland|berlin|munich|frankfurt|hamburg/i.test(loc)) countryCode = 'DE';
-  else if (/france|paris|lyon|marseille/i.test(loc)) countryCode = 'FR';
-  else if (/india|bangalore|bengaluru|hyderabad|pune|mumbai|delhi|gurgaon|noida/i.test(loc)) countryCode = 'IN';
-  else if (/australia|sydney|melbourne|brisbane|perth/i.test(loc)) countryCode = 'AU';
-  else if (/netherlands|holland|amsterdam|rotterdam|utrecht/i.test(loc)) countryCode = 'NL';
-  else if (/uae|united arab emirates|dubai|abu dhabi|sharjah|gulf/i.test(loc)) countryCode = 'AE';
-  else if (/singapore/i.test(loc)) countryCode = 'SG';
-  else if (/japan|tokyo|osaka|kyoto/i.test(loc)) countryCode = 'JP';
-  else if (/brazil|brasil|são paulo|sao paulo|rio de janeiro/i.test(loc)) countryCode = 'BR';
-
-  const FLAG_MAP = {
-    'US': '🇺🇸 USA', 'GB': '🇬🇧 United Kingdom', 'CA': '🇨🇦 Canada', 'DE': '🇩🇪 Germany',
-    'FR': '🇫🇷 France', 'IN': '🇮🇳 India', 'AU': '🇦🇺 Australia', 'NL': '🇳🇱 Netherlands',
-    'AE': '🇦🇪 UAE & Gulf', 'SG': '🇸🇬 Singapore', 'JP': '🇯🇵 Japan', 'BR': '🇧🇷 Brazil',
-    'GLOBAL': '🌐 Worldwide'
-  };
-
-  if (badge) {
-    badge.innerText = FLAG_MAP[countryCode] || `🌐 ${countryCode}`;
-  }
-
-  try {
-    const res = await fetch(`/api/settings/boards?country=${encodeURIComponent(countryCode)}`);
-    const data = await res.json();
-    if (!data.success || !Array.isArray(data.boards)) return;
-
-    const displayBoards = data.boards.slice(0, 6);
-
-    container.innerHTML = displayBoards.map(b => {
-      const isLeader = b.tier === 'primary';
-      const isGov = Boolean(b.official_gov);
-      const badgeClass = isGov
-        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-        : (isLeader ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-sky-500/10 text-sky-400 border-sky-500/20');
-      const badgeText = isGov ? 'Gov Verified' : (isLeader ? 'Market Leader' : 'Tech Specialist');
-
-      return `
-        <div class="p-2.5 rounded-md bg-[#16191E] border border-[#2B3036]/70 flex items-center justify-between gap-2">
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-xs font-semibold text-[#E8E6E1] truncate">${b.name}</span>
-              <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeClass}">${badgeText}</span>
-            </div>
-            <span class="text-[10px] text-[#9AA0A6] block truncate mt-0.5">${b.description || ''}</span>
-          </div>
-          <span class="text-[10px] font-mono text-emerald-400 shrink-0 font-semibold">Active</span>
-        </div>
-      `;
-    }).join('');
-  } catch (err) {
-    console.error('renderProfileCountryBoards error:', err);
-  }
-}
-
-function renderCategorizedSkillsPreview(categories = []) {
-  const container = document.getElementById('prof-categorized-skills-preview');
-  const countEl = document.getElementById('prof-cat-count');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!Array.isArray(categories) || categories.length === 0) {
-    if (countEl) countEl.innerText = '0 categories';
-    container.innerHTML = '<div class="text-[11px] text-[#5F6B76] italic">No skill categories extracted yet. Upload a resume to automatically detect domain groupings.</div>';
-    return;
-  }
-  if (countEl) countEl.innerText = `${categories.length} categories`;
-  categories.forEach(cat => {
-    const catBox = document.createElement('div');
-    catBox.className = 'p-2 rounded bg-[#111317] border border-[#2B3036]/80 text-xs';
-    const items = Array.isArray(cat.items) ? cat.items : (Array.isArray(cat.skills) ? cat.skills : []);
-    const badgesHtml = items.map(item => `
-      <span class="inline-block px-1.5 py-0.5 m-0.5 rounded text-[10px] bg-[#1C1F24] border border-[#2B3036] text-[#E8E6E1] font-mono">${escapeHtml(item)}</span>
-    `).join('');
-    catBox.innerHTML = `
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-[11px] font-semibold text-[#D9A441]">${escapeHtml(cat.category || 'Domain')}</span>
-        <span class="text-[9px] text-[#9AA0A6] font-mono">${items.length} skills</span>
-      </div>
-      <div class="flex flex-wrap">${badgesHtml}</div>
-    `;
-    container.appendChild(catBox);
-  });
+  // Deprecated & removed from Profile view to avoid redundancy with Settings
 }
 
 // Work Experience Cards
@@ -549,15 +570,8 @@ function updateProfileCounters() {
 
   const elYears = document.getElementById('prof-years-badge');
   if (elYears) {
-    if (currentProfile.years_of_experience) {
-      elYears.innerText = `${currentProfile.years_of_experience} Yrs Exp`;
-    } else if (currentProfile.total_experience_stated) {
-      elYears.innerText = currentProfile.total_experience_stated;
-    } else if (expCount > 0) {
-      elYears.innerText = `${expCount * 2}+ Yrs Exp`;
-    } else {
-      elYears.innerText = '0 Yrs Exp';
-    }
+    const yrs = roundExperienceYears(currentProfile.years_of_experience || currentProfile.total_experience_stated);
+    elYears.innerText = `${yrs} Yrs Exp`;
   }
 }
 
@@ -584,28 +598,20 @@ function syncFormToJson() {
   }
 
   if (document.getElementById('prof-total-exp')) {
-    const stated = (document.getElementById('prof-total-exp')?.value || '').trim();
-    if (stated) {
-      profile.total_experience_stated = stated;
-      const numMatch = stated.match(/\d+/);
-      if (numMatch) profile.years_of_experience = parseInt(numMatch[0], 10);
-    }
+    const rawVal = document.getElementById('prof-total-exp')?.value;
+    const rounded = roundExperienceYears(rawVal);
+    profile.total_experience_stated = `${rounded}`;
+    profile.years_of_experience = rounded;
   }
 
-  const roles = (document.getElementById('prof-target-roles')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-  if (roles.length) {
-    profile.target_titles = roles;
-    profile.target_roles = roles;
-    profile.role = roles[0];
-    profile.title = roles[0];
+  const currentRole = (document.getElementById('prof-current-role')?.value || document.getElementById('prof-target-roles')?.value || '').trim();
+  if (currentRole) {
+    profile.role = currentRole;
+    profile.title = currentRole;
   }
 
-  const skills = (document.getElementById('prof-skills')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-  if (skills.length) profile.skills = skills;
-
-  if (document.getElementById('prof-skills-familiar')) {
-    profile.skills_familiar = (document.getElementById('prof-skills-familiar')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
-  }
+  // Workday-style skills tag list
+  profile.skills = Array.isArray(window.profileSkillsList) ? [...window.profileSkillsList] : [];
 
   profile.summary = (document.getElementById('prof-summary')?.value || '').trim();
   profile.writing_sample = profile.summary;
@@ -753,6 +759,54 @@ function closeResumeValidationModal(scrollToForm = false) {
   }
 }
 
+let resumeLoaderInterval = null;
+const RESUME_PARSER_STAGES = [
+  'Analyzing document structure & credentials...',
+  'Extracting verified career achievements & tech stack...',
+  'Calibrating 4–10 market-validated target roles...',
+  'Synchronizing master profile & search settings...'
+];
+
+function showResumeUploadLoader() {
+  const overlay = document.getElementById('resume-upload-blocking-overlay');
+  if (!overlay) return;
+
+  const statusText = document.getElementById('resume-upload-status-text');
+  let stageIdx = 0;
+  if (statusText) {
+    statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-[#D9A441] animate-ping shrink-0"></span><span>${RESUME_PARSER_STAGES[0]}</span>`;
+  }
+
+  if (resumeLoaderInterval) clearInterval(resumeLoaderInterval);
+  resumeLoaderInterval = setInterval(() => {
+    stageIdx = (stageIdx + 1) % RESUME_PARSER_STAGES.length;
+    if (statusText) {
+      statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-[#D9A441] animate-ping shrink-0"></span><span>${RESUME_PARSER_STAGES[stageIdx]}</span>`;
+    }
+  }, 2200);
+
+  overlay.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    overlay.classList.remove('opacity-0');
+    overlay.classList.add('opacity-100');
+  });
+}
+
+function hideResumeUploadLoader() {
+  if (resumeLoaderInterval) {
+    clearInterval(resumeLoaderInterval);
+    resumeLoaderInterval = null;
+  }
+  const overlay = document.getElementById('resume-upload-blocking-overlay');
+  if (!overlay) return;
+
+  overlay.classList.remove('opacity-100');
+  overlay.classList.add('opacity-0');
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+  }, 300);
+}
+
 async function handleResumeFileSelected(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
@@ -763,6 +817,14 @@ async function handleResumeFileSelected(event) {
 
   if (btnLabel) btnLabel.innerText = 'Parsing Resume...';
   if (btn) btn.disabled = true;
+
+  const wizardModal = document.getElementById('welcome-wizard-modal');
+  const isWizardOpen = wizardModal && !wizardModal.classList.contains('hidden');
+
+  // Show full-screen blocking loader when uploading from My Resume & Profile
+  if (!isWizardOpen) {
+    showResumeUploadLoader();
+  }
 
   try {
     const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
@@ -775,12 +837,18 @@ async function handleResumeFileSelected(event) {
         parsed = JSON.parse(text);
       } catch (e) {
         showResumeValidationPrompt('Invalid JSON file format. Format or resume is not correct please fill the below master profile from UI.');
+        window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+          detail: { success: false, error: 'Invalid JSON file format.', filename: file.name }
+        }));
         return;
       }
       const hasExp = parsed && Array.isArray(parsed.experience) && parsed.experience.length > 0;
       const hasSkills = parsed && Array.isArray(parsed.skills) && parsed.skills.length > 0;
       if (!parsed || (!hasExp && !hasSkills && !parsed.name)) {
         showResumeValidationPrompt('The JSON does not contain valid resume info or work experience. Format or resume is not correct please fill the below master profile from UI.');
+        window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+          detail: { success: false, error: 'JSON does not contain valid resume info.', filename: file.name }
+        }));
         return;
       }
       hideResumeValidationPrompt();
@@ -788,6 +856,15 @@ async function handleResumeFileSelected(event) {
       populateProfileForm(currentProfile);
       syncFormToJson();
       showToast('📄 Resume JSON loaded into Master Profile! Click "Save Profile" to commit.');
+      window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+        detail: {
+          success: true,
+          profile: currentProfile,
+          targetRoles: Array.isArray(currentProfile.target_titles) ? currentProfile.target_titles : (currentProfile.role ? [currentProfile.role] : []),
+          targetLocs: Array.isArray(currentProfile.locations) ? currentProfile.locations : (currentProfile.contact?.location ? [currentProfile.contact.location] : []),
+          filename: file.name
+        }
+      }));
       return;
     }
 
@@ -823,14 +900,105 @@ async function handleResumeFileSelected(event) {
       hideResumeValidationPrompt();
       currentProfile = data.profile;
       populateProfileForm(currentProfile);
-      showToast('📄 Resume parsed into detailed Master Profile! Click "Save Profile" to commit.');
+
+      const targetRoles = (Array.isArray(data.profile.target_titles) && data.profile.target_titles.length)
+        ? data.profile.target_titles
+        : ((data.synced_settings && Array.isArray(data.synced_settings.target_roles) && data.synced_settings.target_roles.length)
+          ? data.synced_settings.target_roles
+          : (currentProfile.role ? [currentProfile.role] : []));
+
+      window.targetRolesList = [...targetRoles];
+      if (typeof renderRoleTags === 'function') renderRoleTags();
+      else if (typeof window.renderRoleTags === 'function') window.renderRoleTags();
+
+      const targetLocs = (Array.isArray(data.profile.locations) && data.profile.locations.length)
+        ? data.profile.locations
+        : ((data.synced_settings && Array.isArray(data.synced_settings.target_locations) && data.synced_settings.target_locations.length)
+          ? data.synced_settings.target_locations
+          : (data.profile.contact?.location ? [data.profile.contact.location] : []));
+      if (targetLocs.length) {
+        window.targetLocationsList = [...targetLocs];
+        if (typeof renderLocationTags === 'function') renderLocationTags();
+        else if (typeof window.renderLocationTags === 'function') window.renderLocationTags();
+      }
+
+      showToast(`🎯 Discovered ${targetRoles.length} market target roles and synced with Search Settings! Click "Save Profile" to commit.`);
+
+      // Notify wizard or listeners about successful parse completion
+      window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+        detail: {
+          success: true,
+          profile: data.profile,
+          synced_settings: data.synced_settings,
+          targetRoles: targetRoles,
+          targetLocs: targetLocs,
+          filename: file.name
+        }
+      }));
+
+      // Auto-synchronize country scope & unlock city search
+      const candidateLocText = [
+        data.profile.country_code,
+        data.profile.country,
+        data.profile.contact?.location,
+        ...(Array.isArray(data.profile.locations) ? data.profile.locations : [])
+      ].filter(Boolean).join(' ');
+
+      let detectedCountry = data.profile.country_code;
+      if (!detectedCountry || detectedCountry === 'GLOBAL') {
+        const s = candidateLocText.toLowerCase();
+        if (/\b(canada|toronto|vancouver|montreal|calgary|ottawa|edmonton|ontario|quebec|alberta|british columbia|\bon\b|\bbc\b|\bab\b|\bqc\b)\b/i.test(s)) detectedCountry = 'CA';
+        else if (/\b(usa|united states|new york|california|texas|san francisco|austin|seattle|chicago|los angeles|boston|\bny\b|\btx\b|\bwa\b|\bil\b)\b/i.test(s)) detectedCountry = 'US';
+        else if (/\b(uk|united kingdom|great britain|london|manchester|birmingham|scotland|england)\b/i.test(s)) detectedCountry = 'GB';
+        else if (/\b(germany|deutschland|berlin|munich|frankfurt|hamburg)\b/i.test(s)) detectedCountry = 'DE';
+        else if (/\b(india|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai)\b/i.test(s)) detectedCountry = 'IN';
+        else if (/\b(australia|sydney|melbourne|brisbane|perth)\b/i.test(s)) detectedCountry = 'AU';
+      }
+
+      if (detectedCountry && detectedCountry !== 'GLOBAL') {
+        const cfgScope = document.getElementById('cfg-scope');
+        if (cfgScope) {
+          cfgScope.value = detectedCountry;
+          if (typeof onCountryScopeChange === 'function') {
+            onCountryScopeChange();
+          } else if (typeof window.onCountryScopeChange === 'function') {
+            window.onCountryScopeChange();
+          }
+        }
+
+        // Auto-persist country_scope to settings if currently unset or AUTO
+        try {
+          const sRes = await fetch('/api/settings');
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            if (!sData.country_scope || sData.country_scope === 'AUTO') {
+              sData.country_scope = detectedCountry;
+              await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sData)
+              });
+              if (typeof currentSettings === 'object' && currentSettings) {
+                currentSettings.country_scope = detectedCountry;
+              }
+            }
+          }
+        } catch (_) {}
+      }
     } else {
       const errDetail = data.message || data.error || 'Format or resume is not correct please fill the below master profile from UI.';
       showResumeValidationPrompt(errDetail);
+      window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+        detail: { success: false, error: errDetail, filename: file.name }
+      }));
     }
   } catch (err) {
     showResumeValidationPrompt('Failed to process resume: ' + err.message);
+    window.dispatchEvent(new CustomEvent('resume-parse-complete', {
+      detail: { success: false, error: err.message, filename: file.name }
+    }));
   } finally {
+    hideResumeUploadLoader();
     event.target.value = '';
     if (btnLabel) btnLabel.innerText = originalLabel;
     if (btn) btn.disabled = false;
@@ -841,6 +1009,30 @@ async function handleResumeFileSelected(event) {
 async function saveMasterProfile() {
   try {
     syncFormToJson();
+
+    if (typeof validateFormFields === 'function') {
+      const isValid = validateFormFields([
+        {
+          field: 'prof-name',
+          type: 'required',
+          message: 'Candidate full name is required.'
+        },
+        {
+          field: 'prof-email',
+          type: 'email',
+          message: 'A valid email address is required.'
+        },
+        {
+          field: document.getElementById('prof-current-role') ? 'prof-current-role' : 'prof-target-roles',
+          type: 'required',
+          message: 'Current role or professional title is required.'
+        }
+      ]);
+      if (!isValid) {
+        showToast('Please complete all required profile fields.', 'error');
+        return;
+      }
+    }
 
     const btn = document.getElementById('btn-save-profile');
     const originalContent = btn ? btn.innerHTML : '';
@@ -865,3 +1057,38 @@ async function saveMasterProfile() {
     showToast('Error saving profile: ' + e.message, 'error');
   }
 }
+
+// On-Demand Candidate Profile JSON Modal Controls
+function openProfileJsonModal() {
+  syncFormToJson();
+  const modal = document.getElementById('prof-json-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    const textarea = document.getElementById('prof-json');
+    if (textarea) textarea.focus();
+  }
+}
+
+function closeProfileJsonModal() {
+  const modal = document.getElementById('prof-json-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function applyProfileJsonModal() {
+  try {
+    const raw = document.getElementById('prof-json')?.value.trim();
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      populateProfileForm(parsed);
+      showToast('✅ Profile JSON changes applied to form.');
+    }
+    closeProfileJsonModal();
+  } catch (err) {
+    showToast('Invalid JSON syntax: ' + err.message, 'error');
+  }
+}
+
+window.openProfileJsonModal = openProfileJsonModal;
+window.closeProfileJsonModal = closeProfileJsonModal;
+window.applyProfileJsonModal = applyProfileJsonModal;
+window.saveMasterProfile = saveMasterProfile;

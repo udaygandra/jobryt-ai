@@ -798,10 +798,27 @@ function extractResumeLocallyFromText(rawText) {
   if (currentProj) projectList.push(currentProj);
   profile.projects = projectList;
 
-  // Synchronize top-level role, title, and target roles
-  profile.target_roles = profile.target_titles;
-  profile.role = profile.target_titles[0] || (profile.experience[0] && profile.experience[0].role) || 'Professional';
+  // Synchronize top-level role, title, and target roles via market discovery
+  const { discoverMarketRoles } = require('./market-role-discovery');
+  profile.target_titles = discoverMarketRoles(profile.target_titles, profile);
+  profile.target_roles = [...profile.target_titles];
+  profile.role = profile.target_titles[0] || 'Professional';
   profile.title = profile.role;
+
+  // Infer country code if missing
+  if (!profile.contact.country_code) {
+    try {
+      const { detectTargetCountryScope } = require('../core/geo-helper');
+      const detected = detectTargetCountryScope([
+        profile.contact.location,
+        ...(Array.isArray(profile.locations) ? profile.locations : [])
+      ].filter(Boolean));
+      if (detected && detected !== 'GLOBAL') {
+        profile.contact.country_code = detected;
+        profile.country_code = detected;
+      }
+    } catch (_) {}
+  }
 
   return profile;
 }

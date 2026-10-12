@@ -18,17 +18,26 @@
 const path = require('path');
 const { getDataDir, readJsonFile, writeJsonFile } = require('./common-utils');
 
+function getSystemTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch (_) {
+    return 'UTC';
+  }
+}
+
 // ── Default Settings ────────────────────────────────────────────────────────
 // These values are used when settings.json is missing or has incomplete data.
 // They define a sensible starting configuration for a new user.
 const DEFAULT_SETTINGS = Object.freeze({
-  freshness_hours: 24,           // Only show jobs posted in last 24 hours
+  freshness_hours: 72,           // Only show jobs posted in last 72 hours (3 days)
   score_threshold: 60,           // Minimum match score to notify (0-100)
   cron_schedule: '30 8,11,14,17,20 * * *',  // When to run the pipeline
   cron_description: '5 times daily (8:30 AM, 11:30 AM, 2:30 PM, 5:30 PM, 8:30 PM)',
   work_type: 'Open to All',      // Remote, Hybrid, Onsite, or all
+  commute_radius_km: 25,         // Commute radius in kilometers (0-100, default 25)
   country_scope: 'AUTO',         // CA, US, US_CA, GLOBAL, or AUTO-detect
-  timezone: 'America/Toronto',   // Candidate timezone for scheduling
+  timezone: getSystemTimezone(), // Candidate timezone for scheduling (dynamically detected)
   boards_enabled: {
     linkedin: true,
     indeed: true,
@@ -78,10 +87,10 @@ const WORK_MODES = Object.freeze({
 function sanitizeSettings(raw, masterProfile = null) {
   if (!raw || typeof raw !== 'object') raw = {};
 
-  let candidateTz = 'America/Toronto';
+  let candidateTz = getSystemTimezone();
   try {
     const { detectCandidateTimezone } = require('./geo-helper');
-    candidateTz = detectCandidateTimezone(masterProfile || {});
+    candidateTz = detectCandidateTimezone(masterProfile || {}) || getSystemTimezone();
   } catch (_) {}
 
   // Merge user values on top of defaults
@@ -106,7 +115,47 @@ function sanitizeSettings(raw, masterProfile = null) {
   const score = parseInt(sanitized.score_threshold, 10);
   sanitized.score_threshold = (!isNaN(score) && score >= 40 && score <= 95) ? score : 60;
 
+  // Normalize target roles/titles bidirectionally
+  if (Array.isArray(raw.target_titles)) {
+    sanitized.target_titles = raw.target_titles;
+    sanitized.target_roles = raw.target_titles;
+  } else if (Array.isArray(raw.target_roles)) {
+    sanitized.target_titles = raw.target_roles;
+    sanitized.target_roles = raw.target_roles;
+  }
+
+  // Normalize locations bidirectionally
+  if (Array.isArray(raw.locations)) {
+    sanitized.locations = raw.locations;
+    sanitized.target_locations = raw.locations;
+  } else if (Array.isArray(raw.target_locations)) {
+    sanitized.locations = raw.target_locations;
+    sanitized.target_locations = raw.target_locations;
+  }
+
+  // Clamp commute_radius_km between 0 and 100 (default 25)
+  const radius = parseInt(sanitized.commute_radius_km, 10);
+  sanitized.commute_radius_km = (!isNaN(radius) && radius >= 0 && radius <= 100) ? radius : 25;
+
   return sanitized;
+}
+
+// ── Factory Reset Settings ──────────────────────────────────────────────────
+// Resets settings.json to clean defaults with empty target roles and locations.
+function factoryResetSettings() {
+  const resetData = {
+    ...DEFAULT_SETTINGS,
+    timezone: getSystemTimezone(),
+    country_scope: 'AUTO',
+    target_titles: [],
+    target_roles: [],
+    locations: [],
+    target_locations: [],
+    boards_enabled: { ...DEFAULT_SETTINGS.boards_enabled }
+  };
+  const settingsPath = path.join(__dirname, '..', '..', 'data', 'config', 'settings.json');
+  writeJsonFile(settingsPath, resetData);
+  return resetData;
 }
 
 // ── Read Current Settings ───────────────────────────────────────────────────
@@ -237,7 +286,7 @@ function renderSettingsDashboard(settings, masterProfile = {}) {
     `🏢 <b>Work Mode:</b> ${settings.work_type || 'Open to All'}\n\n` +
     `🕒 <b>Freshness Window:</b> <code>${settings.freshness_hours === 0 ? 'Disabled (Any Time)' : settings.freshness_hours + ' hours'}</code>\n` +
     `🎯 <b>Min Match Score:</b> <code>${settings.score_threshold}/100</code>\n` +
-    `⏰ <b>Automation Schedule:</b> ${settings.cron_description || settings.cron_schedule} (<code>${settings.timezone || 'America/Toronto'}</code>)\n\n` +
+    `⏰ <b>Automation Schedule:</b> ${settings.cron_description || settings.cron_schedule} (<code>${settings.timezone || getSystemTimezone()}</code>)\n\n` +
     `📋 <b>Active Job Boards:</b>\n${boardList}\n\n` +
     `<i>Tap a button below to update any preference instantly:</i>`;
 
@@ -346,7 +395,7 @@ function renderSubMenu(menuKey, settings, masterProfile = {}) {
       text:
         `⏰ <b>Configure Automation Schedule</b>\n\n` +
         `Current Setting: <b>${settings.cron_description || settings.cron_schedule}</b>\n` +
-        `🕒 <b>Candidate Timezone:</b> <code>${settings.timezone || 'America/Toronto'}</code> <i>(Synced from master-profile.json)</i>\n\n` +
+        `🕒 <b>Candidate Timezone:</b> <code>${settings.timezone || getSystemTimezone()}</code> <i>(Synced from master-profile.json)</i>\n\n` +
         `Select automated execution frequency:`,
       reply_markup: {
         inline_keyboard: [
@@ -460,14 +509,73 @@ function handleSettingCallback(data, masterProfile = {}) {
   return renderSettingsDashboard(settings, masterProfile);
 }
 
+
+// ── Synchronize Master Profile to Settings ──────────────────────────────────
+// Automatically populates target_roles, target_locations, and country_scope in settings.json
+function syncProfileToSettings(profile) {
+  if (!profile || typeof profile !== 'object') {
+    return getSettings();
+  }
+
+  const bannedTitleRegex = /\b(?:ninja|guru|rockstar|wizard)\b|^(?:employee|professional|staff|worker|confidential)$/i;
+  const rawRoles = Array.isArray(profile.target_titles) && profile.target_titles.length > 0
+    ? profile.target_titles
+    : (Array.isArray(profile.target_roles) && profile.target_roles.length > 0
+      ? profile.target_roles
+      : (profile.role ? [profile.role] : []));
+
+  const { discoverMarketRoles } = require('../engine/market-role-discovery');
+  const cleanRoles = discoverMarketRoles(rawRoles, profile);
+
+  const rawLocs = Array.isArray(profile.locations) && profile.locations.length > 0
+    ? profile.locations
+    : (profile.contact?.location ? [profile.contact.location] : []);
+
+  const seenLocs = new Set();
+  const cleanLocs = [];
+  for (const loc of rawLocs) {
+    if (!loc || typeof loc !== 'string') continue;
+    const cleaned = loc.trim();
+    if (!cleaned) continue;
+    const lower = cleaned.toLowerCase();
+    if (!seenLocs.has(lower)) {
+      seenLocs.add(lower);
+      cleanLocs.push(cleaned);
+    }
+    if (cleanLocs.length >= 5) break;
+  }
+
+  const updates = {};
+  if (cleanRoles.length > 0) {
+    updates.target_roles = cleanRoles;
+    updates.target_titles = cleanRoles;
+  }
+  if (cleanLocs.length > 0) {
+    updates.target_locations = cleanLocs;
+    updates.locations = cleanLocs;
+  }
+
+  const countryCode = profile.country_code || profile.contact?.country_code;
+  if (countryCode && typeof countryCode === 'string') {
+    const code = countryCode.trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(code) && code !== 'GLOBAL') {
+      updates.country_scope = code;
+    }
+  }
+
+  return updateSettings(updates, profile);
+}
+
 module.exports = {
   DEFAULT_SETTINGS,
   SCHEDULE_PRESETS,
   WORK_MODES,
   getSettings,
   updateSettings,
+  factoryResetSettings,
   parseHumanSchedule,
   renderSettingsDashboard,
   renderSubMenu,
   handleSettingCallback,
+  syncProfileToSettings,
 };

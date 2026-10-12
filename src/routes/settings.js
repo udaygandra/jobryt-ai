@@ -6,9 +6,12 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
+const { getDataDir } = require('../../scripts/core/common-utils');
 const settingsHelper = require('../../scripts/core/settings-helper');
 
 const rootDir = path.resolve(__dirname, '../../');
+const dataDir = getDataDir();
+const profilesDir = path.join(dataDir, 'profiles');
 
 // GET /api/settings
 router.get('/', (req, res) => {
@@ -133,28 +136,161 @@ router.get('/cities', (req, res) => {
   }
 });
 
+// GET /api/settings/cities/live-search?q=markham&country=CA
+router.get('/cities/live-search', async (req, res) => {
+  try {
+    const query = String(req.query.q || '').trim();
+    const country = String(req.query.country || 'ALL').toUpperCase().trim();
+
+    if (query.length < 2) {
+      return res.json({ success: true, country, query, total: 0, cities: [] });
+    }
+
+    const { searchLiveCities } = require('../../scripts/core/geo-helper');
+    const cities = await searchLiveCities(query, country);
+
+    res.json({
+      success: true,
+      country,
+      query,
+      total: cities.length,
+      cities
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/settings
 router.post('/', (req, res) => {
   try {
     const newSettings = req.body;
+    if (Array.isArray(newSettings.target_titles)) {
+      newSettings.target_titles = newSettings.target_titles.slice(0, 10);
+    }
+    if (Array.isArray(newSettings.locations)) {
+      newSettings.locations = newSettings.locations.slice(0, 5);
+    }
     const updated = settingsHelper.updateSettings(newSettings);
 
-    // Sync target_titles and locations with master profile if provided
-    if (Array.isArray(newSettings.target_titles) || Array.isArray(newSettings.locations)) {
+    res.json({ success: true, settings: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/settings/reset
+router.post('/reset', async (req, res) => {
+  try {
+    const action = req.body?.action || 'clear_and_rescan';
+    const jobsDb = require('../../scripts/core/jobs-db');
+    let message = '';
+    let updatedSettings = null;
+
+    if (action === 'clear_queue' || action === 'clear_opportunities') {
+      // 1. Purge pending jobs & seen jobs without initiating background scan
+      jobsDb.clearPendingJobs();
+      jobsDb.clearSeenJobs();
+      message = 'Opportunities queue cleared. You can now run a manual scan when ready.';
+    } else if (action === 'clear_and_rescan') {
+      // Purge pending jobs & seen jobs so live boards can re-feed current criteria
+      jobsDb.clearPendingJobs();
+      jobsDb.clearSeenJobs();
+      message = 'Opportunities cleared. Fresh job boards scan initiated in background.';
+
+      // Run scan in background
       try {
-        const { getMasterProfile } = require('./profile');
-        const { writeJsonFile, getDataDir } = require('../../scripts/core/common-utils');
-        const prof = getMasterProfile();
-        if (Array.isArray(newSettings.target_titles)) prof.target_titles = newSettings.target_titles;
-        if (Array.isArray(newSettings.locations)) prof.locations = newSettings.locations;
-        const profilePath = path.join(getDataDir(), 'profiles', 'master-profile.json');
-        writeJsonFile(profilePath, prof);
-      } catch (profSyncErr) {
-        console.warn('Could not sync profile titles/locations:', profSyncErr.message);
+        const { executePipelineScan } = require('./pipeline');
+        executePipelineScan({ source: 'reset_rescan' }).catch(err => {
+          console.warn('[Settings Reset] Background rescan error:', err.message);
+        });
+      } catch (_) {}
+    } else if (action === 'reset_preferences') {
+      // 2. Restore default settings (preserve user's titles/locations)
+      const current = settingsHelper.getSettings();
+      const defaultPrefs = {
+        score_threshold: 70,
+        commute_radius_km: 25,
+        freshness_hours: 24,
+        work_type: 'Open to All',
+        country_scope: current.country_scope || 'AUTO',
+        boards_enabled: {
+          linkedin: true,
+          indeed: true,
+          canada_job_bank: true,
+          adzuna: true,
+          usajobs: true,
+          arbeitsagentur: true,
+          mycareersfuture: true,
+          seek: true,
+          reed: true,
+          naukri: true,
+          bayt: true,
+          wttj: true,
+          daijob: true,
+          vagas: true,
+          jobicy: true,
+          remotive: true,
+          arbeitnow: true,
+          himalayas: true,
+        }
+      };
+      updatedSettings = settingsHelper.updateSettings(defaultPrefs);
+      message = 'Preferences reset to defaults (70% score, 25 km radius, 24h freshness, all boards enabled).';
+    } else if (action === 'fresh_start') {
+      // 3. Full factory reset
+      jobsDb.clearAllTrackingData();
+
+      // Wipe last_scan_result.json
+      const lastScanPath = path.join(dataDir, 'tracking', 'last_scan_result.json');
+      if (fs.existsSync(lastScanPath)) {
+        try { fs.unlinkSync(lastScanPath); } catch (_) {}
       }
+
+      // Reset master-profile.json to clean empty initial state
+      const profilePath = path.join(profilesDir, 'master-profile.json');
+      const cleanProfile = {
+        name: '',
+        role: '',
+        headline: '',
+        contact: { email: '', phone: '', location: '' },
+        skills: [],
+        skills_familiar: [],
+        skills_unstated_default: false,
+        experience: [],
+        education: [],
+        target_titles: [],
+        locations: [],
+        writing_sample: '',
+        updated: new Date().toISOString()
+      };
+      fs.writeFileSync(profilePath, JSON.stringify(cleanProfile, null, 2), 'utf8');
+
+      // Unlink any uploaded resume documents in profilesDir
+      try {
+        if (fs.existsSync(profilesDir)) {
+          const files = fs.readdirSync(profilesDir);
+          for (const f of files) {
+            if (f.startsWith('upload-') || f.endsWith('.pdf') || f.endsWith('.docx') || f.endsWith('.txt')) {
+              try { fs.unlinkSync(path.join(profilesDir, f)); } catch (_) {}
+            }
+          }
+        }
+      } catch (_) {}
+
+      // Reset settings.json to clean factory defaults with empty roles & locations
+      updatedSettings = settingsHelper.factoryResetSettings();
+      message = 'All profile data, uploaded resumes, job tracking queues, and search preferences have been fully wiped. Ready for fresh setup!';
+    } else {
+      return res.status(400).json({ error: `Unknown reset action: ${action}` });
     }
 
-    res.json({ success: true, settings: updated });
+    res.json({
+      success: true,
+      action,
+      message,
+      settings: updatedSettings || settingsHelper.getSettings()
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -214,8 +350,13 @@ router.post('/env', (req, res) => {
       }
     }
 
-    fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
-    res.json({ success: true, message: 'Configuration saved to .env and loaded into memory' });
+    try {
+      fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      res.json({ success: true, message: 'Configuration saved to .env and loaded into memory' });
+    } catch (writeErr) {
+      console.warn(`[Settings] Notice: Could not persist to ${envPath} (${writeErr.message}), configuration active in runtime memory.`);
+      res.json({ success: true, message: 'Configuration loaded into runtime memory (Note: .env file is read-only)' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -247,26 +388,32 @@ router.post('/validate-key', async (req, res) => {
         return res.status(400).json({ success: false, error: `Could not verify Adzuna credentials: ${probeErr.message}` });
       }
 
-      // Save to process.env and .env
+      // Save to process.env
       process.env.ADZUNA_APP_ID = appId;
       process.env.ADZUNA_APP_KEY = appKey;
       
       const envPath = path.join(rootDir, '.env');
-      let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
-      ['ADZUNA_APP_ID', 'ADZUNA_APP_KEY'].forEach(k => {
-        const v = credentials[k];
-        let found = false;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
-        }
-        if (!found) lines.push(`${k}=${v}`);
-      });
-      fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      try {
+        let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
+        ['ADZUNA_APP_ID', 'ADZUNA_APP_KEY'].forEach(k => {
+          const v = credentials[k];
+          let found = false;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
+          }
+          if (!found) lines.push(`${k}=${v}`);
+        });
+        fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      } catch (writeErr) {
+        console.warn(`[Settings] Notice: Could not persist to ${envPath} (${writeErr.message}), credentials preserved in memory and settings database.`);
+      }
 
-      // Enable board
+      // Enable board and persist credentials to settings.json
       const currSettings = settingsHelper.getSettings();
       currSettings.boards_enabled = currSettings.boards_enabled || {};
       currSettings.boards_enabled.adzuna = true;
+      currSettings.api_keys = currSettings.api_keys || {};
+      currSettings.api_keys.adzuna = { ADZUNA_APP_ID: appId, ADZUNA_APP_KEY: appKey };
       settingsHelper.updateSettings(currSettings);
 
       return res.json({ success: true, message: 'Adzuna API credentials verified and activated!', board: 'adzuna' });
@@ -296,19 +443,25 @@ router.post('/validate-key', async (req, res) => {
       if (userAgent) process.env.USAJOBS_USER_AGENT = userAgent;
 
       const envPath = path.join(rootDir, '.env');
-      let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
-      [['USAJOBS_API_KEY', apiKey], ['USAJOBS_USER_AGENT', userAgent]].forEach(([k, v]) => {
-        let found = false;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
-        }
-        if (!found) lines.push(`${k}=${v}`);
-      });
-      fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      try {
+        let lines = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8').split('\n') : [];
+        [['USAJOBS_API_KEY', apiKey], ['USAJOBS_USER_AGENT', userAgent]].forEach(([k, v]) => {
+          let found = false;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(`${k}=`)) { lines[i] = `${k}=${v}`; found = true; break; }
+          }
+          if (!found) lines.push(`${k}=${v}`);
+        });
+        fs.writeFileSync(envPath, lines.join('\n'), 'utf8');
+      } catch (writeErr) {
+        console.warn(`[Settings] Notice: Could not persist to ${envPath} (${writeErr.message}), credentials preserved in memory and settings database.`);
+      }
 
       const currSettings = settingsHelper.getSettings();
       currSettings.boards_enabled = currSettings.boards_enabled || {};
       currSettings.boards_enabled.usajobs = true;
+      currSettings.api_keys = currSettings.api_keys || {};
+      currSettings.api_keys.usajobs = { USAJOBS_API_KEY: apiKey, USAJOBS_USER_AGENT: userAgent };
       settingsHelper.updateSettings(currSettings);
 
       return res.json({ success: true, message: 'USAJOBS API key verified and activated!', board: 'usajobs' });

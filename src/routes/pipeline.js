@@ -6,6 +6,8 @@
 
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const jobsDb = require('../../scripts/core/jobs-db');
 const settingsHelper = require('../../scripts/core/settings-helper');
 const { fetchAllJobs } = require('../../scripts/engine/fetch-all-boards');
@@ -20,21 +22,153 @@ const {
 const { callLLMProvider, buildDynamicScoringPrompt } = require('../../scripts/engine/llm-provider');
 const { getMasterProfile } = require('./profile');
 
+let activeScanState = null;
+
+function getLastScanResult() {
+  const filePath = path.join(process.cwd(), 'data', 'tracking', 'last_scan_result.json');
+  try {
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    }
+  } catch (_) {}
+  return null;
+}
+
+function saveLastScanResult(data) {
+  const dir = path.join(process.cwd(), 'data', 'tracking');
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const payload = {
+      scanId: data.scanId,
+      status: data.status,
+      step: data.step,
+      startedAt: data.startedAt,
+      completedAt: data.completedAt || new Date().toISOString(),
+      durationMs: data.durationMs || (data.startedAt ? Date.now() - new Date(data.startedAt).getTime() : 0),
+      boardBreakdown: data.boardBreakdown || {},
+      stats: data.stats || {},
+      logs: (data.logs || []).slice(-40)
+    };
+    fs.writeFileSync(path.join(dir, 'last_scan_result.json'), JSON.stringify(payload, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[Pipeline] Could not save last scan result:', err.message);
+  }
+}
+
+/**
+ * Validates whether search preferences and candidate profile baseline satisfy preconditions for scanning.
+ */
+function validateScanCriteria({ targetTitles, targetLocations, boardsEnabled, profile }) {
+  const errors = [];
+
+  // 1. Roles validation: must have at least 1 real role, not placeholder
+  const cleanRoles = (targetTitles || []).map(r => (r || '').trim()).filter(r => r && r.toLowerCase() !== 'target role' && r.toLowerCase() !== 'your role');
+  if (cleanRoles.length === 0) {
+    errors.push({
+      field: 'roles',
+      title: 'Target Job Roles Missing',
+      message: 'Please add at least 1 target job title in Search Settings (e.g. Software Engineer, Data Analyst).'
+    });
+  }
+
+  // 2. Locations validation: must have at least 1 location/city
+  const cleanLocs = (targetLocations || []).map(l => (l || '').trim()).filter(Boolean);
+  if (cleanLocs.length === 0) {
+    errors.push({
+      field: 'locations',
+      title: 'Target Cities / Locations Missing',
+      message: 'Please specify at least 1 target city, state/province, or "Remote" in Search Settings.'
+    });
+  }
+
+  // 3. Active boards validation: at least 1 board enabled
+  const boards = boardsEnabled || {};
+  const hasActiveBoard = Object.values(boards).some(v => v === true);
+  if (!hasActiveBoard) {
+    errors.push({
+      field: 'boards',
+      title: 'All Job Boards Disabled',
+      message: 'Please enable at least 1 job board (e.g. LinkedIn, Adzuna, Canada Job Bank) in Search Settings.'
+    });
+  }
+
+  // 4. Candidate profile baseline: must have at least basic skills or role/experience
+  const prof = profile || {};
+  const hasSkills = Array.isArray(prof.skills) && prof.skills.length > 0;
+  const hasRole = Boolean((prof.role || prof.headline || '').trim());
+  const hasExp = Array.isArray(prof.experience) && prof.experience.length > 0;
+  const hasSummary = Boolean((prof.writing_sample || prof.summary || '').trim());
+  if (!hasSkills && !hasRole && !hasExp && !hasSummary) {
+    errors.push({
+      field: 'profile',
+      title: 'Candidate Profile / Resume Empty',
+      message: 'Please upload a resume or specify your current role & skills in My Resume & Profile so jobs can be accurately scored.'
+    });
+  }
+
+  return {
+    isValid: errors.length === 0,
+    cleanRoles,
+    cleanLocs,
+    errors
+  };
+}
+
 /**
  * Executes a full multi-board pipeline scan with optional overrides.
  * Shared by manual API triggers and the autonomous cron scheduler.
  */
 async function executePipelineScan(overrides = {}) {
+  // Concurrency Mutex: Prevent duplicate overlapping scans to protect CPU, network & LLM tokens
+  if (activeScanState && activeScanState.status === 'running') {
+    return {
+      success: false,
+      status: 'already_running',
+      message: 'A pipeline scan is already in progress',
+      scanId: activeScanState.scanId,
+      startedAt: activeScanState.startedAt,
+      durationMs: Date.now() - new Date(activeScanState.startedAt).getTime(),
+      stats: activeScanState.stats
+    };
+  }
+
   const profile = getMasterProfile();
   const settings = settingsHelper.getSettings();
 
+  // Target titles: solely from overrides or settings (fallback to profile.role only if settings empty)
   const targetTitles = (overrides.targetTitles && overrides.targetTitles.length > 0)
     ? overrides.targetTitles
-    : (profile.target_titles || ['Target Role']);
+    : ((settings.target_titles && settings.target_titles.length > 0)
+      ? settings.target_titles
+      : ((settings.target_roles && settings.target_roles.length > 0)
+        ? settings.target_roles
+        : (profile.role ? [profile.role] : [])));
 
+  // Target locations: solely from overrides or settings (fallback to profile resident location only if settings empty)
   const targetLocations = (overrides.targetLocations && overrides.targetLocations.length > 0)
     ? overrides.targetLocations
-    : (profile.locations || ['Remote']);
+    : ((settings.locations && settings.locations.length > 0)
+      ? settings.locations
+      : ((settings.target_locations && settings.target_locations.length > 0)
+        ? settings.target_locations
+        : (profile.contact?.location ? [profile.contact.location] : [])));
+
+  // Pre-Scan Validation Gate: Ensure search criteria and profile baseline are valid
+  const validation = validateScanCriteria({
+    targetTitles,
+    targetLocations,
+    boardsEnabled: settings.boards_enabled,
+    profile
+  });
+
+  if (!validation.isValid && !overrides.skipValidation && !overrides.injectedRawJobs) {
+    return {
+      success: false,
+      status: 'validation_failed',
+      validationErrors: validation.errors,
+      message: 'Scan cannot proceed because required search preferences or candidate profile data are missing.'
+    };
+  }
 
   const minThreshold = overrides.minScore !== undefined
     ? Number(overrides.minScore)
@@ -44,105 +178,261 @@ async function executePipelineScan(overrides = {}) {
     ? Number(overrides.freshnessHours)
     : (settings.freshness_hours !== undefined ? settings.freshness_hours : 24);
 
-  console.log(`[Pipeline Scan] Triggered (source: ${overrides.source || 'api'}) with roles: ${targetTitles.join(', ')} | Locs: ${targetLocations.join(', ')} | Threshold: ${minThreshold}+`);
+  const activeScope = overrides.countryScope || settings.country_scope || 'AUTO';
+  const activeWorkType = overrides.work_type || settings.work_type || profile.work_type || 'Open to All';
 
-  if (overrides.targetTitles) {
-    process.env.ADZUNA_SEARCH_ROLE = targetTitles[0];
-  }
-  if (overrides.targetLocations) {
-    process.env.ADZUNA_SEARCH_LOCATION = targetLocations[0];
+  const scanId = overrides.scanId || `scan_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  activeScanState = {
+    scanId,
+    status: 'running',
+    step: 'fetching',
+    progress: { current: 0, total: 0, message: 'Initializing multi-board sweep...' },
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+    durationMs: 0,
+    logs: [],
+    boardBreakdown: {},
+    stats: {
+      totalFetched: 0,
+      freshCount: 0,
+      unseenCount: 0,
+      scoredCount: 0,
+      qualifiedCount: 0,
+      rejectedCount: 0
+    },
+    abortController: new AbortController()
+  };
+
+  const currentScan = activeScanState;
+  const signal = currentScan.abortController.signal;
+
+  function addLog(message, level = 'info') {
+    const entry = { timestamp: new Date().toISOString(), level, message };
+    currentScan.logs.push(entry);
+    if (currentScan.logs.length > 120) currentScan.logs.shift();
+    console.log(`[Pipeline ${level.toUpperCase()}] ${message}`);
   }
 
-  // Step 1: Ingest from job boards
+  addLog(`Scan triggered (source: ${overrides.source || 'api'}) with roles: ${targetTitles.join(', ')} | Locs: ${targetLocations.join(', ')} | Scope: ${activeScope} | Threshold: ${minThreshold}+`);
+
+  if (targetTitles[0]) process.env.ADZUNA_SEARCH_ROLE = targetTitles[0];
+  if (targetLocations[0]) process.env.ADZUNA_SEARCH_LOCATION = targetLocations[0];
+
+  // Step 1: Ingest from job boards with dynamic search payload and abort signal
   let rawFetchedJobs = [];
-  try {
-    rawFetchedJobs = await fetchAllJobs();
-  } catch (fetchErr) {
-    console.warn('[Pipeline] Fetch note:', fetchErr.message);
+  if (Array.isArray(overrides.injectedRawJobs)) {
+    rawFetchedJobs = overrides.injectedRawJobs;
+  } else {
+    try {
+      currentScan.progress.message = 'Fetching multi-board feeds...';
+      rawFetchedJobs = await fetchAllJobs({
+        targetTitles,
+        targetLocations,
+        countryScope: activeScope,
+        candidateWorkType: activeWorkType,
+        boardsEnabled: settings.boards_enabled,
+        freshnessHours,
+        commuteRadiusKm: settings.commute_radius_km,
+        signal
+      });
+    } catch (fetchErr) {
+      addLog(`Fetch note: ${fetchErr.message}`, 'warn');
+    }
+  }
+
+  if (signal.aborted) {
+    currentScan.status = 'aborted';
+    currentScan.step = 'aborted';
+    currentScan.completedAt = new Date().toISOString();
+    currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
+    addLog('Scan aborted by user during ingestion', 'warn');
+    saveLastScanResult(currentScan);
+    return { success: false, status: 'aborted', message: 'Scan stopped by user', scanId, stats: currentScan.stats };
   }
 
   const allRawItems = rawFetchedJobs.map(j => normalizeJob(j, j.source || 'unknown')).filter(Boolean);
+  currentScan.stats.totalFetched = allRawItems.length;
+
+  // Compute per-board yield breakdown
+  for (const job of allRawItems) {
+    const src = job.source || 'Other';
+    currentScan.boardBreakdown[src] = (currentScan.boardBreakdown[src] || 0) + 1;
+  }
+  addLog(`Multi-board ingestion complete: ${allRawItems.length} listings examined across ${Object.keys(currentScan.boardBreakdown).length} sources.`);
 
   // Step 2: Freshness & Geo Filters
-  const activeScope = overrides.countryScope || settings.country_scope || 'AUTO';
-  let filteredItems = runFreshnessFilter(allRawItems.map(j => ({ json: j })), freshnessHours);
-  filteredItems = runGeoFilter(filteredItems, { ...profile, target_titles: targetTitles, locations: targetLocations, country_scope: activeScope });
-  const freshItems = filteredItems.map(i => i.json);
+  currentScan.step = 'filtering';
+  currentScan.progress.message = 'Applying freshness, location, and workplace mode filters...';
 
-  // Step 3: Deduplication filter
+  let filteredItems = runFreshnessFilter(allRawItems.map(j => ({ json: j })), freshnessHours);
+  filteredItems = runGeoFilter(filteredItems, { ...profile, target_titles: targetTitles, locations: targetLocations, country_scope: activeScope, work_type: activeWorkType });
+  const freshItems = filteredItems.map(i => i.json);
+  currentScan.stats.freshCount = freshItems.length;
+  addLog(`Freshness & Geo filtering passed: ${freshItems.length} jobs fit criteria (${allRawItems.length - freshItems.length} filtered out).`);
+
+  if (signal.aborted) {
+    currentScan.status = 'aborted';
+    currentScan.step = 'aborted';
+    currentScan.completedAt = new Date().toISOString();
+    currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
+    addLog('Scan aborted by user during filtering', 'warn');
+    saveLastScanResult(currentScan);
+    return { success: false, status: 'aborted', message: 'Scan stopped by user', scanId, stats: currentScan.stats };
+  }
+
+  // Step 3: Deduplication filter (against seen_jobs, pending_jobs, applied_jobs, rejected_jobs)
+  const existingPendingIds = new Set((jobsDb.getPendingJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingAppliedIds = new Set((jobsDb.getAppliedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingRejectedIds = new Set((jobsDb.getRejectedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+
   const unSeenJobs = freshItems.filter(job => {
     const id = job.id ? String(job.id) : null;
-    const url = job.redirect_url || job.job_url || null;
+    const rawUrl = String(job.redirect_url || job.job_url || '');
+    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
     const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const sig = compClean && titClean ? `comp_${compClean}_tit_${titClean}` : null;
-    if (id && jobsDb.isJobSeen(id)) return false;
-    if (url && jobsDb.isJobSeen(url)) return false;
+
+    if (id && (jobsDb.isJobSeen(id) || existingPendingIds.has(id) || existingAppliedIds.has(id) || existingRejectedIds.has(id))) return false;
+    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search') && jobsDb.isJobSeen(cleanUrl)) return false;
     if (sig && jobsDb.isJobSeen(sig)) return false;
     return true;
   });
 
-  // Step 4: Scoring (cap at 30 for snappy web response)
-  const MAX_TO_SCORE = Math.min(unSeenJobs.length, 30);
-  const jobsToScore = unSeenJobs.slice(0, MAX_TO_SCORE);
-  const scoredJobs = [];
+  currentScan.stats.unseenCount = unSeenJobs.length;
+  addLog(`Deduplication check passed: ${unSeenJobs.length} new listings (${freshItems.length - unSeenJobs.length} previously seen).`);
+
+  // Step 4: High-Performance Uncapped Concurrent Scoring with abort checking
+  currentScan.step = 'scoring';
+  currentScan.progress.current = 0;
+  currentScan.progress.total = unSeenJobs.length;
+  currentScan.progress.message = `Evaluating ${unSeenJobs.length} opportunities with AI & scoring model...`;
+
+  const jobsToScore = unSeenJobs;
+  const scoredJobs = new Array(jobsToScore.length);
   const newlySeenIds = [];
 
   for (const job of jobsToScore) {
     if (job.id) newlySeenIds.push(String(job.id));
-    if (job.job_url) newlySeenIds.push(String(job.job_url));
-    if (job.redirect_url) newlySeenIds.push(String(job.redirect_url));
-
-    let scoredItem = null;
-    try {
-      const prompt = buildDynamicScoringPrompt(profile, job.title, job.description);
-      const llmRes = await callLLMProvider({ prompt });
-      if (llmRes.success) {
-        job.rawText = llmRes.rawText;
-        scoredItem = runParseScore({ json: { ...job } }, profile).json;
-      }
-    } catch (_) {}
-
-    if (!scoredItem || typeof scoredItem.score !== 'number') {
-      scoredItem = computeHeuristicScore(job, profile);
-    }
-
-    const finalJob = {
-      ...job,
-      ...scoredItem,
-      id: job.id || scoredItem.id,
-      title: (job.title || scoredItem.title || 'Target Role').trim(),
-      company: (job.company || scoredItem.company || 'Direct Employer').trim(),
-      location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
-      source: job.source || scoredItem.source || 'Direct',
-      job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
-      redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
-      why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
-    };
-
-    scoredJobs.push(finalJob);
+    const rawUrl = String(job.redirect_url || job.job_url || '');
+    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
+    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search')) newlySeenIds.push(cleanUrl);
+    const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (compClean && titClean) newlySeenIds.push(`comp_${compClean}_tit_${titClean}`);
   }
 
-  // Step 5: Persist qualified to pending, rejected to rejected
-  const qualified = scoredJobs.filter(j => (j.score || 0) >= minThreshold && j.should_apply !== false);
-  const rejected = scoredJobs.filter(j => (j.score || 0) < minThreshold || j.should_apply === false);
+  const SCORING_CONCURRENCY = 8;
+  let nextScoringIdx = 0;
+
+  async function scoringWorker() {
+    while (true) {
+      if (signal.aborted) return;
+      const idx = nextScoringIdx++;
+      if (idx >= jobsToScore.length) return;
+      const job = jobsToScore[idx];
+
+      let scoredItem = null;
+      if (!overrides.skipLLM && !signal.aborted) {
+        try {
+          const prompt = buildDynamicScoringPrompt(
+            { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, commute_radius_km: settings.commute_radius_km },
+            job.title,
+            job.description
+          );
+          // 7000ms timeout per LLM request with automatic fallback to heuristic scoring
+          const llmPromise = callLLMProvider({ prompt });
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM scoring timeout')), 7000));
+          const llmRes = await Promise.race([llmPromise, timeoutPromise]);
+          if (llmRes && llmRes.success) {
+            job.rawText = llmRes.rawText;
+            scoredItem = runParseScore(
+              { json: { ...job } },
+              { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope },
+              settings
+            ).json;
+          }
+        } catch (_) {}
+      }
+
+      if (!scoredItem || typeof scoredItem.score !== 'number') {
+        scoredItem = computeHeuristicScore(
+          job,
+          { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, work_type: activeWorkType },
+          settings
+        );
+      }
+
+      scoredJobs[idx] = {
+        ...job,
+        ...scoredItem,
+        id: job.id || scoredItem.id,
+        title: (job.title || scoredItem.title || 'Target Role').trim(),
+        company: (job.company || scoredItem.company || 'Direct Employer').trim(),
+        location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
+        source: job.source || scoredItem.source || 'Direct',
+        match_score: scoredItem.score,
+        score: scoredItem.score,
+        job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
+        redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
+        why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
+      };
+
+      currentScan.progress.current++;
+      currentScan.stats.scoredCount++;
+    }
+  }
+
+  const activeWorkerCount = Math.min(SCORING_CONCURRENCY, Math.max(1, jobsToScore.length));
+  await Promise.all(Array.from({ length: activeWorkerCount }, scoringWorker));
+
+  if (signal.aborted) {
+    currentScan.status = 'aborted';
+    currentScan.step = 'aborted';
+    currentScan.completedAt = new Date().toISOString();
+    currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
+    addLog('Scan aborted by user during scoring', 'warn');
+    saveLastScanResult(currentScan);
+    return { success: false, status: 'aborted', message: 'Scan stopped by user', scanId, stats: currentScan.stats };
+  }
+
+  // Filter out any undefined slots if aborted early
+  const validScoredJobs = scoredJobs.filter(Boolean);
+
+  // Step 5: Persist qualified to pending, rejected to rejected based on user score_threshold
+  currentScan.step = 'persisting';
+  const qualified = validScoredJobs.filter(j => (j.score || 0) >= minThreshold && j.should_apply !== false);
+  const rejected = validScoredJobs.filter(j => (j.score || 0) < minThreshold || j.should_apply === false);
 
   jobsDb.markJobsSeen(newlySeenIds);
   for (const q of qualified) jobsDb.savePendingJob(q);
   for (const r of rejected) jobsDb.saveRejectedJob(r);
 
+  currentScan.status = 'completed';
+  currentScan.step = 'completed';
+  currentScan.completedAt = new Date().toISOString();
+  currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
+  currentScan.stats.qualifiedCount = qualified.length;
+  currentScan.stats.rejectedCount = rejected.length;
+  addLog(`Scan finished: ${qualified.length} qualified opportunities added to approval queue! (${rejected.length} below threshold).`);
+
+  saveLastScanResult(currentScan);
+
   return {
     success: true,
+    scanId,
+    status: 'completed',
+    boardBreakdown: currentScan.boardBreakdown,
     stats: {
       totalFetched: allRawItems.length,
       freshCount: freshItems.length,
       unseenCount: unSeenJobs.length,
-      scoredCount: scoredJobs.length,
+      scoredCount: validScoredJobs.length,
       qualifiedCount: qualified.length,
       rejectedCount: rejected.length
     },
     qualifiedJobs: qualified,
-    allScored: scoredJobs
+    allScored: validScoredJobs
   };
 }
 
@@ -151,9 +441,120 @@ router.post('/run', async (req, res) => {
   try {
     const overrides = req.body || {};
     const result = await executePipelineScan(overrides);
+    if (result.status === 'already_running') {
+      return res.status(409).json(result);
+    }
+    if (result.status === 'validation_failed') {
+      return res.status(422).json(result);
+    }
     res.json(result);
   } catch (err) {
     console.error('Pipeline error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/pipeline/validate
+router.get('/validate', (req, res) => {
+  try {
+    const profile = getMasterProfile();
+    const settings = settingsHelper.getSettings();
+    const targetTitles = (settings.target_titles && settings.target_titles.length > 0)
+      ? settings.target_titles
+      : ((settings.target_roles && settings.target_roles.length > 0)
+        ? settings.target_roles
+        : (profile.role ? [profile.role] : []));
+    const targetLocations = (settings.locations && settings.locations.length > 0)
+      ? settings.locations
+      : ((settings.target_locations && settings.target_locations.length > 0)
+        ? settings.target_locations
+        : (profile.contact?.location ? [profile.contact.location] : []));
+    const validation = validateScanCriteria({
+      targetTitles,
+      targetLocations,
+      boardsEnabled: settings.boards_enabled,
+      profile
+    });
+    res.json(validation);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/pipeline/stop
+router.post('/stop', (req, res) => {
+  try {
+    if (activeScanState && activeScanState.status === 'running') {
+      activeScanState.abortController.abort();
+      activeScanState.status = 'aborted';
+      activeScanState.step = 'aborted';
+      activeScanState.completedAt = new Date().toISOString();
+      activeScanState.durationMs = Date.now() - new Date(activeScanState.startedAt).getTime();
+      saveLastScanResult(activeScanState);
+      return res.json({
+        success: true,
+        message: 'Scan abort signal sent successfully',
+        scanId: activeScanState.scanId,
+        stats: activeScanState.stats
+      });
+    }
+    return res.json({
+      success: false,
+      message: 'No active scan is currently running'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/pipeline/status
+router.get('/status', (req, res) => {
+  try {
+    if (activeScanState && activeScanState.status === 'running') {
+      const stateObj = {
+        scanId: activeScanState.scanId,
+        status: activeScanState.status,
+        step: activeScanState.step,
+        progress: activeScanState.progress,
+        startedAt: activeScanState.startedAt,
+        durationMs: Date.now() - new Date(activeScanState.startedAt).getTime(),
+        logs: activeScanState.logs.slice(-35),
+        boardBreakdown: activeScanState.boardBreakdown,
+        stats: activeScanState.stats
+      };
+      return res.json({
+        success: true,
+        isRunning: true,
+        status: activeScanState.status,
+        currentStep: activeScanState.step,
+        logs: stateObj.logs,
+        boardBreakdown: stateObj.boardBreakdown,
+        stats: stateObj.stats,
+        lastScanTimestamp: activeScanState.startedAt,
+        state: stateObj
+      });
+    }
+
+    const last = getLastScanResult();
+    const fallback = last || {
+      status: 'idle',
+      step: 'idle',
+      logs: [],
+      boardBreakdown: {},
+      stats: { totalFetched: 0, freshCount: 0, unseenCount: 0, scoredCount: 0, qualifiedCount: 0, rejectedCount: 0 }
+    };
+    return res.json({
+      success: true,
+      isRunning: false,
+      status: fallback.status || 'idle',
+      currentStep: fallback.step || 'idle',
+      logs: fallback.logs || [],
+      boardBreakdown: fallback.boardBreakdown || {},
+      stats: fallback.stats || {},
+      lastScanTimestamp: fallback.completedAt || fallback.startedAt || null,
+      state: fallback
+    });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -167,13 +568,20 @@ router.post('/evaluate-custom', async (req, res) => {
     }
 
     const profile = getMasterProfile();
+    const trimmedTitle = title.trim();
+    const trimmedCompany = (company || 'Employer').trim();
+    const providedUrl = (url || '').trim();
+    const canonicalUrl = providedUrl || `https://www.google.com/search?q=${encodeURIComponent(trimmedTitle + ' ' + trimmedCompany + ' job')}`;
+
     const rawJob = {
       id: `manual_${Date.now()}`,
-      title: title.trim(),
-      company: (company || 'Employer').trim(),
+      title: trimmedTitle,
+      company: trimmedCompany,
       location: (location || 'Remote').trim(),
       description: description.trim(),
-      job_url: (url || '').trim(),
+      job_url: canonicalUrl,
+      redirect_url: canonicalUrl,
+      apply_url: canonicalUrl,
       source: source || 'Manual Entry',
       created: new Date().toISOString()
     };
@@ -214,4 +622,4 @@ router.post('/evaluate-custom', async (req, res) => {
   }
 });
 
-module.exports = { router, executePipelineScan };
+module.exports = { router, executePipelineScan, validateScanCriteria };
