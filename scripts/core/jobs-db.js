@@ -554,6 +554,75 @@ function removePendingJob(jobId) {
   } catch (_) { }
 }
 
+function purgeOpportunity(jobId) {
+  if (!jobId) return { removed: 0, idsSeen: [] };
+  const db = getDb();
+  const cleanId = String(jobId).trim();
+  const strippedId = cleanId.replace(/^(linkedin_jobs_|linkedin_|canada_job_bank_|adzuna_|indeed_|jobicy_|remotive_|usajobs_)/i, '');
+
+  const idsToProcess = new Set([cleanId, strippedId]);
+
+  try {
+    const row = db.prepare('SELECT id, job_id, payload_json FROM pending_jobs WHERE id = ? OR job_id = ? OR id = ? OR job_id = ?').get(cleanId, cleanId, strippedId, strippedId);
+    if (row) {
+      if (row.id) idsToProcess.add(String(row.id));
+      if (row.job_id) idsToProcess.add(String(row.job_id));
+      if (row.payload_json) {
+        try {
+          const parsed = JSON.parse(row.payload_json);
+          if (parsed.id) idsToProcess.add(String(parsed.id));
+          if (parsed.jobId) idsToProcess.add(String(parsed.jobId));
+          if (parsed.job_id) idsToProcess.add(String(parsed.job_id));
+        } catch (_) {}
+      }
+    }
+  } catch (_) {}
+
+  const idsList = Array.from(idsToProcess).filter(Boolean);
+  const now = new Date().toISOString();
+  let removedPendingCount = 0;
+
+  try {
+    db.exec('BEGIN');
+
+    // 2. INSERT OR IGNORE INTO seen_jobs for each id, lower-cased
+    const seenStmt = db.prepare('INSERT OR IGNORE INTO seen_jobs (id, seen_at) VALUES (?, ?)');
+    for (const id of idsList) {
+      seenStmt.run(id.toLowerCase(), now);
+    }
+
+    // 3. DELETE FROM pending_jobs
+    const delPendingStmt = db.prepare('DELETE FROM pending_jobs WHERE id = ? OR job_id = ?');
+    for (const id of idsList) {
+      const res = delPendingStmt.run(id, id);
+      if (res && res.changes) removedPendingCount += res.changes;
+    }
+
+    // 4. DELETE FROM rejected_jobs
+    const delRejectedStmt = db.prepare('DELETE FROM rejected_jobs WHERE id = ? OR job_id = ?');
+    for (const id of idsList) {
+      delRejectedStmt.run(id, id);
+    }
+
+    // 5. DELETE FROM tailored_resumes WHERE id = ? OR job_id = ?, but ONLY if no applied_jobs row exists
+    const checkAppliedStmt = db.prepare('SELECT 1 FROM applied_jobs WHERE id = ? OR job_id = ? LIMIT 1');
+    const delTailoredStmt = db.prepare('DELETE FROM tailored_resumes WHERE id = ? OR job_id = ?');
+    for (const id of idsList) {
+      const isApplied = checkAppliedStmt.get(id, id);
+      if (!isApplied) {
+        delTailoredStmt.run(id, id);
+      }
+    }
+
+    db.exec('COMMIT');
+    return { removed: removedPendingCount, idsSeen: idsList.map(i => i.toLowerCase()) };
+  } catch (err) {
+    try { db.exec('ROLLBACK'); } catch (_) {}
+    console.error('purgeOpportunity error:', err.message);
+    throw err;
+  }
+}
+
 function findJobRecord(jId) {
   if (!jId) return null;
   const cleanId = String(jId).trim();
@@ -773,6 +842,7 @@ module.exports = {
   savePendingJob,
   getPendingJobs,
   removePendingJob,
+  purgeOpportunity,
   findJobRecord,
   saveRejectedJob,
   getRejectedJobs,

@@ -4,9 +4,10 @@
  */
 
 const express = require('express');
+const fs = require('fs');
 const router = express.Router();
 const jobsDb = require('../../scripts/core/jobs-db');
-const { tailorJobApplication } = require('../../scripts/engine/tailor-engine');
+const { tailorJobApplication, getTailoredArtifactPaths } = require('../../scripts/engine/tailor-engine');
 const { fetchLinkedInJobDetails } = require('../../scripts/engine/fetch-all-boards');
 const { getMasterProfile } = require('./profile');
 
@@ -211,6 +212,37 @@ router.post('/:id/submit-tailored', async (req, res) => {
     res.json({ success: true, appliedJob: result });
   } catch (err) {
     console.error('submit-tailored error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/jobs/pending/:id — Permanently delete opportunity (Purge from DB, keep seen_jobs dedup)
+router.delete('/pending/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = jobsDb.purgeOpportunity(id);
+
+    // Best-effort cleanup of tailored artifacts only if job is not in applied_jobs
+    let isApplied = false;
+    try {
+      const db = jobsDb.getDb();
+      const row = db.prepare('SELECT 1 FROM applied_jobs WHERE id = ? OR job_id = ? LIMIT 1').get(String(id), String(id));
+      isApplied = Boolean(row);
+    } catch (_) {}
+
+    if (!isApplied) {
+      try {
+        const safeId = String(id).replace(/[^a-zA-Z0-9_-]/g, '_');
+        const artifactFolder = getTailoredArtifactPaths(safeId).folder;
+        if (fs.existsSync(artifactFolder)) {
+          fs.rmSync(artifactFolder, { recursive: true, force: true });
+        }
+      } catch (_) {}
+    }
+
+    res.json({ success: true, id, removed: result.removed });
+  } catch (err) {
+    console.error('DELETE /pending/:id error:', err);
     res.status(500).json({ error: err.message });
   }
 });

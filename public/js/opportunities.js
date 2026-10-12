@@ -156,7 +156,7 @@ function removeJobFromLocalCache(jobId) {
       }
       updatePendingBadges(filtered.length);
     }
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function hydrateFromCachedJobs() {
@@ -431,7 +431,7 @@ function renderPendingJobs(jobs, isFilterZero = false) {
             `).join('')}
           </div>
 
-          <!-- 4. Action Bar (Apply & Tailor PDF, Link, Pass) -->
+          <!-- 4. Action Bar (Apply & Tailor PDF, Link, Delete) -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-[#2B3036]/60">
             <div class="text-[11px] text-[#9AA0A6] font-mono flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-[#D9A441]"></span>
@@ -439,8 +439,8 @@ function renderPendingJobs(jobs, isFilterZero = false) {
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap justify-end">
-              <button onclick="rejectJob('${job.id}')" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#9AA0A6] hover:text-[#E5786D] border border-[#2B3036] hover:border-[#E5786D]/30 transition-all active:scale-[0.98] cursor-pointer">
-                Pass
+              <button id="btn-delete-${job.id}" onclick="deleteOpportunity('${job.id}')" title="Delete permanently" aria-label="Delete job permanently" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#9AA0A6] hover:text-[#E5786D] border border-[#2B3036] hover:border-[#E5786D]/30 transition-all active:scale-[0.98] cursor-pointer">
+                Delete 🗑️
               </button>
 
               ${jobUrl ? `
@@ -486,7 +486,7 @@ async function loadPendingJobs() {
       } else {
         localStorage.removeItem('jobryt_cached_pending_jobs');
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // Sync dynamic threshold filter chips from settings
     try {
@@ -497,7 +497,7 @@ async function loadPendingJobs() {
         window.activeScoreThreshold = th;
         updateThresholdFilterButtons(th);
       }
-    } catch (_) {}
+    } catch (_) { }
 
     filterOpportunities();
   } catch (e) {
@@ -919,7 +919,7 @@ function fallbackCopyText(text) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 async function applyToJob(jobId) {
@@ -1030,7 +1030,7 @@ function showApplicationPrompt(appliedJob, opts = {}) {
       if (targetUrl) {
         try {
           window.open(targetUrl, '_blank', 'noopener');
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // 2. Download the PDF
@@ -1042,7 +1042,7 @@ function showApplicationPrompt(appliedJob, opts = {}) {
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // 3. Copy cover letter to clipboard
@@ -1104,6 +1104,74 @@ function showApplicationPrompt(appliedJob, opts = {}) {
   modal.classList.remove('hidden');
 }
 
+const deleteArmTimers = {};
+
+async function deleteOpportunity(jobId) {
+  const btn = document.getElementById(`btn-delete-${jobId}`);
+  if (!btn) return;
+
+  const isArmed = btn.getAttribute('data-armed') === '1';
+
+  if (!isArmed) {
+    // First click: arm the button
+    btn.setAttribute('data-armed', '1');
+    btn.setAttribute('data-original-html', btn.innerHTML);
+    btn.innerHTML = `<span class="text-[#E5786D] font-semibold">Delete?</span>`;
+    btn.classList.add('border-[#E5786D]/40', 'bg-[#1C1618]');
+
+    // Clear existing timer if any
+    if (deleteArmTimers[jobId]) clearTimeout(deleteArmTimers[jobId]);
+
+    deleteArmTimers[jobId] = setTimeout(() => {
+      if (btn && btn.getAttribute('data-armed') === '1') {
+        btn.removeAttribute('data-armed');
+        btn.innerHTML = btn.getAttribute('data-original-html') || 'Delete 🗑️';
+        btn.classList.remove('border-[#E5786D]/40', 'bg-[#1C1618]');
+      }
+      delete deleteArmTimers[jobId];
+    }, 3000);
+    return;
+  }
+
+  // Second click within 3 s: execute delete
+  if (deleteArmTimers[jobId]) {
+    clearTimeout(deleteArmTimers[jobId]);
+    delete deleteArmTimers[jobId];
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="w-3.5 h-3.5 animate-spin text-[#E5786D]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
+
+  try {
+    const res = await fetch(`/api/jobs/pending/${encodeURIComponent(jobId)}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) {
+      const card = document.getElementById(`job-card-${jobId}`);
+      if (card) {
+        card.classList.add('opacity-0', 'scale-90', 'transition-all', 'duration-300');
+        setTimeout(() => card.remove(), 300);
+      }
+      removeJobFromLocalCache(jobId);
+      await loadStatus();
+      showToast("Job deleted — it won't appear in future scans", 'info');
+    } else {
+      showToast('Could not delete: ' + (data.error || 'Unknown error'), 'error');
+      btn.removeAttribute('data-armed');
+      btn.innerHTML = btn.getAttribute('data-original-html') || 'Delete 🗑️';
+      btn.classList.remove('border-[#E5786D]/40', 'bg-[#1C1618]');
+      btn.disabled = false;
+    }
+  } catch (err) {
+    showToast('Delete error: ' + err.message, 'error');
+    btn.removeAttribute('data-armed');
+    btn.innerHTML = btn.getAttribute('data-original-html') || 'Delete 🗑️';
+    btn.classList.remove('border-[#E5786D]/40', 'bg-[#1C1618]');
+    btn.disabled = false;
+  }
+}
+
 async function rejectJob(jobId) {
   try {
     await fetch('/api/jobs/reject', {
@@ -1133,6 +1201,7 @@ window.hydrateFromCachedJobs = hydrateFromCachedJobs;
 window.renderPendingJobs = renderPendingJobs;
 window.loadPendingJobs = loadPendingJobs;
 window.rejectJob = rejectJob;
+window.deleteOpportunity = deleteOpportunity;
 window.applyToJob = applyToJob;
 window.triggerPipelineScan = triggerPipelineScan;
 window.filterOpportunities = filterOpportunities;
