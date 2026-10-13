@@ -439,8 +439,8 @@ function renderPendingJobs(jobs, isFilterZero = false) {
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap justify-end">
-              <button id="btn-delete-${job.id}" onclick="deleteOpportunity('${job.id}')" title="Delete permanently" aria-label="Delete job permanently" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#9AA0A6] hover:text-[#E5786D] border border-[#2B3036] hover:border-[#E5786D]/30 transition-all active:scale-[0.98] cursor-pointer">
-                Delete 🗑️
+              <button id="btn-delete-${job.id}" onclick="deleteOpportunity('${job.id}')" title="Delete permanently" aria-label="Delete job permanently" class="py-2 px-3 rounded-md text-xs font-medium bg-[#242830] hover:bg-[#2B3036] text-[#9AA0A6] hover:text-[#E5786D] border border-[#2B3036] hover:border-[#E5786D]/30 transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
 
               ${jobUrl ? `
@@ -1125,7 +1125,8 @@ async function deleteOpportunity(jobId) {
     deleteArmTimers[jobId] = setTimeout(() => {
       if (btn && btn.getAttribute('data-armed') === '1') {
         btn.removeAttribute('data-armed');
-        btn.innerHTML = btn.getAttribute('data-original-html') || 'Delete 🗑️';
+        const originalHTML = btn.getAttribute('data-original-html') || `<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+        btn.innerHTML = originalHTML;
         btn.classList.remove('border-[#E5786D]/40', 'bg-[#1C1618]');
       }
       delete deleteArmTimers[jobId];
@@ -1159,14 +1160,16 @@ async function deleteOpportunity(jobId) {
     } else {
       showToast('Could not delete: ' + (data.error || 'Unknown error'), 'error');
       btn.removeAttribute('data-armed');
-      btn.innerHTML = btn.getAttribute('data-original-html') || 'Delete 🗑️';
+      const originalHTML = btn.getAttribute('data-original-html') || `<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+      btn.innerHTML = originalHTML;
       btn.classList.remove('border-[#E5786D]/40', 'bg-[#1C1618]');
       btn.disabled = false;
     }
   } catch (err) {
     showToast('Delete error: ' + err.message, 'error');
     btn.removeAttribute('data-armed');
-    btn.innerHTML = btn.getAttribute('data-original-html') || 'Delete 🗑️';
+    const originalHTML = btn.getAttribute('data-original-html') || `<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+    btn.innerHTML = originalHTML;
     btn.classList.remove('border-[#E5786D]/40', 'bg-[#1C1618]');
     btn.disabled = false;
   }
