@@ -436,7 +436,7 @@ function normalizeProfileFields(parsedProfile) {
       if (detected && detected !== 'GLOBAL') {
         parsedProfile.country_code = detected;
       }
-    } catch (_) {}
+    } catch (_) { }
   }
   if (parsedProfile.country_code && !c.country_code) {
     c.country_code = parsedProfile.country_code;
@@ -612,7 +612,7 @@ function normalizeProfileFields(parsedProfile) {
       // If dates are missing, extract from degree or institution strings
       if (!dates) {
         const dMatch = degree.match(/\b(?:19|20)\d\d\s*(?:–|—|-|\bto\b)\s*(?:Present|Current|(?:19|20)\d\d)\b/i) ||
-                       degree.match(/\b(?:19|20)\d\d\b/);
+          degree.match(/\b(?:19|20)\d\d\b/);
         if (dMatch) {
           dates = dMatch[0].trim();
           degree = degree.replace(dMatch[0], '').replace(/[()•·\-,|]+$/, '').replace(/^[()•·\-,|]+/, '').trim();
@@ -620,7 +620,7 @@ function normalizeProfileFields(parsedProfile) {
       }
       if (!dates) {
         const iMatch = institution.match(/\b(?:19|20)\d\d\s*(?:–|—|-|\bto\b)\s*(?:Present|Current|(?:19|20)\d\d)\b/i) ||
-                       institution.match(/\b(?:19|20)\d\d\b/);
+          institution.match(/\b(?:19|20)\d\d\b/);
         if (iMatch) {
           dates = iMatch[0].trim();
           institution = institution.replace(iMatch[0], '').replace(/[()•·\-,|]+$/, '').replace(/^[()•·\-,|]+/, '').trim();
@@ -727,7 +727,7 @@ async function parseResume(inputFilePath, options = {}) {
     try {
       const settings = JSON.parse(fs.readFileSync(path.join(dataDir, 'config', 'settings.json'), 'utf8'));
       apiKey = settings.llm_api_key;
-    } catch (_) {}
+    } catch (_) { }
   }
 
   let rawText = '';
@@ -983,7 +983,7 @@ async function parseResume(inputFilePath, options = {}) {
   if (options.deleteAfterParsing && targetPath && fs.existsSync(targetPath)) {
     try {
       fs.unlinkSync(targetPath);
-      console.log(`🗑️ Deleted source resume after parsing into JSON: ${targetPath}`);
+      console.log(`Delete 🗑️ Deleted source resume after parsing into JSON: ${targetPath}`);
     } catch (e) {
       console.warn(`⚠️ Could not delete resume after parsing: ${e.message}`);
     }

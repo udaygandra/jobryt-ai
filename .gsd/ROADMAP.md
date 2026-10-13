@@ -316,6 +316,13 @@ updated: 2026-10-08T17:36:00Z
 | 30 | ✅ | 3/3 | 100% (v1.2) |
 | 31 | ✅ | 3/3 | 100% (v1.2) |
 | 32 | ✅ | 3/3 | 100% (v1.2) |
+| 33 | ○ | 0/0 | 0% (v1.2) |
+
+---
+
+### Phase 33: Resume-Parser-Driven Target Roles & Settings Auto-Population
+**Status:** Planned (Milestone v1.2)
+**Objective:** When user uploads resume, LLM extracts primary profession/title from resume header as highest-priority target role. Only includes past experience skills that match current profession or similar field. Auto-populates settings.json with target roles, country, and location from resume. Updates resume-parser.txt prompt to enforce this behavior.
 
 
 
