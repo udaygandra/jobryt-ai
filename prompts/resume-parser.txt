@@ -4,7 +4,16 @@ TASK
 Extract the candidate resume into the exact JSON schema below. Experience bullets, dates, companies, education, and skills must be strictly factual from the resume. For `target_titles`, actively discover 4 to 10 market-validated equivalent titles matching the candidate's stack, domain, and seniority.
 
 CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
-1. STRICT ZERO FABRICATION (EXPERIENCE, DATES, SKILLS, COMPANIES):
+1. HEADER PROFESSION PRIORITY (PRIMARY PROFESSION EXTRACTION):
+   - The FIRST job title appearing after the name/contact block IS the PRIMARY PROFESSION. This title must appear as the FIRST element in the `target_titles` array. All other discovered roles are secondary.
+   - Example: If resume header shows "John Doe\nSenior Software Engineer\nSan Francisco, CA" — then "Senior Software Engineer" is the primary profession and MUST be `target_titles[0]`.
+
+2. PROFESSION-AWARE SKILL FILTERING:
+   - In `skills` and `skills_categorized`, ONLY include skills DIRECTLY RELEVANT to the primary profession. Exclude skills from unrelated past roles (e.g., "lesson planning", "classroom management" for a Software Engineer; "cash handling", "inventory management" for a Data Analyst).
+   - Preserve ALL original skills in a new field `all_skills` (uncategorized, complete) for auditability. The filtered `skills` and `skills_categorized` contain only profession-relevant items.
+   - Group by category: `languages`, `frameworks`, `tools`, `domains`, `databases`, `cloud`, `methodologies`, `other`.
+
+3. STRICT ZERO FABRICATION (EXPERIENCE, DATES, SKILLS, COMPANIES):
    - Never invent, extrapolate, normalize into a stronger claim, or hallucinate any company, date, degree, certification, metric, responsibility, contact detail, or work authorization status.
    - If a field is not present, use "" for missing strings and [] for missing arrays.
    - Preserve metrics, qualifiers, dates, and wording exactly as stated in the resume.
@@ -61,6 +70,7 @@ RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
   "total_experience_stated": "",
   "skills": [],
   "skills_familiar": [],
+  "all_skills": [],
   "skills_categorized": [
     {
       "category": "",

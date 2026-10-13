@@ -214,6 +214,95 @@ function roundYearsOfExperience(val) {
   return Number(rounded.toFixed(1));
 }
 
+function filterSkillsByPrimaryProfession(profile) {
+  const primaryTitle = profile.target_titles?.[0] || profile.role || 'Professional';
+  const primaryKeywords = extractProfessionKeywords(primaryTitle);
+
+  // Preserve ALL original skills in all_skills for auditability
+  if (!profile.all_skills) {
+    profile.all_skills = [...(profile.skills || [])];
+  }
+
+  // Filter skills to only profession-relevant ones
+  const relevantSkills = (profile.skills || []).filter(skill => isSkillRelevant(skill, primaryKeywords));
+
+  // Filter skills_categorized to only contain relevant skills
+  let relevantCategorized = [];
+  if (Array.isArray(profile.skills_categorized)) {
+    relevantCategorized = profile.skills_categorized
+      .map(cat => ({
+        category: cat.category,
+        items: (cat.items || []).filter(skill => isSkillRelevant(skill, primaryKeywords))
+      }))
+      .filter(cat => cat.items.length > 0);
+  }
+
+  // Also filter skills_familiar
+  const relevantFamiliar = (profile.skills_familiar || []).filter(skill => isSkillRelevant(skill, primaryKeywords));
+
+  return {
+    ...profile,
+    skills: relevantSkills,
+    skills_categorized: relevantCategorized,
+    skills_familiar: relevantFamiliar
+  };
+}
+
+function extractProfessionKeywords(title) {
+  const t = title.toLowerCase();
+  const keywords = new Set();
+
+  // Common profession keyword mappings
+  const mappings = {
+    'software': ['software', 'engineer', 'developer', 'programming', 'coding', 'backend', 'frontend', 'full stack', 'fullstack', 'web', 'api', 'microservice', 'distributed', 'system', 'architecture', 'design pattern', 'oop', 'data structure', 'algorithm'],
+    'data': ['data', 'analyst', 'analytics', 'sql', 'python', 'r', 'tableau', 'power bi', 'looker', 'etl', 'pipeline', 'warehouse', 'modeling', 'statistics', 'machine learning', 'ml', 'visualization', 'dashboard', 'reporting', 'bi', 'business intelligence'],
+    'devops': ['devops', 'cloud', 'aws', 'azure', 'gcp', 'kubernetes', 'docker', 'terraform', 'ci/cd', 'pipeline', 'infrastructure', 'sre', 'site reliability', 'monitoring', 'logging', 'automation', 'deployment'],
+    'frontend': ['frontend', 'front-end', 'react', 'vue', 'angular', 'javascript', 'typescript', 'html', 'css', 'ui', 'ux', 'responsive', 'webpack', 'vite', 'next.js', 'nextjs', 'web'],
+    'backend': ['backend', 'back-end', 'node', 'express', 'python', 'django', 'flask', 'java', 'spring', 'go', 'golang', 'rust', 'api', 'rest', 'graphql', 'database', 'sql', 'nosql', 'microservice'],
+    'mobile': ['mobile', 'ios', 'android', 'swift', 'kotlin', 'react native', 'flutter', 'xamarin', 'app'],
+    'qa': ['qa', 'quality', 'test', 'automation', 'selenium', 'cypress', 'playwright', 'junit', 'pytest', 'tdd', 'bdd'],
+    'security': ['security', 'cybersecurity', 'penetration', 'vulnerability', 'compliance', 'encryption', 'auth', 'oauth', 'jwt', 'saml'],
+    'ml': ['machine learning', 'ml', 'ai', 'deep learning', 'tensorflow', 'pytorch', 'scikit', 'nlp', 'computer vision', 'model', 'training', 'inference', 'llm', 'transformer'],
+    'product': ['product', 'manager', 'pm', 'roadmap', 'strategy', 'user research', 'analytics', 'a/b', 'experiment', 'growth'],
+    'design': ['design', 'ui', 'ux', 'figma', 'sketch', 'adobe', 'prototyping', 'wireframe', 'user research', 'accessibility', 'design system'],
+    'teaching': ['teaching', 'education', 'curriculum', 'lesson', 'classroom', 'student', 'instruction', 'pedagogy', 'training', 'mentor'],
+    'management': ['management', 'manager', 'lead', 'director', 'vp', 'strategy', 'budget', 'hiring', 'team', 'agile', 'scrum', 'kanban'],
+    'sales': ['sales', 'account', 'business development', 'client', 'revenue', 'quota', 'crm', 'salesforce', 'negotiation', 'pipeline'],
+    'marketing': ['marketing', 'seo', 'sem', 'content', 'social media', 'campaign', 'brand', 'growth', 'analytics', 'conversion'],
+    'finance': ['finance', 'financial', 'accounting', 'audit', 'tax', 'budget', 'forecast', 'modeling', 'excel', 'erp', 'sap'],
+    'hr': ['hr', 'human resources', 'recruiting', 'talent', 'onboarding', 'benefits', 'compensation', 'employee relations', 'workday', 'bamboohr']
+  };
+
+  // Match profession to keywords
+  for (const [prof, kwList] of Object.entries(mappings)) {
+    if (t.includes(prof)) {
+      for (const kw of kwList) keywords.add(kw);
+    }
+  }
+
+  // Also add individual words from title
+  for (const word of t.split(/[\s\-/]+/)) {
+    if (word.length > 2) keywords.add(word);
+  }
+
+  return Array.from(keywords);
+}
+
+function isSkillRelevant(skill, primaryKeywords) {
+  if (!skill || typeof skill !== 'string') return false;
+  const s = skill.toLowerCase().trim();
+  if (!s) return false;
+
+  // Always keep if it's a direct match
+  if (primaryKeywords.some(kw => s.includes(kw) || kw.includes(s))) return true;
+
+  // Common tech keywords that are broadly relevant
+  const broadRelevant = ['javascript', 'typescript', 'python', 'java', 'go', 'rust', 'sql', 'nosql', 'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'git', 'linux', 'api', 'rest', 'graphql', 'ci/cd', 'terraform', 'react', 'vue', 'angular', 'node', 'express', 'django', 'spring', 'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch'];
+  if (broadRelevant.some(kw => s.includes(kw))) return true;
+
+  return false;
+}
+
 function normalizeCategorizedSkills(rawCategorized = [], flatSkills = []) {
   const flatSet = new Set(flatSkills.map(s => s.trim().toLowerCase()));
   const skillToExact = new Map(flatSkills.map(s => [s.trim().toLowerCase(), s.trim()]));
@@ -594,6 +683,9 @@ function normalizeProfileFields(parsedProfile) {
   parsedProfile.target_roles = [...enrichedTitles];
   parsedProfile.role = parsedProfile.target_titles[0] || 'Professional';
   parsedProfile.title = parsedProfile.role;
+
+  // Filter skills by primary profession (from header/first target_title)
+  parsedProfile = filterSkillsByPrimaryProfession(parsedProfile);
 
   // Education with synchronized dates & degrees
   if (Array.isArray(parsedProfile.education)) {
@@ -1033,5 +1125,8 @@ module.exports = {
   calculateYearsOfExperience,
   roundYearsOfExperience,
   normalizeCategorizedSkills,
-  cleanDocxAndMarkdownArtifacts
+  cleanDocxAndMarkdownArtifacts,
+  filterSkillsByPrimaryProfession,
+  extractProfessionKeywords,
+  isSkillRelevant
 };

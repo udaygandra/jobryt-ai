@@ -108,7 +108,7 @@ function extractResumeLocallyFromText(rawText) {
 
   const rawLines = scrubbedText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-  const profile = {
+  let profile = {
     name: '',
     target_titles: [],
     locations: [],
@@ -125,6 +125,7 @@ function extractResumeLocallyFromText(rawText) {
     years_of_experience: 0,
     skills: [],
     skills_familiar: [],
+    all_skills: [],
     skills_categorized: [],
     experience: [],
     education: [],
@@ -375,6 +376,7 @@ function extractResumeLocallyFromText(rawText) {
 
   profile.skills = skillsList;
   profile.skills_familiar = familiarList;
+  profile.all_skills = [...skillsList];
   profile.skills_categorized = categorizedList;
 
   // ── 5. Parse Professional Experience with Header Lookahead ───────────────────
@@ -819,6 +821,10 @@ function extractResumeLocallyFromText(rawText) {
       }
     } catch (_) {}
   }
+
+  // Filter skills by primary profession (from header/first target_title)
+  const { filterSkillsByPrimaryProfession } = require('./resume-to-profile');
+  profile = filterSkillsByPrimaryProfession(profile);
 
   return profile;
 }
