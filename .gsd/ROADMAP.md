@@ -272,6 +272,17 @@ updated: 2026-10-08T17:36:00Z
 
 ---
 
+### Phase 32: Single-Step Tailored Package Modal, Permanent Opportunity Delete & Light Theme Residual Sweep
+**Status:** ✅ Complete (Milestone v1.2)
+**Objective:** Replace the "Did you submit?" interstitial with a single cover-letter + resume modal ("Download & Submit" opens the job page, downloads the PDF, copies the cover letter with notification, and moves the job to My Applications as "Tailored (Ready to Submit)"; "Not Ready"/close keeps it in Opportunities via deferred commit). Replace "Pass" with a trash-can permanent delete that purges the job from the DB while preserving seen_jobs dedup memory. Eliminate all residual dark elements in light theme (score pills, avatar tiles, Start from Fresh card, etc.) with light-scoped overrides only.
+
+**Plans:**
+- [x] [Plan 32.1: Single-Step Tailored Package Modal with Deferred Commit](.gsd/phases/32/32.1-PLAN.md) (wave 1)
+- [x] [Plan 32.2: Trash-Can Permanent Delete (Keep seen_jobs)](.gsd/phases/32/32.2-PLAN.md) (wave 2, after 32.1)
+- [x] [Plan 32.3: Light Theme Residual Dark Element Sweep](.gsd/phases/32/32.3-PLAN.md) (wave 1)
+
+---
+
 ## Progress Summary
 
 | Phase | Status | Plans | Complete |
@@ -304,6 +315,7 @@ updated: 2026-10-08T17:36:00Z
 | 29 | ✅ | 3/3 | 100% (v1.2) |
 | 30 | ✅ | 3/3 | 100% (v1.2) |
 | 31 | ✅ | 3/3 | 100% (v1.2) |
+| 32 | ✅ | 3/3 | 100% (v1.2) |
 
 
 
