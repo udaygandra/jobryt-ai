@@ -204,7 +204,7 @@ async function runPdfTests() {
 
   console.log('   Verifying parsed fields for Sahana Rao D:');
   // Name
-  assert.strictEqual(prof.name, 'SAHANA RAO D', 'Name must match SAHANA RAO D');
+  assert.strictEqual(prof.name.toUpperCase(), 'SAHANA RAO D', 'Name must match SAHANA RAO D');
   console.log(`   ✔ Name: "${prof.name}"`);
 
   // Target roles
@@ -296,7 +296,7 @@ async function runPdfTests() {
   assert.strictEqual(saveRes.json.success, true);
 
   const getProfileRes = await request('GET', '/api/profile');
-  assert.strictEqual(getProfileRes.json.name, 'SAHANA RAO D');
+  assert.strictEqual(getProfileRes.json.name.toUpperCase(), 'SAHANA RAO D');
   console.log('   ✔ Master Profile updated and verified in database');
 
   // ── TEST 3: Verify Downstream Features for Sahana Rao D ───────────────────

@@ -5,13 +5,12 @@ Extract the candidate resume into the exact JSON schema below. Experience bullet
 
 CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
 1. HEADER PROFESSION PRIORITY (PRIMARY PROFESSION EXTRACTION):
-   - The FIRST job title appearing after the name/contact block IS the PRIMARY PROFESSION. This title must appear as the FIRST element in the `target_titles` array. All other discovered roles are secondary.
+   - The FIRST job title appearing after the name/contact block IS the PRIMARY PROFESSION. It must appear as the FIRST element in `target_titles` array. All other discovered roles are secondary.
    - Example: If resume header shows "John Doe\nSenior Software Engineer\nSan Francisco, CA" — then "Senior Software Engineer" is the primary profession and MUST be `target_titles[0]`.
 
 2. PROFESSION-AWARE SKILL FILTERING:
-   - In `skills` and `skills_categorized`, ONLY include skills DIRECTLY RELEVANT to the primary profession. Exclude skills from unrelated past roles (e.g., "lesson planning", "classroom management" for a Software Engineer; "cash handling", "inventory management" for a Data Analyst).
+   - In `skills` and `skills_categorized`, ONLY include skills DIRECTLY RELEVANT to the primary profession. Exclude skills from unrelated past roles (e.g., 'teaching', 'retail management' for a software engineer). Group by category: `languages`, `frameworks`, `tools`, `domains`, `databases`, `cloud`, `methodologies`, `other`.
    - Preserve ALL original skills in a new field `all_skills` (uncategorized, complete) for auditability. The filtered `skills` and `skills_categorized` contain only profession-relevant items.
-   - Group by category: `languages`, `frameworks`, `tools`, `domains`, `databases`, `cloud`, `methodologies`, `other`.
 
 3. STRICT ZERO FABRICATION (EXPERIENCE, DATES, SKILLS, COMPANIES):
    - Never invent, extrapolate, normalize into a stronger claim, or hallucinate any company, date, degree, certification, metric, responsibility, contact detail, or work authorization status.
@@ -19,7 +18,7 @@ CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
    - Preserve metrics, qualifiers, dates, and wording exactly as stated in the resume.
    - Remove obvious PDF/DOCX formatting artifacts such as repeated asterisks, broken bold/emphasis markers, zero-width characters, or accidental spacing. Do NOT change the underlying words.
 
-2. NO-LOSS EXTRACTION:
+4. NO-LOSS EXTRACTION:
    - Copy every experience bullet with complete detail; do not summarize or condense bullets.
    - Extract every individual skill, tool, framework, library, platform, database, and methodology keyword as granular strings into `skills`.
    - Preserve qualifiers such as "Familiar", "Beginner", "Working knowledge", or similar. Put those items in `skills_familiar` when the resume explicitly qualifies them as non-expert/familiar.
@@ -55,7 +54,12 @@ CRITICAL RULES — ZERO FABRICATION & COMPLETE FIDELITY:
 RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
 {
   "name": "",
-  "target_titles": [],
+  "target_titles": [
+    "<Primary Header Profession/Title FIRST>",
+    "<Market-Validated Role 2>",
+    "<Market-Validated Role 3>",
+    "<Market-Validated Role 4>"
+  ],
   "locations": [],
   "contact": {
     "email": "",

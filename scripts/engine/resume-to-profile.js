@@ -215,6 +215,8 @@ function roundYearsOfExperience(val) {
 }
 
 function filterSkillsByPrimaryProfession(profile) {
+  if (!profile || typeof profile !== 'object') return profile;
+
   const primaryTitle = profile.target_titles?.[0] || profile.role || 'Professional';
   const primaryKeywords = extractProfessionKeywords(primaryTitle);
 
@@ -224,7 +226,12 @@ function filterSkillsByPrimaryProfession(profile) {
   }
 
   // Filter skills to only profession-relevant ones
-  const relevantSkills = (profile.skills || []).filter(skill => isSkillRelevant(skill, primaryKeywords));
+  let relevantSkills = (profile.skills || []).filter(skill => isSkillRelevant(skill, primaryKeywords, primaryTitle));
+
+  // Safety fallback: if aggressive filtering cleared all skills, preserve original
+  if (relevantSkills.length === 0 && (profile.all_skills || []).length > 0) {
+    relevantSkills = [...profile.all_skills];
+  }
 
   // Filter skills_categorized to only contain relevant skills
   let relevantCategorized = [];
@@ -232,13 +239,13 @@ function filterSkillsByPrimaryProfession(profile) {
     relevantCategorized = profile.skills_categorized
       .map(cat => ({
         category: cat.category,
-        items: (cat.items || []).filter(skill => isSkillRelevant(skill, primaryKeywords))
+        items: (cat.items || []).filter(skill => isSkillRelevant(skill, primaryKeywords, primaryTitle))
       }))
       .filter(cat => cat.items.length > 0);
   }
 
   // Also filter skills_familiar
-  const relevantFamiliar = (profile.skills_familiar || []).filter(skill => isSkillRelevant(skill, primaryKeywords));
+  const relevantFamiliar = (profile.skills_familiar || []).filter(skill => isSkillRelevant(skill, primaryKeywords, primaryTitle));
 
   return {
     ...profile,
@@ -249,56 +256,178 @@ function filterSkillsByPrimaryProfession(profile) {
 }
 
 function extractProfessionKeywords(title) {
+  if (!title || typeof title !== 'string') return [];
   const t = title.toLowerCase();
   const keywords = new Set();
 
-  // Common profession keyword mappings
-  const mappings = {
-    'software': ['software', 'engineer', 'developer', 'programming', 'coding', 'backend', 'frontend', 'full stack', 'fullstack', 'web', 'api', 'microservice', 'distributed', 'system', 'architecture', 'design pattern', 'oop', 'data structure', 'algorithm'],
-    'data': ['data', 'analyst', 'analytics', 'sql', 'python', 'r', 'tableau', 'power bi', 'looker', 'etl', 'pipeline', 'warehouse', 'modeling', 'statistics', 'machine learning', 'ml', 'visualization', 'dashboard', 'reporting', 'bi', 'business intelligence'],
-    'devops': ['devops', 'cloud', 'aws', 'azure', 'gcp', 'kubernetes', 'docker', 'terraform', 'ci/cd', 'pipeline', 'infrastructure', 'sre', 'site reliability', 'monitoring', 'logging', 'automation', 'deployment'],
-    'frontend': ['frontend', 'front-end', 'react', 'vue', 'angular', 'javascript', 'typescript', 'html', 'css', 'ui', 'ux', 'responsive', 'webpack', 'vite', 'next.js', 'nextjs', 'web'],
-    'backend': ['backend', 'back-end', 'node', 'express', 'python', 'django', 'flask', 'java', 'spring', 'go', 'golang', 'rust', 'api', 'rest', 'graphql', 'database', 'sql', 'nosql', 'microservice'],
-    'mobile': ['mobile', 'ios', 'android', 'swift', 'kotlin', 'react native', 'flutter', 'xamarin', 'app'],
-    'qa': ['qa', 'quality', 'test', 'automation', 'selenium', 'cypress', 'playwright', 'junit', 'pytest', 'tdd', 'bdd'],
-    'security': ['security', 'cybersecurity', 'penetration', 'vulnerability', 'compliance', 'encryption', 'auth', 'oauth', 'jwt', 'saml'],
-    'ml': ['machine learning', 'ml', 'ai', 'deep learning', 'tensorflow', 'pytorch', 'scikit', 'nlp', 'computer vision', 'model', 'training', 'inference', 'llm', 'transformer'],
-    'product': ['product', 'manager', 'pm', 'roadmap', 'strategy', 'user research', 'analytics', 'a/b', 'experiment', 'growth'],
-    'design': ['design', 'ui', 'ux', 'figma', 'sketch', 'adobe', 'prototyping', 'wireframe', 'user research', 'accessibility', 'design system'],
-    'teaching': ['teaching', 'education', 'curriculum', 'lesson', 'classroom', 'student', 'instruction', 'pedagogy', 'training', 'mentor'],
-    'management': ['management', 'manager', 'lead', 'director', 'vp', 'strategy', 'budget', 'hiring', 'team', 'agile', 'scrum', 'kanban'],
-    'sales': ['sales', 'account', 'business development', 'client', 'revenue', 'quota', 'crm', 'salesforce', 'negotiation', 'pipeline'],
-    'marketing': ['marketing', 'seo', 'sem', 'content', 'social media', 'campaign', 'brand', 'growth', 'analytics', 'conversion'],
-    'finance': ['finance', 'financial', 'accounting', 'audit', 'tax', 'budget', 'forecast', 'modeling', 'excel', 'erp', 'sap'],
-    'hr': ['hr', 'human resources', 'recruiting', 'talent', 'onboarding', 'benefits', 'compensation', 'employee relations', 'workday', 'bamboohr']
-  };
+  const domainMatchers = [
+    {
+      domain: 'teaching',
+      match: /\b(?:teach|teacher|teaching|educat|instructor|professor|tutor|lectur|faculty|pedagog|school|k-12|curriculum)\b/i,
+      keywords: ['teaching', 'education', 'curriculum', 'lesson', 'lesson planning', 'classroom', 'classroom management', 'student', 'instruction', 'pedagogy', 'training', 'mentor', 'grading', 'assessment', 'academic', 'course design', 'e-learning', 'blackboard', 'canvas', 'moodle', 'special education', 'tutoring']
+    },
+    {
+      domain: 'nursing',
+      match: /\b(?:nurse|nursing|registered nurse|rn\b|lpn\b|np\b|clinical|patient|healthcare|medical|hospital|triage|physician)\b/i,
+      keywords: ['patient care', 'triage', 'bls', 'cpr', 'emr', 'ehr', 'vital signs', 'medication administration', 'clinical documentation', 'phlebotomy', 'epic', 'cerner', 'infection control', 'hipaa', 'bedside', 'pharmacology', 'care planning', 'iv therapy', 'nursing', 'medical', 'clinical']
+    },
+    {
+      domain: 'software',
+      match: /\b(?:software|developer|engineer|programmer|architect|coding|full\s*stack|fullstack|web\s*developer|computer\s*scientist)\b/i,
+      keywords: ['software', 'engineer', 'developer', 'programming', 'coding', 'backend', 'frontend', 'full stack', 'fullstack', 'web', 'api', 'microservice', 'distributed', 'system', 'architecture', 'design pattern', 'oop', 'data structure', 'algorithm', 'git', 'ci/cd', 'agile', 'scrum']
+    },
+    {
+      domain: 'data',
+      match: /\b(?:data|analyst|analytics|bi\b|business\s*intelligence|statistic|machine\s*learning|ai\b|analytics\s*engineer)\b/i,
+      keywords: [
+        'data', 'analyst', 'analytics', 'sql', 'python', 'r', 'tableau', 'power bi', 'looker', 'etl', 'elt', 'pipeline',
+        'warehouse', 'modeling', 'statistics', 'machine learning', 'ml', 'visualization', 'dashboard', 'reporting', 'bi',
+        'business intelligence', 'bigquery', 'snowflake', 'dbt', 'excel', 'pandas', 'numpy', 'scipy', 'matplotlib', 'seaborn',
+        'dax', 'power query', 't-sql', 'pl/sql', 'data profiling', 'window functions', 'feature engineering', 'time-series',
+        'star schema', 'dimensional modeling', 'data warehousing', 'data cleaning', 'data validation', 'data reconciliation',
+        'data quality', 'data dictionary', 'ai-ready', 'kpi', 'eda'
+      ]
+    },
+    {
+      domain: 'devops',
+      match: /\b(?:devops|cloud|sre\b|site\s*reliability|platform\s*engineer|infrastructure)\b/i,
+      keywords: ['devops', 'cloud', 'aws', 'azure', 'gcp', 'kubernetes', 'docker', 'terraform', 'ci/cd', 'pipeline', 'infrastructure', 'sre', 'site reliability', 'monitoring', 'logging', 'automation', 'deployment', 'ansible', 'helm', 'linux']
+    },
+    {
+      domain: 'frontend',
+      match: /\b(?:frontend|front-end|ui\s*developer|web\s*developer)\b/i,
+      keywords: ['frontend', 'front-end', 'react', 'vue', 'angular', 'javascript', 'typescript', 'html', 'css', 'ui', 'ux', 'responsive', 'webpack', 'vite', 'next.js', 'nextjs', 'web', 'tailwind', 'sass']
+    },
+    {
+      domain: 'backend',
+      match: /\b(?:backend|back-end|api\s*developer|server\s*engineer)\b/i,
+      keywords: ['backend', 'back-end', 'node', 'express', 'python', 'django', 'flask', 'java', 'spring', 'go', 'golang', 'rust', 'api', 'rest', 'graphql', 'database', 'sql', 'nosql', 'microservice', 'kafka', 'redis', 'postgresql']
+    },
+    {
+      domain: 'mobile',
+      match: /\b(?:mobile|ios|android|react\s*native|flutter)\b/i,
+      keywords: ['mobile', 'ios', 'android', 'swift', 'kotlin', 'react native', 'flutter', 'xamarin', 'app', 'xcode', 'android studio']
+    },
+    {
+      domain: 'qa',
+      match: /\b(?:qa\b|quality\s*assurance|test\s*engineer|tester|sdet)\b/i,
+      keywords: ['qa', 'quality', 'test', 'automation', 'selenium', 'cypress', 'playwright', 'junit', 'pytest', 'tdd', 'bdd', 'manual testing', 'postman', 'jira']
+    },
+    {
+      domain: 'security',
+      match: /\b(?:security|cybersecurity|infosec|soc\b|penetration|threat)\b/i,
+      keywords: ['security', 'cybersecurity', 'penetration', 'vulnerability', 'compliance', 'encryption', 'auth', 'oauth', 'jwt', 'saml', 'siem', 'soc', 'firewall', 'cissp']
+    },
+    {
+      domain: 'ml',
+      match: /\b(?:machine\s*learning|ml\b|ai\b|deep\s*learning|nlp|computer\s*vision|data\s*scientist)\b/i,
+      keywords: ['machine learning', 'ml', 'ai', 'deep learning', 'tensorflow', 'pytorch', 'scikit', 'nlp', 'computer vision', 'model', 'training', 'inference', 'llm', 'transformer', 'python', 'huggingface']
+    },
+    {
+      domain: 'product',
+      match: /\b(?:product\s*manager|product\s*owner|pm\b)\b/i,
+      keywords: ['product', 'manager', 'pm', 'roadmap', 'strategy', 'user research', 'analytics', 'a/b', 'experiment', 'growth', 'prd', 'scrum', 'agile', 'user stories']
+    },
+    {
+      domain: 'design',
+      match: /\b(?:design|designer|ui|ux|graphic\s*designer|visual\s*designer)\b/i,
+      keywords: ['design', 'ui', 'ux', 'figma', 'sketch', 'adobe', 'prototyping', 'wireframe', 'user research', 'accessibility', 'design system', 'photoshop', 'illustrator']
+    },
+    {
+      domain: 'management',
+      match: /\b(?:management|manager|director|vp\b|vice\s*president|executive|chief|head\s+of)\b/i,
+      keywords: ['management', 'manager', 'lead', 'director', 'vp', 'strategy', 'budget', 'hiring', 'team', 'agile', 'scrum', 'kanban', 'leadership', 'cross-functional', 'okrs', 'kpis']
+    },
+    {
+      domain: 'sales',
+      match: /\b(?:sales|account\s*executive|business\s*development|bdr\b|sdr\b|client\s*executive)\b/i,
+      keywords: ['sales', 'account', 'business development', 'client', 'revenue', 'quota', 'crm', 'salesforce', 'negotiation', 'pipeline', 'cold calling', 'prospecting', 'b2b', 'closing']
+    },
+    {
+      domain: 'marketing',
+      match: /\b(?:marketing|seo|sem|growth|brand|content\s*creator|copywriter)\b/i,
+      keywords: ['marketing', 'seo', 'sem', 'content', 'social media', 'campaign', 'brand', 'growth', 'analytics', 'conversion', 'copywriting', 'email marketing', 'google analytics', 'hubspot']
+    },
+    {
+      domain: 'finance',
+      match: /\b(?:finance|financial|accountant|accounting|audit|tax|controller|bookkeep)\b/i,
+      keywords: ['finance', 'financial', 'accounting', 'audit', 'tax', 'budget', 'forecast', 'modeling', 'excel', 'erp', 'sap', 'gaap', 'general ledger', 'reconciliation', 'financial reporting']
+    },
+    {
+      domain: 'hr',
+      match: /\b(?:hr\b|human\s*resources|recruiter|recruiting|talent|people\s*ops)\b/i,
+      keywords: ['hr', 'human resources', 'recruiting', 'talent', 'onboarding', 'benefits', 'compensation', 'employee relations', 'workday', 'bamboohr', 'talent acquisition', 'sourcing']
+    }
+  ];
 
-  // Match profession to keywords
-  for (const [prof, kwList] of Object.entries(mappings)) {
-    if (t.includes(prof)) {
-      for (const kw of kwList) keywords.add(kw);
+  for (const dm of domainMatchers) {
+    if (dm.match.test(t)) {
+      for (const kw of dm.keywords) keywords.add(kw);
     }
   }
 
-  // Also add individual words from title
+  // Also add individual words from title (>= 3 chars)
   for (const word of t.split(/[\s\-/]+/)) {
-    if (word.length > 2) keywords.add(word);
+    if (word.length >= 3 && !/^(?:and|for|the|with|senior|junior|lead|principal|staff)$/i.test(word)) {
+      keywords.add(word);
+    }
   }
 
   return Array.from(keywords);
 }
 
-function isSkillRelevant(skill, primaryKeywords) {
+function isSkillRelevant(skill, primaryKeywords = [], primaryTitle = '') {
   if (!skill || typeof skill !== 'string') return false;
   const s = skill.toLowerCase().trim();
   if (!s) return false;
 
-  // Always keep if it's a direct match
-  if (primaryKeywords.some(kw => s.includes(kw) || kw.includes(s))) return true;
+  const t = (primaryTitle || '').toLowerCase();
+  const isTechProfession = /\b(?:software|developer|engineer|programmer|architect|coding|full\s*stack|fullstack|web|data|analyst|analytics|devops|cloud|sre|frontend|backend|mobile|qa|test|security|ml|machine\s*learning|ai)\b/i.test(t);
+  const isTeachingProfession = /\b(?:teach|teacher|teaching|educat|instructor|professor|tutor|lectur|pedagog|school|k-12|curriculum)\b/i.test(t);
+  const isNursingProfession = /\b(?:nurse|nursing|registered nurse|rn|clinical|patient|healthcare|medical|hospital|triage)\b/i.test(t);
 
-  // Common tech keywords that are broadly relevant
-  const broadRelevant = ['javascript', 'typescript', 'python', 'java', 'go', 'rust', 'sql', 'nosql', 'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'git', 'linux', 'api', 'rest', 'graphql', 'ci/cd', 'terraform', 'react', 'vue', 'angular', 'node', 'express', 'django', 'spring', 'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch'];
-  if (broadRelevant.some(kw => s.includes(kw))) return true;
+  // Unrelated role exclusions:
+  // 1. If tech profession: exclude unrelated past role skills (teaching, retail/cashier/food)
+  if (isTechProfession) {
+    const unrelatedTeaching = /\b(?:lesson\s*plan|classroom\s*manage|student\s*grad|curriculum\s*dev|pedagog|special\s*educat)\b/i;
+    const unrelatedRetailService = /\b(?:cash\s*handl|cash\s*regist|pos\s*regist|inventory\s*reconcil|store\s*open|food\s*prep|barista|table\s*wait|retail\s*manage)\b/i;
+    if (unrelatedTeaching.test(s) || unrelatedRetailService.test(s)) {
+      return false;
+    }
+  }
+
+  // 2. If teaching profession: exclude unrelated non-teaching skills (cashier, deep coding)
+  if (isTeachingProfession) {
+    const unrelatedRetail = /\b(?:cash\s*handl|cash\s*regist|food\s*prep|barista)\b/i;
+    if (unrelatedRetail.test(s)) {
+      return false;
+    }
+  }
+
+  // Direct match against derived primary keywords
+  if (primaryKeywords.some(kw => s.includes(kw) || (kw.length >= 4 && kw.includes(s)))) {
+    return true;
+  }
+
+  // Common tech skills broadly relevant across all tech disciplines
+  if (isTechProfession) {
+    const broadTech = [
+      'javascript', 'typescript', 'python', 'java', 'go', 'golang', 'rust', 'c++', 'c#',
+      'sql', 'nosql', 'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch', 'bigquery', 'snowflake',
+      'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'git', 'linux', 'api', 'rest', 'graphql',
+      'ci/cd', 'terraform', 'react', 'vue', 'angular', 'node', 'express', 'django', 'spring',
+      'tableau', 'power bi', 'excel', 'pandas', 'numpy', 'scikit', 'etl', 'html', 'css', 'jira', 'agile', 'scrum',
+      'dax', 'power query', 't-sql', 'data profiling', 'window functions', 'feature engineering', 'time-series'
+    ];
+    if (broadTech.some(kw => s.includes(kw) || (kw.length >= 4 && kw.includes(s)))) {
+      return true;
+    }
+  }
+
+  // If title is not tech/teaching/nursing (general domain), don't aggressively drop skills
+  if (!isTechProfession && !isTeachingProfession && !isNursingProfession) {
+    return true;
+  }
 
   return false;
 }
