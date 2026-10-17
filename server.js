@@ -84,9 +84,9 @@ app.get('/api/status', (req, res) => {
     const profile = profileRoutes.getMasterProfile();
     const settings = settingsHelper.getSettings();
     const seenCount = jobsDb.getSeenJobsCount();
-    const pendingJobs = jobsDb.getPendingJobs(500);
-    const appliedJobs = jobsDb.getAppliedJobs(500);
-    const rejectedJobs = jobsDb.getRejectedJobs(500);
+    const pendingJobs = jobsDb.getPendingJobs();
+    const appliedJobs = jobsDb.getAppliedJobs();
+    const rejectedJobs = jobsDb.getRejectedJobs();
 
     let modelInfo = {
       provider: process.env.LLM_PROVIDER || 'gemini',

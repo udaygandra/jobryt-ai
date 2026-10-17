@@ -52,7 +52,7 @@ function runExport() {
   // 1. Fetch applied jobs from SQLite
   let appliedJobs = [];
   try {
-    appliedJobs = getAppliedJobs(500);
+    appliedJobs = getAppliedJobs();
   } catch (err) {
     console.warn('Warning: Could not fetch from jobsDb.getAppliedJobs:', err.message);
   }

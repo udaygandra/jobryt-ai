@@ -234,9 +234,9 @@ async function executePipelineScan(overrides = {}) {
   const allQualifiedJobs = [];
   const allRejectedJobs = [];
 
-  const existingPendingIds = new Set((jobsDb.getPendingJobs(500) || []).map(j => String(j.id || j.job_id || '')));
-  const existingAppliedIds = new Set((jobsDb.getAppliedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
-  const existingRejectedIds = new Set((jobsDb.getRejectedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingPendingIds = new Set((jobsDb.getPendingJobs() || []).map(j => String(j.id || j.job_id || '')));
+  const existingAppliedIds = new Set((jobsDb.getAppliedJobs() || []).map(j => String(j.id || j.job_id || '')));
+  const existingRejectedIds = new Set((jobsDb.getRejectedJobs() || []).map(j => String(j.id || j.job_id || '')));
 
   let streamChain = Promise.resolve();
 

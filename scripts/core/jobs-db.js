@@ -398,14 +398,21 @@ function saveAppliedJob(job) {
   return { id, title, company, status, appliedAt, pdfPath };
 }
 
-function getAppliedJobs(limit = 1000) {
+function getAppliedJobs(limit = null) {
   try {
     const db = getDb();
+    if (limit && Number(limit) > 0) {
+      const rows = db.prepare(`
+        SELECT * FROM applied_jobs
+        ORDER BY applied_at DESC
+        LIMIT ?
+      `).all(Number(limit));
+      return rows;
+    }
     const rows = db.prepare(`
       SELECT * FROM applied_jobs
       ORDER BY applied_at DESC
-      LIMIT ?
-    `).all(limit);
+    `).all();
     return rows;
   } catch (err) {
     console.error('Error querying applied_jobs from SQLite:', err.message);
@@ -534,10 +541,16 @@ function savePendingJob(job) {
   }
 }
 
-function getPendingJobs(limit = 100) {
+function getPendingJobs(limit = null) {
   try {
     const db = getDb();
-    const rows = db.prepare(`SELECT * FROM pending_jobs ORDER BY created_at DESC LIMIT ?`).all(limit);
+    if (limit && Number(limit) > 0) {
+      const rows = db.prepare(`SELECT * FROM pending_jobs ORDER BY created_at DESC LIMIT ?`).all(Number(limit));
+      return rows.map(r => {
+        try { return JSON.parse(r.payload_json); } catch (_) { return r; }
+      });
+    }
+    const rows = db.prepare(`SELECT * FROM pending_jobs ORDER BY created_at DESC`).all();
     return rows.map(r => {
       try { return JSON.parse(r.payload_json); } catch (_) { return r; }
     });
@@ -682,10 +695,16 @@ function saveRejectedJob(job) {
   } catch (_) { }
 }
 
-function getRejectedJobs(limit = 100) {
+function getRejectedJobs(limit = null) {
   try {
     const db = getDb();
-    const rows = db.prepare(`SELECT * FROM rejected_jobs ORDER BY rejected_at DESC LIMIT ?`).all(limit);
+    if (limit && Number(limit) > 0) {
+      const rows = db.prepare(`SELECT * FROM rejected_jobs ORDER BY rejected_at DESC LIMIT ?`).all(Number(limit));
+      return rows.map(r => {
+        try { return JSON.parse(r.payload_json); } catch (_) { return r; }
+      });
+    }
+    const rows = db.prepare(`SELECT * FROM rejected_jobs ORDER BY rejected_at DESC`).all();
     return rows.map(r => {
       try { return JSON.parse(r.payload_json); } catch (_) { return r; }
     });

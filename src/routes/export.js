@@ -29,7 +29,7 @@ router.get('/xlsx', (req, res) => {
     try { XLSX = require('xlsx'); } catch (_) {}
     if (!XLSX) return res.status(500).json({ error: 'XLSX package unavailable' });
 
-    const applied = jobsDb.getAppliedJobs(1000);
+    const applied = jobsDb.getAppliedJobs();
     const wb = XLSX.utils.book_new();
 
     // Tab 1: Applied Jobs Master
@@ -89,7 +89,7 @@ router.get('/xlsx', (req, res) => {
 // GET /api/export/csv
 router.get('/csv', (req, res) => {
   try {
-    const applied = jobsDb.getAppliedJobs(1000);
+    const applied = jobsDb.getAppliedJobs();
     const headers = ['ID', 'Applied Date', 'Job Title', 'Company', 'Location', 'Match Score', 'ATS Fit %', 'Job URL', 'Source', 'Status', 'Notes', 'PDF Resume', 'Artifacts Folder'];
     const escapeCsv = (val) => {
       const s = String(val == null ? '' : val).replace(/"/g, '""');

@@ -14,7 +14,7 @@ const { getMasterProfile } = require('./profile');
 // GET /api/jobs/pending
 router.get('/pending', (req, res) => {
   try {
-    const limit = parseInt(req.query.limit || '100', 10);
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
     const jobs = jobsDb.getPendingJobs(limit);
     res.json({ count: jobs.length, jobs });
   } catch (err) {
@@ -25,7 +25,7 @@ router.get('/pending', (req, res) => {
 // GET /api/jobs/applied
 router.get('/applied', (req, res) => {
   try {
-    const limit = parseInt(req.query.limit || '100', 10);
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
     let jobs = jobsDb.getAppliedJobs(limit);
     if (req.query.status) {
       const filterStatus = req.query.status.toLowerCase();
@@ -40,7 +40,7 @@ router.get('/applied', (req, res) => {
 // GET /api/jobs/rejected
 router.get('/rejected', (req, res) => {
   try {
-    const limit = parseInt(req.query.limit || '100', 10);
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
     const jobs = jobsDb.getRejectedJobs(limit);
     res.json({ count: jobs.length, jobs });
   } catch (err) {
