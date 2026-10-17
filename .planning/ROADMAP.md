@@ -318,6 +318,7 @@ updated: 2026-10-08T17:36:00Z
 | 32 | ✅ | 3/3 | 100% (v1.2) |
 | 33 | ✅ | 3/3 | 100% (v1.2) |
 | 34 | ✅ | 3/3 | 100% (v1.2) |
+| 35 | ✅ | 3/3 | 100% (v1.2) |
 
 ---
 
@@ -340,6 +341,18 @@ updated: 2026-10-08T17:36:00Z
 - [x] [Plan 34.1: Light Theme Loader Popup Redesign & Contrast Polish](.planning/phases/34/34-PLAN.md)
 - [x] [Plan 34.2: Multi-Country Resume Dataset & Parser Verification Suite](.planning/phases/34/34-PLAN.md)
 - [x] [Plan 34.3: End-to-End Market Board Ingestion & Country Routing Matrix](.planning/phases/34/34-PLAN.md)
+
+---
+
+### Phase 35: Auto-Scalable High-Performance Streaming Pipeline, Non-Blocking IO & Memory-Safe Concurrency
+**Status:** ✅ Complete (Milestone v1.2)
+**Objective:** Transform the "Run Scan" pipeline from a slow monolithic batch job into an auto-scalable, streaming, high-performance engine that utilizes non-blocking I/O, persistent HTTP keep-alive connection pooling, smart task deduplication, lightweight data transfer objects (preventing RAM bloat), and progressive client hydration so users see qualified job matches within seconds without overloading memory.
+
+**Plans:**
+- [x] [Plan 35.1: Non-Blocking Network IO, HTTP Keep-Alive Agent & Smart Task Deduplication Engine](.planning/phases/35/35-PLAN.md)
+- [x] [Plan 35.2: Memory-Safe Streaming Ingestion, Lightweight DTOs & Adaptive Concurrency Controller](.planning/phases/35/35-PLAN.md)
+- [x] [Plan 35.3: Real-Time Progressive Hydration, Streaming Updates & Performance Benchmark Suite](.planning/phases/35/35-PLAN.md)
+
 
 
 

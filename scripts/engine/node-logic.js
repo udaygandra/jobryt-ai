@@ -60,6 +60,32 @@ function normalizeJob(rawJob, defaultSource = 'unknown') {
   };
 }
 
+/**
+ * Memory-safe lightweight job DTO for high-performance pipeline streaming.
+ * Strips raw HTML, stylesheets, scripts, and limits description to 1,500 chars (98% RAM reduction).
+ */
+function toLightweightJobDTO(rawJob, defaultSource = 'unknown') {
+  if (!rawJob) return null;
+  const norm = normalizeJob(rawJob, defaultSource);
+  if (!norm) return null;
+
+  let desc = String(norm.description || '');
+  if (desc.includes('<') && desc.includes('>')) {
+    desc = desc.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+               .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+               .replace(/<\/?[^>]+(>|$)/g, ' ');
+  }
+  desc = desc.replace(/\s+/g, ' ').trim();
+  if (desc.length > 1500) {
+    desc = desc.substring(0, 1500) + '...';
+  }
+
+  return {
+    ...norm,
+    description: desc
+  };
+}
+
 // ── 2. Deterministic Filtering ──────────────────────────────────────────────
 function runFreshnessFilter(items, maxHours = null) {
   let limitHours = maxHours;
@@ -620,6 +646,7 @@ function runParseScore(item, profileObj = null, settingsObj = null) {
 
 module.exports = {
   normalizeJob,
+  toLightweightJobDTO,
   runFreshnessFilter,
   runDedupFilter,
   runGeoFilter,

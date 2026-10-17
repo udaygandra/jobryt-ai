@@ -13,12 +13,14 @@ const settingsHelper = require('../../scripts/core/settings-helper');
 const { fetchAllJobs } = require('../../scripts/engine/fetch-all-boards');
 const {
   normalizeJob,
+  toLightweightJobDTO,
   runFreshnessFilter,
   runDedupFilter,
   runGeoFilter,
   computeHeuristicScore,
   runParseScore,
 } = require('../../scripts/engine/node-logic');
+const { getOptimalConcurrency, yieldEventLoop } = require('../../scripts/engine/adaptive-concurrency');
 const { callLLMProvider, buildDynamicScoringPrompt } = require('../../scripts/engine/llm-provider');
 const { getMasterProfile } = require('./profile');
 
@@ -218,14 +220,181 @@ async function executePipelineScan(overrides = {}) {
   if (targetTitles[0]) process.env.ADZUNA_SEARCH_ROLE = targetTitles[0];
   if (targetLocations[0]) process.env.ADZUNA_SEARCH_LOCATION = targetLocations[0];
 
+  // Dynamic Host Resource Profiling for Auto-Scaling Concurrency
+  const optimalProfile = getOptimalConcurrency();
+  const SCORING_CONCURRENCY = optimalProfile.scoringConcurrency || 8;
+  const NETWORK_CONCURRENCY = optimalProfile.networkConcurrency || 16;
+
+  // Real-time tracking structures for progressive streaming ingestion
+  const seenThisScan = new Set();
+  const allRawItems = [];
+  const allFreshItems = [];
+  const allUnseenJobs = [];
+  const allScoredJobs = [];
+  const allQualifiedJobs = [];
+  const allRejectedJobs = [];
+
+  const existingPendingIds = new Set((jobsDb.getPendingJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingAppliedIds = new Set((jobsDb.getAppliedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+  const existingRejectedIds = new Set((jobsDb.getRejectedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
+
+  let streamChain = Promise.resolve();
+
+  // Progressive Micro-Batch Streaming Handler
+  async function processMicroBatch(batch, sourceInfo = {}) {
+    if (signal.aborted || !Array.isArray(batch) || batch.length === 0) return;
+
+    // Convert raw feeds into lightweight DTOs (stripping heavy HTML, inline styles, capping descriptions to 1500 chars)
+    const normBatch = batch.map(j => toLightweightJobDTO(j, j.source || sourceInfo.board || 'unknown')).filter(Boolean);
+    if (normBatch.length === 0) return;
+
+    for (const job of normBatch) {
+      const src = job.source || 'Other';
+      currentScan.boardBreakdown[src] = (currentScan.boardBreakdown[src] || 0) + 1;
+      allRawItems.push(job);
+    }
+    currentScan.stats.totalFetched = allRawItems.length;
+
+    // Step 2: Freshness & Geo filtering on incoming batch
+    let filteredItems = runFreshnessFilter(normBatch.map(j => ({ json: j })), freshnessHours);
+    filteredItems = runGeoFilter(filteredItems, { ...profile, target_titles: targetTitles, locations: targetLocations, country_scope: activeScope, work_type: activeWorkType });
+    const freshBatch = filteredItems.map(i => i.json);
+    allFreshItems.push(...freshBatch);
+    currentScan.stats.freshCount = allFreshItems.length;
+
+    if (signal.aborted || freshBatch.length === 0) return;
+
+    // Step 3: Deduplication filtering against SQLite and active scan cache
+    const unseenBatch = [];
+    const newlySeenIds = [];
+
+    for (const job of freshBatch) {
+      const id = job.id ? String(job.id) : null;
+      const rawUrl = String(job.redirect_url || job.job_url || '');
+      const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
+      const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const sig = compClean && titClean ? `comp_${compClean}_tit_${titClean}` : null;
+
+      if (id && (seenThisScan.has(id) || jobsDb.isJobSeen(id) || existingPendingIds.has(id) || existingAppliedIds.has(id) || existingRejectedIds.has(id))) continue;
+      if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search') && (seenThisScan.has(cleanUrl) || jobsDb.isJobSeen(cleanUrl))) continue;
+      if (sig && (seenThisScan.has(sig) || jobsDb.isJobSeen(sig))) continue;
+
+      if (id) seenThisScan.add(id);
+      if (cleanUrl) seenThisScan.add(cleanUrl);
+      if (sig) seenThisScan.add(sig);
+
+      if (id) newlySeenIds.push(id);
+      if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search')) newlySeenIds.push(cleanUrl);
+      if (sig) newlySeenIds.push(sig);
+
+      unseenBatch.push(job);
+    }
+
+    allUnseenJobs.push(...unseenBatch);
+    currentScan.stats.unseenCount = allUnseenJobs.length;
+
+    if (signal.aborted || unseenBatch.length === 0) return;
+
+    // Step 4: Progressive Concurrent Scoring with Event Loop Yielding
+    currentScan.step = 'scoring';
+    currentScan.progress.message = `Streaming evaluation: ${allUnseenJobs.length} opportunities received...`;
+
+    const batchScored = [];
+    for (let i = 0; i < unseenBatch.length; i += SCORING_CONCURRENCY) {
+      if (signal.aborted) break;
+      const slice = unseenBatch.slice(i, i + SCORING_CONCURRENCY);
+      const scoredSlice = await Promise.all(slice.map(async (job) => {
+        let scoredItem = null;
+        if (!overrides.skipLLM && !signal.aborted) {
+          try {
+            const prompt = buildDynamicScoringPrompt(
+              { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, commute_radius_km: settings.commute_radius_km },
+              job.title,
+              job.description
+            );
+            const llmPromise = callLLMProvider({ prompt });
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM scoring timeout')), 7000));
+            const llmRes = await Promise.race([llmPromise, timeoutPromise]);
+            if (llmRes && llmRes.success) {
+              job.rawText = llmRes.rawText;
+              scoredItem = runParseScore(
+                { json: { ...job } },
+                { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope },
+                settings
+              ).json;
+            }
+          } catch (_) {}
+        }
+
+        if (!scoredItem || typeof scoredItem.score !== 'number') {
+          scoredItem = computeHeuristicScore(
+            job,
+            { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, work_type: activeWorkType },
+            settings
+          );
+        }
+
+        return {
+          ...job,
+          ...scoredItem,
+          id: job.id || scoredItem.id,
+          title: (job.title || scoredItem.title || 'Target Role').trim(),
+          company: (job.company || scoredItem.company || 'Direct Employer').trim(),
+          location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
+          source: job.source || scoredItem.source || 'Direct',
+          match_score: scoredItem.score,
+          score: scoredItem.score,
+          job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
+          redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
+          why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
+        };
+      }));
+
+      for (const item of scoredSlice) {
+        batchScored.push(item);
+        allScoredJobs.push(item);
+        currentScan.stats.scoredCount++;
+        currentScan.progress.current = allScoredJobs.length;
+      }
+
+      await yieldEventLoop();
+    }
+
+    // Step 5: Streaming Progressive Persistence to SQLite
+    const batchQualified = batchScored.filter(j => (j.score || 0) >= minThreshold && j.should_apply !== false);
+    const batchRejected = batchScored.filter(j => (j.score || 0) < minThreshold || j.should_apply === false);
+
+    if (newlySeenIds.length > 0) jobsDb.markJobsSeen(newlySeenIds);
+    for (const q of batchQualified) {
+      jobsDb.savePendingJob(q);
+      allQualifiedJobs.push(q);
+      existingPendingIds.add(String(q.id));
+    }
+    for (const r of batchRejected) {
+      jobsDb.saveRejectedJob(r);
+      allRejectedJobs.push(r);
+      existingRejectedIds.add(String(r.id));
+    }
+
+    currentScan.stats.qualifiedCount = allQualifiedJobs.length;
+    currentScan.stats.rejectedCount = allRejectedJobs.length;
+  }
+
+  const queueBatch = (batch, sourceInfo) => {
+    streamChain = streamChain.then(() => processMicroBatch(batch, sourceInfo)).catch(err => {
+      addLog(`Stream micro-batch warning: ${err.message}`, 'warn');
+    });
+    return streamChain;
+  };
+
   // Step 1: Ingest from job boards with dynamic search payload and abort signal
-  let rawFetchedJobs = [];
   if (Array.isArray(overrides.injectedRawJobs)) {
-    rawFetchedJobs = overrides.injectedRawJobs;
+    queueBatch(overrides.injectedRawJobs, { board: 'Injected' });
   } else {
     try {
       currentScan.progress.message = 'Fetching multi-board feeds...';
-      rawFetchedJobs = await fetchAllJobs({
+      const fetched = await fetchAllJobs({
         targetTitles,
         targetLocations,
         countryScope: activeScope,
@@ -233,188 +402,44 @@ async function executePipelineScan(overrides = {}) {
         boardsEnabled: settings.boards_enabled,
         freshnessHours,
         commuteRadiusKm: settings.commute_radius_km,
-        signal
+        signal,
+        concurrency: NETWORK_CONCURRENCY,
+        onBatch: (batch, meta) => queueBatch(batch, meta)
       });
+
+      // Safety check: if any jobs in returned list were not captured by onBatch
+      if (Array.isArray(fetched) && fetched.length > 0) {
+        const remaining = fetched.filter(j => {
+          const id = j.id ? String(j.id) : null;
+          return id ? !seenThisScan.has(id) : true;
+        });
+        if (remaining.length > 0) {
+          queueBatch(remaining, { board: 'Final Sweep' });
+        }
+      }
     } catch (fetchErr) {
       addLog(`Fetch note: ${fetchErr.message}`, 'warn');
     }
   }
 
-  if (signal.aborted) {
-    currentScan.status = 'aborted';
-    currentScan.step = 'aborted';
-    currentScan.completedAt = new Date().toISOString();
-    currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
-    addLog('Scan aborted by user during ingestion', 'warn');
-    saveLastScanResult(currentScan);
-    return { success: false, status: 'aborted', message: 'Scan stopped by user', scanId, stats: currentScan.stats };
-  }
-
-  const allRawItems = rawFetchedJobs.map(j => normalizeJob(j, j.source || 'unknown')).filter(Boolean);
-  currentScan.stats.totalFetched = allRawItems.length;
-
-  // Compute per-board yield breakdown
-  for (const job of allRawItems) {
-    const src = job.source || 'Other';
-    currentScan.boardBreakdown[src] = (currentScan.boardBreakdown[src] || 0) + 1;
-  }
-  addLog(`Multi-board ingestion complete: ${allRawItems.length} listings examined across ${Object.keys(currentScan.boardBreakdown).length} sources.`);
-
-  // Step 2: Freshness & Geo Filters
-  currentScan.step = 'filtering';
-  currentScan.progress.message = 'Applying freshness, location, and workplace mode filters...';
-
-  let filteredItems = runFreshnessFilter(allRawItems.map(j => ({ json: j })), freshnessHours);
-  filteredItems = runGeoFilter(filteredItems, { ...profile, target_titles: targetTitles, locations: targetLocations, country_scope: activeScope, work_type: activeWorkType });
-  const freshItems = filteredItems.map(i => i.json);
-  currentScan.stats.freshCount = freshItems.length;
-  addLog(`Freshness & Geo filtering passed: ${freshItems.length} jobs fit criteria (${allRawItems.length - freshItems.length} filtered out).`);
+  // Wait for all stream micro-batches to complete processing
+  await streamChain;
 
   if (signal.aborted) {
     currentScan.status = 'aborted';
     currentScan.step = 'aborted';
     currentScan.completedAt = new Date().toISOString();
     currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
-    addLog('Scan aborted by user during filtering', 'warn');
+    addLog('Scan aborted by user', 'warn');
     saveLastScanResult(currentScan);
     return { success: false, status: 'aborted', message: 'Scan stopped by user', scanId, stats: currentScan.stats };
   }
-
-  // Step 3: Deduplication filter (against seen_jobs, pending_jobs, applied_jobs, rejected_jobs)
-  const existingPendingIds = new Set((jobsDb.getPendingJobs(500) || []).map(j => String(j.id || j.job_id || '')));
-  const existingAppliedIds = new Set((jobsDb.getAppliedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
-  const existingRejectedIds = new Set((jobsDb.getRejectedJobs(500) || []).map(j => String(j.id || j.job_id || '')));
-
-  const unSeenJobs = freshItems.filter(job => {
-    const id = job.id ? String(job.id) : null;
-    const rawUrl = String(job.redirect_url || job.job_url || '');
-    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
-    const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const sig = compClean && titClean ? `comp_${compClean}_tit_${titClean}` : null;
-
-    if (id && (jobsDb.isJobSeen(id) || existingPendingIds.has(id) || existingAppliedIds.has(id) || existingRejectedIds.has(id))) return false;
-    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search') && jobsDb.isJobSeen(cleanUrl)) return false;
-    if (sig && jobsDb.isJobSeen(sig)) return false;
-    return true;
-  });
-
-  currentScan.stats.unseenCount = unSeenJobs.length;
-  addLog(`Deduplication check passed: ${unSeenJobs.length} new listings (${freshItems.length - unSeenJobs.length} previously seen).`);
-
-  // Step 4: High-Performance Uncapped Concurrent Scoring with abort checking
-  currentScan.step = 'scoring';
-  currentScan.progress.current = 0;
-  currentScan.progress.total = unSeenJobs.length;
-  currentScan.progress.message = `Evaluating ${unSeenJobs.length} opportunities with AI & scoring model...`;
-
-  const jobsToScore = unSeenJobs;
-  const scoredJobs = new Array(jobsToScore.length);
-  const newlySeenIds = [];
-
-  for (const job of jobsToScore) {
-    if (job.id) newlySeenIds.push(String(job.id));
-    const rawUrl = String(job.redirect_url || job.job_url || '');
-    const cleanUrl = rawUrl.split('?')[0].replace(/\/+$/, '').trim().toLowerCase();
-    if (cleanUrl && cleanUrl.length > 15 && !cleanUrl.includes('google.com/search')) newlySeenIds.push(cleanUrl);
-    const compClean = (job.company || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const titClean = (job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (compClean && titClean) newlySeenIds.push(`comp_${compClean}_tit_${titClean}`);
-  }
-
-  const SCORING_CONCURRENCY = 8;
-  let nextScoringIdx = 0;
-
-  async function scoringWorker() {
-    while (true) {
-      if (signal.aborted) return;
-      const idx = nextScoringIdx++;
-      if (idx >= jobsToScore.length) return;
-      const job = jobsToScore[idx];
-
-      let scoredItem = null;
-      if (!overrides.skipLLM && !signal.aborted) {
-        try {
-          const prompt = buildDynamicScoringPrompt(
-            { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, commute_radius_km: settings.commute_radius_km },
-            job.title,
-            job.description
-          );
-          // 7000ms timeout per LLM request with automatic fallback to heuristic scoring
-          const llmPromise = callLLMProvider({ prompt });
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('LLM scoring timeout')), 7000));
-          const llmRes = await Promise.race([llmPromise, timeoutPromise]);
-          if (llmRes && llmRes.success) {
-            job.rawText = llmRes.rawText;
-            scoredItem = runParseScore(
-              { json: { ...job } },
-              { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope },
-              settings
-            ).json;
-          }
-        } catch (_) {}
-      }
-
-      if (!scoredItem || typeof scoredItem.score !== 'number') {
-        scoredItem = computeHeuristicScore(
-          job,
-          { ...profile, locations: targetLocations, target_titles: targetTitles, country_scope: activeScope, work_type: activeWorkType },
-          settings
-        );
-      }
-
-      scoredJobs[idx] = {
-        ...job,
-        ...scoredItem,
-        id: job.id || scoredItem.id,
-        title: (job.title || scoredItem.title || 'Target Role').trim(),
-        company: (job.company || scoredItem.company || 'Direct Employer').trim(),
-        location: (job.location || scoredItem.location || 'Remote / Hybrid').trim(),
-        source: job.source || scoredItem.source || 'Direct',
-        match_score: scoredItem.score,
-        score: scoredItem.score,
-        job_url: job.job_url || job.redirect_url || scoredItem.job_url || '',
-        redirect_url: job.redirect_url || job.job_url || scoredItem.redirect_url || '',
-        why_this_fits: scoredItem.why_this_fits || scoredItem.reasoning || 'Profile alignment verified'
-      };
-
-      currentScan.progress.current++;
-      currentScan.stats.scoredCount++;
-    }
-  }
-
-  const activeWorkerCount = Math.min(SCORING_CONCURRENCY, Math.max(1, jobsToScore.length));
-  await Promise.all(Array.from({ length: activeWorkerCount }, scoringWorker));
-
-  if (signal.aborted) {
-    currentScan.status = 'aborted';
-    currentScan.step = 'aborted';
-    currentScan.completedAt = new Date().toISOString();
-    currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
-    addLog('Scan aborted by user during scoring', 'warn');
-    saveLastScanResult(currentScan);
-    return { success: false, status: 'aborted', message: 'Scan stopped by user', scanId, stats: currentScan.stats };
-  }
-
-  // Filter out any undefined slots if aborted early
-  const validScoredJobs = scoredJobs.filter(Boolean);
-
-  // Step 5: Persist qualified to pending, rejected to rejected based on user score_threshold
-  currentScan.step = 'persisting';
-  const qualified = validScoredJobs.filter(j => (j.score || 0) >= minThreshold && j.should_apply !== false);
-  const rejected = validScoredJobs.filter(j => (j.score || 0) < minThreshold || j.should_apply === false);
-
-  jobsDb.markJobsSeen(newlySeenIds);
-  for (const q of qualified) jobsDb.savePendingJob(q);
-  for (const r of rejected) jobsDb.saveRejectedJob(r);
 
   currentScan.status = 'completed';
   currentScan.step = 'completed';
   currentScan.completedAt = new Date().toISOString();
   currentScan.durationMs = Date.now() - new Date(currentScan.startedAt).getTime();
-  currentScan.stats.qualifiedCount = qualified.length;
-  currentScan.stats.rejectedCount = rejected.length;
-  addLog(`Scan finished: ${qualified.length} qualified opportunities added to approval queue! (${rejected.length} below threshold).`);
+  addLog(`Scan finished: ${allQualifiedJobs.length} qualified opportunities added to approval queue! (${allRejectedJobs.length} below threshold).`);
 
   saveLastScanResult(currentScan);
 
@@ -425,14 +450,14 @@ async function executePipelineScan(overrides = {}) {
     boardBreakdown: currentScan.boardBreakdown,
     stats: {
       totalFetched: allRawItems.length,
-      freshCount: freshItems.length,
-      unseenCount: unSeenJobs.length,
-      scoredCount: validScoredJobs.length,
-      qualifiedCount: qualified.length,
-      rejectedCount: rejected.length
+      freshCount: allFreshItems.length,
+      unseenCount: allUnseenJobs.length,
+      scoredCount: allScoredJobs.length,
+      qualifiedCount: allQualifiedJobs.length,
+      rejectedCount: allRejectedJobs.length
     },
-    qualifiedJobs: qualified,
-    allScored: validScoredJobs
+    qualifiedJobs: allQualifiedJobs,
+    allScored: allScoredJobs
   };
 }
 

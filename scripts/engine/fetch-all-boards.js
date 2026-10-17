@@ -1696,41 +1696,80 @@ async function fetchAllJobsInner(options = {}) {
 
   console.error(`[Multi-Board Ingestion] Executing concurrent sweep across ${sweepTitles.length} roles and ${sweepLocs.length} locations (Scope: ${countryScope}).`);
 
-  const boards = [
-    ['Adzuna', fetchAdzuna],
-    ['Canada Job Bank', fetchCanadaJobBank],
-    ['USAJOBS', fetchUSAJobs],
-    ['Global Remote Feeds', fetchGlobalRemoteFeeds],
-    ['LinkedIn', fetchLinkedIn],
-    ['Indeed', fetchIndeed],
-    ['Dice', fetchDice],
-    ['Arbeitsagentur', fetchArbeitsagentur],
-    ['MyCareersFuture', fetchMyCareersFuture],
-    ['Seek', fetchSeek],
-    ['Reed', fetchReedUK],
-    ['Bayt', fetchBayt],
-    ['WTTJ', fetchWTTJ],
-    ['Naukri', fetchNaukri],
-    ['Daijob', fetchDaijobJP],
-    ['Vagas', fetchVagasBR]
+  const scopeKey = String(countryScope || 'GLOBAL').toUpperCase();
+
+  // Partition boards into location-sensitive vs location-agnostic national/remote feeds
+  const LOCATION_SENSITIVE_BOARDS = [
+    ['Adzuna', fetchAdzuna, (s) => ['US', 'CA', 'GB', 'UK', 'DE', 'FR', 'AU', 'IN', 'NL', 'BR', 'IT', 'PL', 'ZA', 'AT', 'NZ', 'SG', 'MX', 'GLOBAL', 'AUTO'].includes(s)],
+    ['Canada Job Bank', fetchCanadaJobBank, (s) => s === 'CA' || s === 'GLOBAL' || s === 'AUTO'],
+    ['USAJOBS', fetchUSAJobs, (s) => s === 'US' || s === 'GLOBAL' || s === 'AUTO'],
+    ['LinkedIn', fetchLinkedIn, () => true],
+    ['Indeed', fetchIndeed, () => true],
+    ['Dice', fetchDice, (s) => s === 'US' || s === 'GLOBAL' || s === 'AUTO'],
+    ['Arbeitsagentur', fetchArbeitsagentur, (s) => s === 'DE' || s === 'GLOBAL' || s === 'AUTO'],
+    ['Seek', fetchSeek, (s) => ['AU', 'NZ', 'GLOBAL', 'AUTO'].includes(s)],
+    ['Reed', fetchReedUK, (s) => ['GB', 'UK', 'GLOBAL', 'AUTO'].includes(s)],
+    ['WTTJ', fetchWTTJ, (s) => ['FR', 'GLOBAL', 'AUTO'].includes(s)],
+    ['Naukri', fetchNaukri, (s) => ['IN', 'GLOBAL', 'AUTO'].includes(s)]
   ];
 
-  // Cartesian task list: location x role x board. Each task runs inside its own
-  // AsyncLocalStorage context so fetchers read CTX.role / CTX.loc safely.
+  const LOCATION_AGNOSTIC_BOARDS = [
+    ['Global Remote Feeds', fetchGlobalRemoteFeeds, () => true],
+    ['MyCareersFuture', fetchMyCareersFuture, (s) => ['SG', 'GLOBAL', 'AUTO'].includes(s)],
+    ['Bayt', fetchBayt, (s) => ['AE', 'GLOBAL', 'AUTO'].includes(s)],
+    ['Daijob', fetchDaijobJP, (s) => ['JP', 'GLOBAL', 'AUTO'].includes(s)],
+    ['Vagas', fetchVagasBR, (s) => ['BR', 'GLOBAL', 'AUTO'].includes(s)]
+  ];
+
+  // Smart deduplicated task list:
+  // 1. Location-sensitive boards query (role x location)
+  // 2. Global feed boards query (role) ONCE across all locations
   const tasks = [];
+
+  // A. Location-sensitive tasks
   for (const loc of sweepLocs) {
     for (const role of sweepTitles) {
-      for (const [name, fn] of boards) {
-        tasks.push({ board: `${name} [${role} | ${loc}]`, run: () => ctxStore.run({ role, loc }, fn) });
+      for (const [name, fn, isEligible] of LOCATION_SENSITIVE_BOARDS) {
+        if (isEligible(scopeKey)) {
+          tasks.push({ board: `${name} [${role} | ${loc}]`, run: () => ctxStore.run({ role, loc }, fn) });
+        }
+      }
+    }
+  }
+
+  // B. Location-agnostic tasks (invoked once per role, avoiding N x M feed re-fetches)
+  for (const role of sweepTitles) {
+    for (const [name, fn, isEligible] of LOCATION_AGNOSTIC_BOARDS) {
+      if (isEligible(scopeKey)) {
+        tasks.push({ board: `${name} [${role}]`, run: () => ctxStore.run({ role, loc: '' }, fn) });
       }
     }
   }
 
   const t0 = Date.now();
-  await runPool(tasks, { globalLimit: 12, signal: options.signal });
+  let lastReportedCount = 0;
+
+  const onTaskResult = (task, res) => {
+    if (typeof options.onBatch === 'function') {
+      const currentTotal = allFetchedJobs.length;
+      if (currentTotal > lastReportedCount) {
+        const batch = allFetchedJobs.slice(lastReportedCount);
+        lastReportedCount = currentTotal;
+        try {
+          options.onBatch(batch, { board: task.board, total: currentTotal });
+        } catch (_) {}
+      }
+    }
+  };
+
+  await runPool(tasks, {
+    globalLimit: options.concurrency || 16,
+    signal: options.signal,
+    onTaskResult
+  });
 
   const uniqueJobs = deduplicateJobList(allFetchedJobs);
-  console.error(`\n[Multi-Board Ingestion] Full sweep complete in ${Date.now() - t0}ms. Total jobs fetched: ${allFetchedJobs.length} (Unique: ${uniqueJobs.length})`);
+  console.error(`\n[Multi-Board Ingestion] Full sweep complete in ${Date.now() - t0}ms across ${tasks.length} optimized tasks. Total jobs fetched: ${allFetchedJobs.length} (Unique: ${uniqueJobs.length})`);
   return uniqueJobs;
 }
 

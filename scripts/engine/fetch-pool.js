@@ -48,9 +48,10 @@ function release(host) {
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const { getOptimalConcurrency } = require('./adaptive-concurrency');
 
 async function hostFetch(url, opts = {}) {
-  const { timeoutMs = 10000, retries = 2, ...fetchOpts } = opts;
+  const { timeoutMs = 10000, retries = 2, keepalive = true, ...fetchOpts } = opts;
   let host = '';
   try { host = new URL(url).hostname; } catch (_) {}
   let lastErr;
@@ -60,7 +61,7 @@ async function hostFetch(url, opts = {}) {
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     let res;
     try {
-      res = await fetch(url, { ...fetchOpts, signal: ctrl.signal });
+      res = await fetch(url, { keepalive, ...fetchOpts, signal: ctrl.signal });
     } catch (err) {
       lastErr = err;
     } finally {
@@ -79,7 +80,8 @@ async function hostFetch(url, opts = {}) {
   throw lastErr || new Error(`hostFetch failed: ${url}`);
 }
 
-async function runPool(tasks, { globalLimit = 12, onError, signal } = {}) {
+async function runPool(tasks, { globalLimit, onError, onTaskResult, signal } = {}) {
+  const limit = globalLimit || getOptimalConcurrency().networkConcurrency;
   const results = new Array(tasks.length);
   let next = 0;
   async function worker() {
@@ -90,15 +92,24 @@ async function runPool(tasks, { globalLimit = 12, onError, signal } = {}) {
       const t = tasks[i];
       const started = Date.now();
       try {
-        results[i] = { status: 'fulfilled', value: await t.run(), ms: Date.now() - started };
+        const val = await t.run();
+        const res = { status: 'fulfilled', value: val, ms: Date.now() - started };
+        results[i] = res;
+        if (typeof onTaskResult === 'function') {
+          try { onTaskResult(t, res); } catch (_) {}
+        }
       } catch (err) {
-        results[i] = { status: 'rejected', reason: err, ms: Date.now() - started };
+        const res = { status: 'rejected', reason: err, ms: Date.now() - started };
+        results[i] = res;
         if (onError) onError(t, err);
         else console.error(`[Fetch] ${t.board || 'task'} failed: ${err && err.message}`);
+        if (typeof onTaskResult === 'function') {
+          try { onTaskResult(t, res); } catch (_) {}
+        }
       }
     }
   }
-  const n = Math.max(1, Math.min(globalLimit, tasks.length));
+  const n = Math.max(1, Math.min(limit, tasks.length));
   await Promise.all(Array.from({ length: n }, worker));
   return results;
 }

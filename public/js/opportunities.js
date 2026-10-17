@@ -465,10 +465,10 @@ function renderPendingJobs(jobs, isFilterZero = false) {
   }
 }
 
-async function loadPendingJobs() {
+async function loadPendingJobs(silent = false) {
   const container = document.getElementById('pending-jobs-list');
-  // If container is empty or only has skeleton cards, ensure skeletons are showing
-  if (container && (!container.children.length || container.querySelector('.skeleton-card'))) {
+  // If container is empty or only has skeleton cards, ensure skeletons are showing (skip if silent background refresh)
+  if (!silent && container && (!container.children.length || container.querySelector('.skeleton-card'))) {
     renderPendingSkeletons(container);
   }
 
@@ -602,10 +602,12 @@ function filterOpportunities() {
 
 // ── Scan Diagnostics & Polling Controller ──────────────────────────────────────
 let scanPollTimer = null;
+let lastKnownQualifiedCount = 0;
 
 function openScanModal() {
   const modal = document.getElementById('scan-modal');
   if (modal) modal.classList.remove('hidden');
+  lastKnownQualifiedCount = (window.allLoadedPendingJobs && window.allLoadedPendingJobs.length) || 0;
   checkScanStatus();
 }
 
@@ -640,9 +642,22 @@ async function checkScanStatus() {
     const data = await res.json();
     renderScanDiagnostics(data);
 
+    // Progressive Streaming Hydration: As crawler adapters stream in qualified jobs,
+    // refresh the job card deck dynamically without flashing skeletons.
+    const currentQualified = (data.stats && typeof data.stats.qualifiedCount === 'number') ? data.stats.qualifiedCount : 0;
+    if (currentQualified > lastKnownQualifiedCount) {
+      lastKnownQualifiedCount = currentQualified;
+      loadPendingJobs(true);
+    }
+
     if (data.status === 'running') {
       if (scanPollTimer) clearTimeout(scanPollTimer);
-      scanPollTimer = setTimeout(checkScanStatus, 1500);
+      scanPollTimer = setTimeout(checkScanStatus, 1000);
+    } else if (data.status === 'completed') {
+      // Final synchronization once completed
+      if (currentQualified !== (window.allLoadedPendingJobs && window.allLoadedPendingJobs.length)) {
+        loadPendingJobs(true);
+      }
     }
   } catch (e) {
     console.error('checkScanStatus error:', e);
