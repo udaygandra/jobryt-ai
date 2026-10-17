@@ -55,7 +55,7 @@ function request(method, pathUrl, body = null, headers = {}) {
       reqHeaders['Content-Length'] = Buffer.byteLength(reqBody);
     }
 
-    const req = http.request(url, { method, headers: reqHeaders, timeout: 60000 }, (res) => {
+    const req = http.request(url, { method, headers: reqHeaders, timeout: 120000 }, (res) => {
       const chunks = [];
       res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {

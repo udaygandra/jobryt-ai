@@ -12,6 +12,8 @@ const HOST_LIMITS = [
   { match: /linkedin\.com$/i, max: 3, gapMs: 100 },
   { match: /jobbank\.gc\.ca$/i, max: 4, gapMs: 0 },
   { match: /adzuna\.com$/i, max: 4, gapMs: 0 },
+  { match: /dice\.com$/i, max: 2, gapMs: 200 },
+  { match: /indeed\.com$/i, max: 1, gapMs: 1000 },
 ];
 const DEFAULT_HOST = { max: 4, gapMs: 0 };
 

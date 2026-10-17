@@ -1,0 +1,209 @@
+{
+  "US": {
+    "name": "Marcus Vance",
+    "primary_profession": "Senior Technical Product Manager",
+    "country_code": "US",
+    "location": "Seattle, WA, USA",
+    "email": "marcus.vance@techlead.io",
+    "phone": "+1 (206) 555-0182",
+    "target_roles": [
+      "Senior Technical Product Manager",
+      "Principal Product Manager",
+      "Technical Product Manager",
+      "Product Lead"
+    ],
+    "target_locations": [
+      "Seattle, WA",
+      "Redmond, WA",
+      "Bellevue, WA"
+    ],
+    "skills": [
+      "Product Strategy",
+      "Roadmap Planning",
+      "Agile / Scrum",
+      "Cross-functional Leadership",
+      "JIRA",
+      "SQL",
+      "A/B Testing",
+      "User Research",
+      "Cloud Architecture",
+      "Python",
+      "Customer Interviewing",
+      "lesson planning",
+      "cashier experience"
+    ],
+    "raw_resume_text": "MARCUS VANCE\nSeattle, WA, USA | marcus.vance@techlead.io | +1 (206) 555-0182\n\nPROFESSIONAL SUMMARY\nSenior Technical Product Manager with 8+ years experience architecting cloud platform roadmaps and leading enterprise developer tooling initiatives.\n\nEXPERIENCE\nSenior Technical Product Manager | Microsoft, Redmond, WA (2022 - Present)\n- Led enterprise cloud developer tools product roadmap driving 40% ARR growth.\n- Collaborated with engineering leads on high-scale distributed systems and telemetry APIs.\n\nProduct Manager | Amazon, Seattle, WA (2019 - 2022)\n- Managed AWS developer platform features and automated CI/CD pipeline integrations.\n\nTeaching Assistant | University of Washington, Seattle, WA (2018 - 2019)\n- Handled classroom management, student grading, and lesson planning.\n\nSKILLS\nProduct Strategy, Roadmap Planning, Agile / Scrum, Cross-functional Leadership, JIRA, SQL, A/B Testing, User Research, Cloud Architecture, Python\n\nEDUCATION\nBachelor of Science in Computer Science | University of Washington (2018)"
+  },
+  "CA": {
+    "name": "Sahana Rao D",
+    "primary_profession": "Data Analyst",
+    "country_code": "CA",
+    "location": "Toronto, ON, Canada",
+    "email": "sahana.rao@datanalytics.ca",
+    "phone": "+1 (647) 969-3799",
+    "target_roles": [
+      "Data Analyst",
+      "Business Intelligence Analyst",
+      "Analytics Engineer",
+      "BI Developer"
+    ],
+    "target_locations": [
+      "Toronto, ON",
+      "Mississauga, ON",
+      "Remote"
+    ],
+    "skills": [
+      "SQL",
+      "Power BI",
+      "DAX",
+      "Python",
+      "Data Modeling",
+      "Tableau",
+      "Azure Data Factory",
+      "ETL Pipelines",
+      "Excel",
+      "Business Intelligence",
+      "retail sales",
+      "barista"
+    ],
+    "raw_resume_text": "SAHANA RAO D\nToronto, ON, Canada | sahana.rao@datanalytics.ca | +1 (647) 969-3799\n\nPROFESSIONAL SUMMARY\nData Analyst with 5+ years of experience in enterprise reporting, ETL workflows, and interactive Power BI executive dashboards.\n\nWORK EXPERIENCE\nData Analyst II | Wipro Canada, Toronto, ON (Sep 2024 - Present)\n- Architected automated Power BI dashboards connecting Snowflake and SQL Server.\n- Reduced ETL processing cycle by 35% through query optimization.\n\nBI Developer | Analytics Corp, Toronto, ON (Jan 2022 - Aug 2024)\n- Built dimensional data models and complex DAX measures for executive financial analysis.\n\nRetail Sales Associate | Tim Hortons, Toronto, ON (2020 - 2021)\n- Cash handling, beverage preparation, and customer checkout.\n\nTECHNICAL SKILLS\nSQL, Power BI, DAX, Python, Data Modeling, Tableau, Azure Data Factory, ETL Pipelines, Excel, Business Intelligence\n\nEDUCATION\nBachelor of Technology | Kakatiya Institute of Technology (2021)"
+  },
+  "DE": {
+    "name": "Dr. Lukas Weber",
+    "primary_profession": "Cloud DevOps & SRE Engineer",
+    "country_code": "DE",
+    "location": "Berlin, Germany",
+    "email": "lukas.weber@sre-berlin.de",
+    "phone": "+49 30 12345678",
+    "target_roles": [
+      "Cloud DevOps & SRE Engineer",
+      "Site Reliability Engineer",
+      "DevOps Specialist",
+      "Cloud Infrastructure Lead"
+    ],
+    "target_locations": [
+      "Berlin, Germany",
+      "Munich, Germany",
+      "Remote"
+    ],
+    "skills": [
+      "Kubernetes",
+      "Docker",
+      "Terraform",
+      "AWS",
+      "Prometheus",
+      "Grafana",
+      "Linux",
+      "CI/CD",
+      "Python",
+      "Go",
+      "Helm",
+      "Ansible",
+      "warehouse sorting",
+      "food service"
+    ],
+    "raw_resume_text": "DR. LUKAS WEBER\nBerlin, Germany | lukas.weber@sre-berlin.de | +49 30 12345678\n\nSUMMARY\nCloud DevOps & SRE Engineer with extensive background in multi-region Kubernetes deployments, GitOps CI/CD pipelines, and high-availability observability.\n\nEXPERIENCE\nSenior Site Reliability Engineer | Delivery Hero, Berlin, Germany (2022 - Present)\n- Managed 40+ Kubernetes production clusters with 99.99% uptime across AWS regions.\n- Automated infrastructure provisioning with Terraform and GitOps ArgoCD.\n\nCloud DevOps Engineer | Zalando, Berlin, Germany (2019 - 2022)\n- Standardized CI/CD pipelines reducing build times by 50% across 200 microservices.\n\nWarehouse Helper | Logistics GmbH, Berlin, Germany (2018 - 2019)\n- Package sorting and warehouse inventory cataloging.\n\nSKILLS\nKubernetes, Docker, Terraform, AWS, Prometheus, Grafana, Linux, CI/CD, Python, Go, Helm, Ansible\n\nEDUCATION\nPh.D. in Computer Science | Technical University of Berlin (2019)"
+  },
+  "GB": {
+    "name": "Liam Smith",
+    "primary_profession": "Full Stack Engineer",
+    "country_code": "GB",
+    "location": "London, UK",
+    "email": "liam.smith@fullstack-london.co.uk",
+    "phone": "+44 20 7946 0912",
+    "target_roles": [
+      "Full Stack Engineer",
+      "Full Stack Developer",
+      "Senior Frontend Engineer",
+      "TypeScript Lead"
+    ],
+    "target_locations": [
+      "London, UK",
+      "Manchester, UK",
+      "Remote"
+    ],
+    "skills": [
+      "TypeScript",
+      "React",
+      "Node.js",
+      "Next.js",
+      "PostgreSQL",
+      "GraphQL",
+      "Docker",
+      "Tailwind CSS",
+      "Jest",
+      "Redis",
+      "AWS",
+      "hotel reception",
+      "bartender"
+    ],
+    "raw_resume_text": "LIAM SMITH\nLondon, UK | liam.smith@fullstack-london.co.uk | +44 20 7946 0912\n\nPROFILE\nFull Stack Engineer specializing in TypeScript, Next.js, modern React, and resilient Node.js microservices for high-velocity FinTech applications.\n\nEXPERIENCE\nSenior Full Stack Developer | Revolut, London, UK (2022 - Present)\n- Built real-time currency exchange features handling 2M daily transactions using React and Node.js.\n- Engineered resilient GraphQL APIs with Redis caching layer.\n\nFull Stack Developer | Monzo, London, UK (2020 - 2022)\n- Developed customer onboarding flows and automated verification services.\n\nHotel Receptionist | Central Hotel, London, UK (2019 - 2020)\n- Guest check-in and reservations booking.\n\nSKILLS\nTypeScript, React, Node.js, Next.js, PostgreSQL, GraphQL, Docker, Tailwind CSS, Jest, Redis, AWS\n\nEDUCATION\nBSc Computer Science | University College London (2019)"
+  },
+  "SG": {
+    "name": "Mei Ling Tan",
+    "primary_profession": "Solutions Architect",
+    "country_code": "SG",
+    "location": "Singapore",
+    "email": "meiling.tan@arch-sg.com",
+    "phone": "+65 6789 0123",
+    "target_roles": [
+      "Solutions Architect",
+      "Enterprise Cloud Architect",
+      "Data Platform Lead",
+      "Principal Systems Architect"
+    ],
+    "target_locations": [
+      "Singapore",
+      "Remote"
+    ],
+    "skills": [
+      "Enterprise Architecture",
+      "AWS Solutions Architect",
+      "Microservices",
+      "Kubernetes",
+      "Data Platform",
+      "Kafka",
+      "Java",
+      "System Design",
+      "Cybersecurity",
+      "Cloud Migration",
+      "tour guiding",
+      "event coordinator"
+    ],
+    "raw_resume_text": "MEI LING TAN\nSingapore | meiling.tan@arch-sg.com | +65 6789 0123\n\nEXECUTIVE PROFILE\nSolutions Architect with 10+ years delivering distributed cloud architectures, event-driven streaming pipelines, and regulatory-compliant banking platforms across Southeast Asia.\n\nEXPERIENCE\nLead Solutions Architect | Grab, Singapore (2022 - Present)\n- Architected event-driven driver matching platform processing 50K events/second via Kafka.\n- Directed migration of monolithic core systems to cloud-native microservices.\n\nCloud Architect | DBS Bank, Singapore (2018 - 2022)\n- Designed MAS-compliant hybrid cloud foundation for core wealth management services.\n\nEvent Coordinator | Singapore Expo, Singapore (2017 - 2018)\n- Trade show registration and conference attendee scheduling.\n\nTECHNICAL EXPERTISE\nEnterprise Architecture, AWS Solutions Architect, Microservices, Kubernetes, Data Platform, Kafka, Java, System Design, Cybersecurity, Cloud Migration\n\nEDUCATION\nBachelor of Computing in Information Systems | National University of Singapore (2017)"
+  },
+  "IN": {
+    "name": "Rajesh Kumar",
+    "primary_profession": "Senior Backend Engineer",
+    "country_code": "IN",
+    "location": "Bangalore, Karnataka, India",
+    "email": "rajesh.kumar@backend-india.io",
+    "phone": "+91 98765 43210",
+    "target_roles": [
+      "Senior Backend Engineer",
+      "Backend Developer",
+      "Java Tech Lead",
+      "Distributed Systems Engineer"
+    ],
+    "target_locations": [
+      "Bangalore, India",
+      "Hyderabad, India",
+      "Remote"
+    ],
+    "skills": [
+      "Java",
+      "Spring Boot",
+      "Microservices",
+      "Apache Kafka",
+      "Distributed Systems",
+      "Redis",
+      "PostgreSQL",
+      "Docker",
+      "Kubernetes",
+      "Low Latency Design",
+      "customer support",
+      "telecalling"
+    ],
+    "raw_resume_text": "RAJESH KUMAR\nBangalore, Karnataka, India | rajesh.kumar@backend-india.io | +91 98765 43210\n\nPROFESSIONAL SUMMARY\nSenior Backend Engineer with 7+ years designing high-throughput distributed systems, event-driven microservices with Spring Boot & Kafka, and high-performance persistence architectures.\n\nEXPERIENCE\nSenior Backend Engineer | Flipkart, Bangalore, India (2022 - Present)\n- Built flash sale order orchestration engine scaling to 150K transactions per minute.\n- Optimized Redis caching and PostgreSQL partitioning reducing database load by 45%.\n\nSoftware Engineer | Swiggy, Bangalore, India (2019 - 2022)\n- Engineered real-time delivery partner tracking APIs with sub-50ms latency SLAs.\n\nCustomer Support Associate | BPO Solutions, Bangalore, India (2018 - 2019)\n- Handled customer inbound calls and product query tickets.\n\nCORE SKILLS\nJava, Spring Boot, Microservices, Apache Kafka, Distributed Systems, Redis, PostgreSQL, Docker, Kubernetes, Low Latency Design\n\nEDUCATION\nBachelor of Engineering in Information Science | RV College of Engineering, Bangalore (2018)"
+  }
+}

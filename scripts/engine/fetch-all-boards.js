@@ -574,13 +574,13 @@ async function fetchUSAJobs() {
     return console.error(`[Fetch] USAJOBS skipped (${countryScope} mode).`);
   }
   
-  const usajobsKey = process.env.USAJOBS_API_KEY || process.env.USAJOBS_AUTH_KEY;
+  const usajobsKey = process.env.USAJOBS_API_KEY || process.env.USAJOBS_AUTH_KEY || (settings.api_keys?.usajobs?.USAJOBS_API_KEY);
   if (!usajobsKey) return;
 
   let count = 0;
   try {
-    const userAgent = process.env.USAJOBS_USER_AGENT || process.env.USAJOBS_EMAIL || process.env.SMTP_USER || process.env.N8N_BASIC_AUTH_USER || profileObj.contact?.email || 'candidate@local.dev';
-    const isNationwideOrRemote = /remote|anywhere|united states|usa|all states/i.test(CTX.loc);
+    const userAgent = process.env.USAJOBS_USER_AGENT || (settings.api_keys?.usajobs?.USAJOBS_USER_AGENT) || process.env.USAJOBS_EMAIL || process.env.SMTP_USER || process.env.N8N_BASIC_AUTH_USER || profileObj.contact?.email || 'candidate@local.dev';
+    const isNationwideOrRemote = /remote|anywhere|united states|usa|all states/i.test(CTX.loc) || candidateWorkType.toLowerCase().includes('remote') || candidateWorkType === 'Open to All';
     let locQuery = '';
     if (!isNationwideOrRemote && CTX.loc) {
       locQuery = `&LocationName=${encodeURIComponent(CTX.loc)}`;
@@ -589,7 +589,7 @@ async function fetchUSAJobs() {
     const cleanRole = CTX.role.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || CTX.role;
     const url = `https://data.usajobs.gov/api/search?Keyword=${encodeURIComponent(cleanRole)}${locQuery}&ResultsPerPage=25`;
     
-    const res = await hostFetch(url, {
+    let res = await hostFetch(url, {
       headers: {
         'User-Agent': userAgent,
         'Authorization-Key': usajobsKey,
@@ -599,8 +599,24 @@ async function fetchUSAJobs() {
 
     if (!res.ok) return console.error(`[Fetch] USAJOBS HTTP ${res.status}`);
 
-    const data = await res.json();
-    const items = data.SearchResult?.SearchResultItems || [];
+    let data = await res.json();
+    let items = data.SearchResult?.SearchResultItems || [];
+
+    // If local query yielded 0 items and candidate allows telework/remote, fallback to nationwide search
+    if (items.length === 0 && locQuery) {
+      const nationwideUrl = `https://data.usajobs.gov/api/search?Keyword=${encodeURIComponent(cleanRole)}&ResultsPerPage=25`;
+      const resNationwide = await hostFetch(nationwideUrl, {
+        headers: {
+          'User-Agent': userAgent,
+          'Authorization-Key': usajobsKey,
+          'Host': 'data.usajobs.gov'
+        }
+      });
+      if (resNationwide.ok) {
+        const nwData = await resNationwide.json();
+        items = nwData.SearchResult?.SearchResultItems || [];
+      }
+    }
     
     for (const wrap of items) {
       const desc = wrap.MatchedObjectDescriptor || {};
@@ -618,13 +634,13 @@ async function fetchUSAJobs() {
       const rawSummary = summaryParts.length > 0 ? summaryParts.join('\n\n') : `${rawTitle} at ${rawCompany}`;
       const isTelework = Boolean(desc.UserArea?.Details?.TeleworkEligible || desc.UserArea?.Details?.RemoteIndicator || /remote|telework/i.test(locDisplay) || /remote|telework/i.test(rawSummary));
 
-      if (rawTitle && rawUrl && isJobLocationEligible(locDisplay, activeLocations, countryScope, isTelework) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(locDisplay, rawSummary, rawTitle, candidateWorkType, isTelework)) {
+      if (rawTitle && rawUrl && isJobLocationEligible(locDisplay, activeLocations, countryScope, isTelework, rawSummary) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(locDisplay, rawSummary, rawTitle, candidateWorkType, isTelework)) {
         const ujId = wrap.MatchedObjectId || crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
         allFetchedJobs.push({
           id: `usajobs_${ujId}`,
           title: rawTitle,
           company: rawCompany,
-          location: locDisplay,
+          location: isTelework ? `${locDisplay} (Telework/Remote)` : locDisplay,
           created: desc.PublicationStartDate || new Date().toISOString(),
           description: rawSummary,
           redirect_url: rawUrl,
@@ -656,7 +672,8 @@ async function fetchGlobalRemoteFeeds() {
   // 1. ArbeitNow API
   if (boardsEnabled.arbeitnow !== false) {
     try {
-      const url = `https://www.arbeitnow.com/api/job-board-api?search=${encodeURIComponent(CTX.role)}`;
+      const cleanRole = CTX.role.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || CTX.role;
+      const url = `https://www.arbeitnow.com/api/job-board-api?search=${encodeURIComponent(cleanRole)}`;
       const res = await hostFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (res.ok) {
         const data = await res.json();
@@ -667,7 +684,7 @@ async function fetchGlobalRemoteFeeds() {
           const rawLoc = item.remote ? `${item.location || 'Remote'} (Remote)` : (item.location || 'Remote');
           const rawDesc = preserveRichJobDescription(item.description, `${rawTitle} at ${rawCompany}`);
 
-          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, item.remote)) {
+          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope, Boolean(item.remote), rawDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, item.remote)) {
             allFetchedJobs.push({
               id: `arbeitnow_${item.slug || crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`,
               title: rawTitle,
@@ -690,7 +707,8 @@ async function fetchGlobalRemoteFeeds() {
   // 2. Himalayas Remote API
   if (boardsEnabled.himalayas !== false) {
     try {
-      const url = `https://himalayas.app/jobs/api?search=${encodeURIComponent(CTX.role)}&limit=20`;
+      const cleanRole = CTX.role.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || CTX.role;
+      const url = `https://himalayas.app/jobs/api?search=${encodeURIComponent(cleanRole)}&limit=20`;
       const res = await hostFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (res.ok) {
         const data = await res.json();
@@ -701,7 +719,7 @@ async function fetchGlobalRemoteFeeds() {
           const rawLoc = (item.locationRestrictions && item.locationRestrictions.length > 0) ? item.locationRestrictions.join(', ') : 'Worldwide (Remote)';
           const rawDesc = preserveRichJobDescription(item.excerpt, `${rawTitle} at ${rawCompany}`);
 
-          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, true)) {
+          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope, true, rawDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, true)) {
             allFetchedJobs.push({
               id: `himalayas_${item.id || crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`,
               title: rawTitle,
@@ -744,7 +762,8 @@ async function fetchGlobalRemoteFeeds() {
       else if (/finance|accounting/i.test(lowerRole)) remotiveCategory = '&category=finance-legal';
       else if (/hr|recruiter|people/i.test(lowerRole)) remotiveCategory = '&category=hr';
 
-      const url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(CTX.role)}${remotiveCategory}&limit=20`;
+      const cleanRole = CTX.role.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || CTX.role;
+      const url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(cleanRole)}${remotiveCategory}&limit=20`;
       const res = await hostFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (res.ok) {
         const data = await res.json();
@@ -755,7 +774,7 @@ async function fetchGlobalRemoteFeeds() {
           const rawLoc = item.candidate_required_location ? `${item.candidate_required_location} (Remote)` : 'Worldwide (Remote)';
           const rawDesc = preserveRichJobDescription(item.description, `${rawTitle} at ${rawCompany}`);
           
-          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, true)) {
+          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope, true, rawDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, true)) {
             allFetchedJobs.push({
               id: `remotive_${item.id}`,
               title: rawTitle,
@@ -789,34 +808,47 @@ async function fetchGlobalRemoteFeeds() {
       else if (/finance|accounting/i.test(lowerRole)) jobicyIndustry = '&industry=finance';
       else if (/hr|recruiter|people/i.test(lowerRole)) jobicyIndustry = '&industry=supporting';
 
+      const cleanTag = CTX.role.toLowerCase().replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim().replace(/[^a-z0-9]+/g, '-');
       const geoParam = countryScope === 'CA' ? 'canada' : (countryScope === 'US' ? 'usa' : '');
-      const url = geoParam
-        ? `https://jobicy.com/api/v2/remote-jobs?count=20&geo=${geoParam}${jobicyIndustry}&tag=${encodeURIComponent(CTX.role)}`
-        : `https://jobicy.com/api/v2/remote-jobs?count=20${jobicyIndustry}&tag=${encodeURIComponent(CTX.role)}`;
+      const urlWithTag = geoParam
+        ? `https://jobicy.com/api/v2/remote-jobs?count=20&geo=${geoParam}${jobicyIndustry}&tag=${encodeURIComponent(cleanTag)}`
+        : `https://jobicy.com/api/v2/remote-jobs?count=20${jobicyIndustry}&tag=${encodeURIComponent(cleanTag)}`;
         
-      const res = await hostFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      if (res.ok) {
-        const data = await res.json();
-        for (const item of (data.jobs || [])) {
-          const rawTitle = item.jobTitle ? item.jobTitle.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
-          const rawUrl = item.url || '';
-          const rawCompany = item.companyName || 'Remote Employer';
-          const rawLoc = item.jobGeo ? `${item.jobGeo} (Remote)` : 'Worldwide (Remote)';
-          const rawDesc = preserveRichJobDescription(item.jobDescription, `${rawTitle} at ${rawCompany}`);
-          
-          if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, true)) {
-            allFetchedJobs.push({
-              id: `jobicy_${item.id}`,
-              title: rawTitle,
-              company: rawCompany,
-              location: rawLoc,
-              created: item.pubDate || new Date().toISOString(),
-              description: rawDesc,
-              redirect_url: rawUrl,
-              source: 'Jobicy'
-            });
-            count++;
-          }
+      let res = await hostFetch(urlWithTag, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      let data = res.ok ? await res.json() : null;
+      let jobicyItems = (data && Array.isArray(data.jobs)) ? data.jobs : [];
+
+      // If tag yielded no jobs, fallback to industry & geo only
+      if (jobicyItems.length === 0 && jobicyIndustry) {
+        const fallbackUrl = geoParam
+          ? `https://jobicy.com/api/v2/remote-jobs?count=20&geo=${geoParam}${jobicyIndustry}`
+          : `https://jobicy.com/api/v2/remote-jobs?count=20${jobicyIndustry}`;
+        const fbRes = await hostFetch(fallbackUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (fbRes.ok) {
+          const fbData = await fbRes.json();
+          if (Array.isArray(fbData?.jobs)) jobicyItems = fbData.jobs;
+        }
+      }
+
+      for (const item of jobicyItems) {
+        const rawTitle = item.jobTitle ? item.jobTitle.replace(/<\/?[^>]+(>|$)/g, "").trim() : '';
+        const rawUrl = item.url || '';
+        const rawCompany = item.companyName || 'Remote Employer';
+        const rawLoc = item.jobGeo ? `${item.jobGeo} (Remote)` : 'Worldwide (Remote)';
+        const rawDesc = preserveRichJobDescription(item.jobDescription, `${rawTitle} at ${rawCompany}`);
+        
+        if (rawTitle && rawUrl && isJobLocationEligible(rawLoc, activeLocations, countryScope, true, rawDesc) && isJobRoleRelevant(rawTitle, activeTitles) && isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, true)) {
+          allFetchedJobs.push({
+            id: `jobicy_${item.id}`,
+            title: rawTitle,
+            company: rawCompany,
+            location: rawLoc,
+            created: item.pubDate || new Date().toISOString(),
+            description: rawDesc,
+            redirect_url: rawUrl,
+            source: 'Jobicy'
+          });
+          count++;
         }
       }
     } catch (err) {
@@ -856,15 +888,21 @@ async function fetchIndeed() {
   try {
     const isExplicitRemote = candidateWorkType.toLowerCase().includes('remote') || CTX.loc.toLowerCase() === 'remote';
     const locParam = isExplicitRemote ? 'Remote' : (CTX.loc || '');
-    const url = `https://${dom}/rss?q=${encodeURIComponent(CTX.role)}&l=${encodeURIComponent(locParam)}&sort=date`;
+    const cleanRole = CTX.role.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || CTX.role;
+    const url = `https://${dom}/rss?q=${encodeURIComponent(cleanRole)}&l=${encodeURIComponent(locParam)}&sort=date`;
     
     const res = await hostFetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9'
       },
       signal: AbortSignal.timeout(7000)
     });
+
+    if (res.status === 429 || res.status === 403) {
+      return; // Indeed Cloudflare rate-limit or bot challenge
+    }
 
     if (res.ok) {
       const xml = await res.text();
@@ -896,7 +934,7 @@ async function fetchIndeed() {
         const negIndeed = isExplicitlyNegativeRemote(`${rawTitle} ${rawDesc}`);
         const isRemoteIndeed = !negIndeed && (isExplicitRemote || /remote|telecommute|work from home/i.test(`${rawTitle} ${rawDesc}`));
 
-        if (isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteIndeed) &&
+        if (isJobLocationEligible(rawLoc, activeLocations, countryScope, isRemoteIndeed, rawDesc) &&
             isJobRoleRelevant(rawTitle, activeTitles) &&
             isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isRemoteIndeed)) {
           const indeedId = crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10);
@@ -918,6 +956,81 @@ async function fetchIndeed() {
     // Non-fatal fallback
   }
   if (count > 0) console.error(`[Fetch] Indeed (${countryScope}) found: ${count} jobs`);
+}
+
+/**
+ * Fetches jobs from Dice (Dedicated US Tech & Engineering Careers).
+ */
+async function fetchDice() {
+  if (boardsEnabled.dice === false) return;
+  if (countryScope !== 'US' && countryScope !== 'US_CA' && countryScope !== 'GLOBAL') return;
+
+  let count = 0;
+  try {
+    const isExplicitRemote = candidateWorkType.toLowerCase().includes('remote') || CTX.loc.toLowerCase() === 'remote';
+    const cleanCity = isExplicitRemote ? 'Remote' : (CTX.loc ? CTX.loc.split(',')[0].trim() : 'Seattle');
+    const cleanRole = CTX.role.replace(/^(senior|lead|principal|sr\.?)\s+/i, '').trim() || CTX.role;
+    const url = `https://www.dice.com/jobs/q-${encodeURIComponent(cleanRole)}-l-${encodeURIComponent(cleanCity)}-jobs`;
+
+    const res = await hostFetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      signal: AbortSignal.timeout(9000)
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+      const startToken = '\\"jobList\\":{\\"data\\":[';
+      const startIdx = html.indexOf(startToken);
+      if (startIdx !== -1) {
+        const endToken = '],\\"meta\\":';
+        const endIdx = html.indexOf(endToken, startIdx);
+        if (endIdx !== -1) {
+          const rawArray = html.slice(startIdx + '\\"jobList\\":{\\"data\\":'.length, endIdx + 1);
+          const unescaped = rawArray.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+          let diceJobs = [];
+          try {
+            diceJobs = JSON.parse(unescaped);
+          } catch (_) {}
+
+          for (const item of diceJobs) {
+            const rawTitle = item.title || CTX.role;
+            const rawComp = item.companyName || 'Tech Employer (Dice)';
+            const city = item.jobLocation?.city || '';
+            const state = item.jobLocation?.state || '';
+            const rawLoc = [city, state].filter(Boolean).join(', ') || CTX.loc || 'United States';
+            const rawUrl = item.detailsPageUrl || (item.guid ? `https://www.dice.com/job-detail/${item.guid}` : '');
+            const rawDesc = item.summary || `${rawTitle} at ${rawComp} in ${rawLoc}`;
+            const isDiceRemote = Array.isArray(item.workplaceTypes) && item.workplaceTypes.some(w => /remote/i.test(w));
+            const diceDate = item.postedDate || new Date().toISOString();
+
+            if (rawTitle && rawUrl &&
+                isJobLocationEligible(rawLoc, activeLocations, countryScope, isDiceRemote, rawDesc) &&
+                isJobRoleRelevant(rawTitle, activeTitles) &&
+                isJobWorkplaceEligible(rawLoc, rawDesc, rawTitle, candidateWorkType, isDiceRemote)) {
+              allFetchedJobs.push({
+                id: `dice_${item.guid || item.id || crypto.createHash('md5').update(rawUrl).digest('hex').slice(0, 10)}`,
+                title: rawTitle,
+                company: rawComp,
+                location: isDiceRemote ? `${rawLoc} (Remote)` : rawLoc,
+                created: diceDate,
+                description: rawDesc,
+                redirect_url: rawUrl,
+                source: 'Dice'
+              });
+              count++;
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Fetch] Dice error:', err.message);
+  }
+  if (count > 0) console.error(`[Fetch] Dice found: ${count} jobs`);
 }
 
 /**
@@ -1590,6 +1703,7 @@ async function fetchAllJobsInner(options = {}) {
     ['Global Remote Feeds', fetchGlobalRemoteFeeds],
     ['LinkedIn', fetchLinkedIn],
     ['Indeed', fetchIndeed],
+    ['Dice', fetchDice],
     ['Arbeitsagentur', fetchArbeitsagentur],
     ['MyCareersFuture', fetchMyCareersFuture],
     ['Seek', fetchSeek],
@@ -1641,6 +1755,7 @@ module.exports = {
   fetchLinkedIn,
   fetchLinkedInJobDetails,
   fetchIndeed,
+  fetchDice,
   fetchArbeitsagentur,
   fetchMyCareersFuture,
   fetchSeek,

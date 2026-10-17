@@ -932,3 +932,74 @@ body {
   }
 }
 
+/* ── Resume Upload Blocking Loader — Light Theme Contrast Overhaul ── */
+[data-theme="light"] #resume-upload-blocking-overlay {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-modal-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-ambient-glow {
+  background: rgba(217, 164, 65, 0.12) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-orbital-ring {
+  border-color: rgba(217, 119, 6, 0.35) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-badge-glow {
+  background: rgba(245, 158, 11, 0.2) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-logo-badge {
+  background: #FFFBEB !important;
+  border-color: #FCD34D !important;
+  color: #D97706 !important;
+  box-shadow: 0 4px 12px -2px rgba(217, 119, 6, 0.2) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-logo-badge svg {
+  color: #D97706 !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-engine-badge {
+  background: #FEF3C7 !important;
+  color: #B45309 !important;
+  border-color: #FCD34D !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-subtitle {
+  color: #64748B !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-progress-track {
+  background: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-parse-progress-bar {
+  background: linear-gradient(90deg, #D97706, #F59E0B, #D97706) !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay #resume-upload-status-text {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-status-ping {
+  background-color: #D97706 !important;
+}
+
+[data-theme="light"] #resume-upload-blocking-overlay .resume-upload-substatus {
+  color: #64748B !important;
+}
+
+

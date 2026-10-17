@@ -169,10 +169,10 @@ function extractResumeLocallyFromText(rawText) {
   // Location pattern: e.g. "Toronto, ON, Canada" or "Austin, TX"
   for (let i = 0; i < Math.min(8, rawLines.length); i++) {
     const line = rawLines[i];
-    if (line.includes('@') || line.includes('+1') || line.includes('|') || line.includes(',')) {
+    if (line.includes('@') || line.includes('+') || line.includes('|') || line.includes(',')) {
       const parts = line.split(/[|•·;]+/).map(p => p.trim());
       for (const p of parts) {
-        if (p.match(/^[A-Z][a-zA-Z\s]+,\s*[A-Z]{2}/i) || p.match(/\b(?:Toronto|Vancouver|Montreal|Calgary|Ottawa|Austin|New York|San Francisco|Seattle|Chicago|Boston|Dallas|Atlanta|Denver|Remote)\b/i)) {
+        if (p.match(/^[A-Z][a-zA-Z\s]+,\s*[A-Z]{2}/i) || p.match(/\b(?:Singapore|London|Manchester|Berlin|Munich|Frankfurt|Paris|Amsterdam|Sydney|Melbourne|Bangalore|Bengaluru|Mumbai|Delhi|Hyderabad|Dubai|Tokyo|Dublin|Toronto|Vancouver|Montreal|Calgary|Ottawa|Austin|New York|San Francisco|Seattle|Chicago|Boston|Dallas|Atlanta|Denver|Remote|Germany|Canada|United Kingdom|India|Australia|France|Netherlands|UAE|Japan|Ireland)\b/i)) {
           if (!p.includes('@') && !p.match(/\d{3}/) && !p.match(/Permanent Resident|Citizen/i) && p.length < 60 && !profile.contact.location) {
             profile.contact.location = p;
             profile.locations = [p];
@@ -219,7 +219,7 @@ function extractResumeLocallyFromText(rawText) {
   // ── 2. Structural Section Segmentation ──────────────────────────────────────
   const SECTION_PATTERNS = [
     { key: 'summary', regex: /^(?:professional\s+summary|executive\s+summary|summary|profile|professional\s+profile|about\s+me|career\s+objective|objective|career\s+summary):?$/i },
-    { key: 'skills', regex: /^(?:technical\s+skills|skills\s*&?\s*competencies|core\s+competencies|technologies|skills\s*&?\s*tools|technical\s+proficiencies|key\s+skills|areas\s+of\s+expertise|expertise|skills):?$/i },
+    { key: 'skills', regex: /^(?:technical\s+skills|technical\s+expertise|core\s+skills|skills\s*&?\s*competencies|core\s+competencies|technologies|skills\s*&?\s*tools|technical\s+proficiencies|key\s+skills|areas\s+of\s+expertise|expertise|skills):?$/i },
     { key: 'experience', regex: /^(?:professional\s+experience|work\s+experience|relevant\s+experience|experience|employment\s+history|career\s+history|work\s+history|positions\s+held|professional\s+background|clinical\s+experience|research\s+experience):?$/i },
     { key: 'certifications', regex: /^(?:certifications|certificates|licenses\s*&?\s*certifications|certifications\s*&?\s*licenses|professional\s+certifications|credentials):?$/i },
     { key: 'education', regex: /^(?:education|academic\s+background|academic\s+history|qualifications|academic\s+credentials|education\s*&?\s*training):?$/i },
@@ -811,10 +811,14 @@ function extractResumeLocallyFromText(rawText) {
   if (!profile.contact.country_code) {
     try {
       const { detectTargetCountryScope } = require('../core/geo-helper');
-      const detected = detectTargetCountryScope([
+      let detected = detectTargetCountryScope([
         profile.contact.location,
         ...(Array.isArray(profile.locations) ? profile.locations : [])
       ].filter(Boolean));
+      if (!detected || detected === 'GLOBAL') {
+        const headerBlock = rawLines.slice(0, 10).join(' ');
+        detected = detectTargetCountryScope(headerBlock);
+      }
       if (detected && detected !== 'GLOBAL') {
         profile.contact.country_code = detected;
         profile.country_code = detected;

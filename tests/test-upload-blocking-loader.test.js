@@ -23,6 +23,21 @@ test('Plan 27.1 - Full-Screen Resume Upload Blocking Loader Verification', async
     // 4. Progress bar and dynamic status container
     assert.match(html, /resume-parse-progress-bar/, 'Indeterminate progress bar element must be present');
     assert.match(html, /id="resume-upload-status-text"/, 'Dynamic status indicator container must exist');
+    // 5. Semantic classes for responsive and theme targeting (Phase 34)
+    assert.match(html, /resume-upload-modal-card/, 'Card container must have resume-upload-modal-card class');
+    assert.match(html, /resume-upload-engine-badge/, 'Engine pill must have resume-upload-engine-badge class');
+    assert.match(html, /resume-upload-progress-track/, 'Progress track must have resume-upload-progress-track class');
+  });
+
+  await t.test('theme.css contains premier light mode overrides for resume upload loader (Phase 34)', () => {
+    const themeCssPath = path.join(__dirname, '..', 'public', 'css', 'theme.css');
+    const themeCss = fs.readFileSync(themeCssPath, 'utf8');
+
+    assert.match(themeCss, /\[data-theme="light"\] #resume-upload-blocking-overlay/, 'Light mode overlay selector must be defined');
+    assert.match(themeCss, /\[data-theme="light"\] #resume-upload-blocking-overlay \.resume-upload-modal-card[\s\S]*?background:\s*#FFFFFF/i, 'Card must turn #FFFFFF in light mode');
+    assert.match(themeCss, /\[data-theme="light"\] #resume-upload-blocking-overlay \.resume-upload-engine-badge/, 'Engine badge must have light mode styling');
+    assert.match(themeCss, /\[data-theme="light"\] #resume-upload-blocking-overlay \.resume-upload-progress-track/, 'Progress track must have light mode styling');
+    assert.match(themeCss, /\[data-theme="light"\] #resume-upload-blocking-overlay #resume-upload-status-text/, 'Status text must have light mode styling');
   });
 
   await t.test('components.css contains orbital-spin and indeterminate progress keyframes', () => {

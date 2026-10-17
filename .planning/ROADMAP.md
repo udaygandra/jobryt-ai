@@ -316,13 +316,30 @@ updated: 2026-10-08T17:36:00Z
 | 30 | ✅ | 3/3 | 100% (v1.2) |
 | 31 | ✅ | 3/3 | 100% (v1.2) |
 | 32 | ✅ | 3/3 | 100% (v1.2) |
-| 33 | ○ | 0/0 | 0% (v1.2) |
+| 33 | ✅ | 3/3 | 100% (v1.2) |
+| 34 | ✅ | 3/3 | 100% (v1.2) |
 
 ---
 
 ### Phase 33: Resume-Parser-Driven Target Roles & Settings Auto-Population
-**Status:** Complete (Milestone v1.2)
+**Status:** ✅ Complete (Milestone v1.2)
 **Objective:** When user uploads resume, LLM extracts primary profession/title from resume header as highest-priority target role. Only includes past experience skills that match current profession or similar field. Auto-populates settings.json with target roles, country, and location from resume. Updates resume-parser.txt prompt to enforce this behavior.
+ 
+**Plans:**
+- [x] [Plan 33.1: Update prompts/resume-parser.txt — Add Two CRITICAL RULES](.planning/phases/33/33-PLAN.md)
+- [x] [Plan 33.2: Add filterSkillsByPrimaryProfession() in scripts/engine/resume-to-profile.js](.planning/phases/33/33-PLAN.md)
+- [x] [Plan 33.3: Integration Test & Verification](.planning/phases/33/33-PLAN.md)
+
+---
+
+### Phase 34: Light Mode Loader Contrast & Multi-Country Market Resume Ingestion Matrix
+**Status:** ✅ Complete (Milestone v1.2)
+**Objective:** Resolve light mode contrast in the resume upload loader popup (pure white card, dark readable typography, polished amber logo badge, crisp progress bar) and implement a comprehensive multi-country resume testing matrix across 6 markets (US, CA, DE, GB, SG, IN) to ensure resume parsing, settings sync, board routing, and ingestion filtering function reliably end-to-end.
+
+**Plans:**
+- [x] [Plan 34.1: Light Theme Loader Popup Redesign & Contrast Polish](.planning/phases/34/34-PLAN.md)
+- [x] [Plan 34.2: Multi-Country Resume Dataset & Parser Verification Suite](.planning/phases/34/34-PLAN.md)
+- [x] [Plan 34.3: End-to-End Market Board Ingestion & Country Routing Matrix](.planning/phases/34/34-PLAN.md)
 
 
 

@@ -360,7 +360,7 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
   }
 
   // 2. Determine if job is located in the US
-  let isUS = /\b(usa|united states|u\.s\.)\b/i.test(lower) || /\bremote\s*[-–(,]?\s*us(a)?\b/i.test(lower);
+  let isUS = /\b(usa|united states|u\.s\.)\b/i.test(lower) || /\bremote\s*[-–(,]?\s*us(a)?\b/i.test(lower) || (countryScope === 'US' && /\bmultiple locations\b/i.test(lower));
   if (!isUS && Array.isArray(geo.data?.cities)) {
     isUS = geo.data.cities.some(c => c.country_code === 'US' && Array.isArray(c.names) && c.names.some(n => lower === n || lower.includes(n)));
   }
@@ -379,7 +379,8 @@ function isJobLocationEligible(jobLoc, candidateLocations = [], countryScope = '
     isGlobal ||
     /\b(remote|work from home|wfh|telecommute|virtual|anywhere)\b/i.test(lower) ||
     /\(remote\)|-\s*remote|remote\s*in\b|canada\s*wide\s*remote|remote\s*across/i.test(lower) ||
-    /\b(100% remote|fully remote|remote work available across|remote across canada|remote anywhere in canada)\b/i.test(descText)
+    /\b(100% remote|fully remote|remote work available across|remote across canada|remote anywhere in canada)\b/i.test(descText) ||
+    (isExplicitRemote && /\bmultiple locations\b/i.test(lower))
   );
 
   // 3. Country Scope Gate (Strict Destination Routing)
